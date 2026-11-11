@@ -46,6 +46,7 @@ class VoucherDraft:
     reference_no: str | None
     party_ledger_id: object | None
     lines: tuple[VoucherLine, ...]
+    duplicate_override_reason: str | None = None  # the user's reason for saving a possible duplicate (V-10)
 
 
 @dataclass(frozen=True)

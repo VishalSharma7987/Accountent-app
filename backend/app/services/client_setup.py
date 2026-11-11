@@ -2,8 +2,10 @@
 opening balances.
 
 Every function takes a SQLAlchemy Connection and never commits: the caller (API request, CLI, test) owns the
-transaction. Each operation runs inside a SAVEPOINT, so a failure undoes the operation's own partial work even
-when the caller keeps its transaction open. Rules live in the engine; this file reads, writes and logs.
+transaction. create_client (a multi-step creation) runs inside a SAVEPOINT so a failure leaves no partial rows even
+when the caller keeps its transaction open; the other operations check everything BEFORE their first write. A
+database error aborts the transaction and the caller rolls it back. Rules live in the engine; this file reads,
+writes and logs.
 """
 
 import calendar
@@ -152,18 +154,17 @@ def add_ledger(conn: Connection, client_id: object, name: str, group_code: str, 
         raise ServiceError("invalid_ledger", "The ledger name is required.")
     if not repo.client_exists(conn, client_id):
         raise ServiceError("not_found", "Client not found.")
-    with conn.begin_nested():
-        group_id = repo.find_group_id(conn, client_id, group_code)
-        if group_id is None:
-            raise ServiceError("not_found", f"Account group '{group_code}' does not exist for this client.")
-        if repo.ledger_name_exists(conn, client_id, name):
-            raise ServiceError("duplicate_ledger", f"A ledger named '{name}' already exists for this client.")
-        ledger_id = uuid.uuid4()
-        conn.execute(
-            text("INSERT INTO ledgers (id, client_id, group_id, name) VALUES (:id, :c, :g, :n)"),
-            {"id": ledger_id, "c": client_id, "g": group_id, "n": name},
-        )
-        audit.log(conn, AuditEntry(client_id, actor, "create", "ledger", ledger_id, new={"name": name, "group_code": group_code}))
+    group_id = repo.find_group_id(conn, client_id, group_code)
+    if group_id is None:
+        raise ServiceError("not_found", f"Account group '{group_code}' does not exist for this client.")
+    if repo.ledger_name_exists(conn, client_id, name):
+        raise ServiceError("duplicate_ledger", f"A ledger named '{name}' already exists for this client.")
+    ledger_id = uuid.uuid4()
+    conn.execute(
+        text("INSERT INTO ledgers (id, client_id, group_id, name) VALUES (:id, :c, :g, :n)"),
+        {"id": ledger_id, "c": client_id, "g": group_id, "n": name},
+    )
+    audit.log(conn, AuditEntry(client_id, actor, "create", "ledger", ledger_id, new={"name": name, "group_code": group_code}))
     return ledger_id
 
 
@@ -197,10 +198,9 @@ def deactivate_ledger(conn: Connection, client_id: object, ledger_id: object, *,
             "ledger_in_use",
             f"Ledger '{ledger.name}' cannot be deactivated: it is used in {open_vouchers} draft or approved voucher(s).",
         )
-    with conn.begin_nested():
-        conn.execute(text("UPDATE ledgers SET is_active = false WHERE id = :id"), {"id": ledger_id})
-        audit.log(conn, AuditEntry(client_id, actor, "deactivate", "ledger", ledger_id,
-                                   old={"name": ledger.name, "is_active": True}, new={"name": ledger.name, "is_active": False}))
+    conn.execute(text("UPDATE ledgers SET is_active = false WHERE id = :id"), {"id": ledger_id})
+    audit.log(conn, AuditEntry(client_id, actor, "deactivate", "ledger", ledger_id,
+                               old={"name": ledger.name, "is_active": True}, new={"name": ledger.name, "is_active": False}))
 
 
 # ======================================================================================= set_opening_balance
@@ -248,23 +248,22 @@ def set_opening_balance(
     old = repo.openings_for_year(conn, client_id, financial_year_id).get(ledger_id)
     old_data = None if old is None else {"debit": f"{old.debit:.2f}", "credit": f"{old.credit:.2f}"}
     new_data = {"debit": f"{new_debit:.2f}", "credit": f"{new_credit:.2f}"}
-    with conn.begin_nested():
-        if new_debit == 0 and new_credit == 0:
-            conn.execute(
-                text("DELETE FROM opening_balances WHERE ledger_id = :l AND financial_year_id = :fy"),
-                {"l": ledger_id, "fy": financial_year_id},
-            )
-        else:
-            conn.execute(
-                text(
-                    "INSERT INTO opening_balances (client_id, ledger_id, financial_year_id, debit, credit) "
-                    "VALUES (:c, :l, :fy, :d, :cr) ON CONFLICT (ledger_id, financial_year_id) "
-                    "DO UPDATE SET debit = EXCLUDED.debit, credit = EXCLUDED.credit"
-                ),
-                {"c": client_id, "l": ledger_id, "fy": financial_year_id, "d": new_debit, "cr": new_credit},
-            )
-        audit.log(conn, AuditEntry(client_id, actor, "set_opening_balance", "opening_balance", ledger_id,
-                                   old=old_data, new=new_data))
+    if new_debit == 0 and new_credit == 0:
+        conn.execute(
+            text("DELETE FROM opening_balances WHERE ledger_id = :l AND financial_year_id = :fy"),
+            {"l": ledger_id, "fy": financial_year_id},
+        )
+    else:
+        conn.execute(
+            text(
+                "INSERT INTO opening_balances (client_id, ledger_id, financial_year_id, debit, credit) "
+                "VALUES (:c, :l, :fy, :d, :cr) ON CONFLICT (ledger_id, financial_year_id) "
+                "DO UPDATE SET debit = EXCLUDED.debit, credit = EXCLUDED.credit"
+            ),
+            {"c": client_id, "l": ledger_id, "fy": financial_year_id, "d": new_debit, "cr": new_credit},
+        )
+    audit.log(conn, AuditEntry(client_id, actor, "set_opening_balance", "opening_balance", ledger_id,
+                               old=old_data, new=new_data))
 
 
 def opening_balance_difference(conn: Connection, client_id: object, financial_year_id: object) -> reports.OpeningCheck:

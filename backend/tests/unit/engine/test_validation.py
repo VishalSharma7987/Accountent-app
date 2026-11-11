@@ -480,3 +480,32 @@ def test_validate_voucher_does_not_modify_its_inputs():
     d = draft("payment", [line("rent", dr="100"), line("cash", cr="100")])
     validate_voucher(d, ledgers, GROUPS, [(date(2026, 4, 1), date(2027, 3, 31))], lambda on: None)
     assert ledgers == LEDGERS
+
+
+# ============================================================================================ reversal vouchers
+
+
+def test_a_reversal_mirrors_the_original_so_the_type_rules_are_not_applied():
+    """A reversed Payment has a DEBIT to cash: without is_reversal the Payment rule (V-08) would reject it."""
+    reversed_payment = draft("payment", [line("rent", cr="10000"), line("cash", dr="10000")])
+    assert ids(run(reversed_payment)) == [("V-08", None)]
+    assert run(reversed_payment, is_reversal=True) == []
+
+
+def test_a_reversed_sale_and_purchase_pass_as_reversals():
+    sale = draft("sales", [line("rahul", cr="500"), line("sales", dr="500")], party="rahul")
+    purchase = draft("purchase", [line("purchases", cr="700"), line("sharma", dr="700")], party="sharma", reference_no="B-9")
+    assert ids(run(sale)) == [("V-08", None)] and run(sale, is_reversal=True) == []
+    assert ids(run(purchase)) == [("V-08", None)] and run(purchase, is_reversal=True) == []
+
+
+def test_a_reversal_is_still_checked_for_everything_else():
+    d = draft("payment", [line("rent", cr="100"), line("cash", dr="90")], on=date(2027, 4, 1), narration="")
+    assert ids(run(d, is_reversal=True)) == [("V-04", None), ("V-06", None), ("V-09", None)]
+    locked = draft("payment", [line("rent", cr="1"), line("cash", dr="1")], on=date(2026, 4, 5))
+    assert ids(run(locked, is_reversal=True, periods=april_locked)) == [("V-07", None)]
+
+
+def test_a_reversal_of_a_purchase_still_needs_the_reference():
+    d = draft("purchase", [line("purchases", cr="700"), line("sharma", dr="700")], party="sharma")
+    assert ids(run(d, is_reversal=True)) == [("V-14", None)]

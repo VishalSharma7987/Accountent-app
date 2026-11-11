@@ -62,6 +62,8 @@ def validate_voucher(
     groups_by_code: Mapping[str, Group],
     fy_ranges: Sequence[tuple[date, date]],
     period_for_date: Callable[[date], PeriodInfo | None],
+    *,
+    is_reversal: bool = False,
 ) -> list[ValidationError]:
     """Check a voucher draft and return every problem found (empty list = valid).
 
@@ -69,6 +71,8 @@ def validate_voucher(
     groups_by_code       the group tree (system groups + this client's own)
     fy_ranges            (start, end) of each financial year of the client
     period_for_date      the period a date falls into (open/locked) or None when no period exists
+    is_reversal          the voucher mirrors a posted voucher (every line swapped), so the voucher-type rules
+                         (V-08) do not apply: a reversed Payment legitimately has a debit to cash
     """
     if draft.voucher_type not in VOUCHER_TYPES:
         raise ValueError(f"Unknown voucher type {draft.voucher_type!r}")
@@ -163,11 +167,13 @@ def validate_voucher(
             ))
 
     # ---- V-08: voucher-type rules -------------------------------------------------------------------
-    if draft.voucher_type == "contra" and draft.party_ledger_id is not None:
+    if is_reversal:
+        pass
+    elif draft.voucher_type == "contra" and draft.party_ledger_id is not None:
         errors.append(ValidationError(
             "V-08", "A Contra voucher moves money between Cash and Bank; it cannot have a party ledger."
         ))
-    if len(lines) >= 2 and amounts_ok and ledgers_ok:
+    if not is_reversal and len(lines) >= 2 and amounts_ok and ledgers_ok:
         rows = [
             (number, ledgers_by_id[line.ledger_id], *amounts[number])
             for number, line in enumerate(lines, start=1)

@@ -70,8 +70,8 @@ def draft(vtype, lines, *, on=date(2026, 4, 5), narration="Test narration", refe
     return VoucherDraft(client, vtype, on, narration, reference_no, party, tuple(lines))
 
 
-def run(d, *, ledgers=LEDGERS, fy=FY_RANGES, periods=all_open):
-    return validate_voucher(d, ledgers, GROUPS, fy, periods)
+def run(d, *, ledgers=LEDGERS, fy=FY_RANGES, periods=all_open, is_reversal=False):
+    return validate_voucher(d, ledgers, GROUPS, fy, periods, is_reversal=is_reversal)
 
 
 def ids(errors):

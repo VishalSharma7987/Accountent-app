@@ -7,6 +7,7 @@ import pytest
 from dbfactory import Factory, check_deferred
 from sqlalchemy import text
 
+from app.db import connection, migrate
 from app.engine.models import Balance
 from app.services import audit, client_setup
 from app.services.client_setup import ClientProfile
@@ -167,11 +168,35 @@ def test_create_client_rejects_bad_input_and_saves_nothing(svc_conn, overrides, 
     assert [count(svc_conn, t) for t in ("clients", "financial_years", "periods", "ledgers", "audit_log")] == [0] * 5
 
 
+@pytest.fixture(scope="module")
+def shared_clients(test_engine, test_conn):
+    """Two committed clients built ONCE for the module (the create_client tests above build their own). The tests
+    below run in rolled-back transactions. Cleaned (guarded) when the module ends."""
+    connection.clean_test_tables(test_conn)
+    migrate.apply_seed_sql(test_conn)
+    with test_engine.begin() as conn:
+        first = create(conn)
+        second = create(conn, name="Other Client")
+    yield first, second
+    connection.clean_test_tables(test_conn)
+    migrate.apply_seed_sql(test_conn)
+
+
+@pytest.fixture
+def client_a(shared_clients):
+    return shared_clients[0]
+
+
+@pytest.fixture
+def client_b(shared_clients):
+    return shared_clients[1]
+
+
 # ================================================================================================ add_ledger
 
 
-def test_add_ledger_creates_it_in_a_system_group_and_logs_it(svc_conn):
-    created = create(svc_conn)
+def test_add_ledger_creates_it_in_a_system_group_and_logs_it(svc_conn, client_a, client_b):
+    created = client_a
     ledger_id = client_setup.add_ledger(svc_conn, created.client_id, "  HDFC Bank  ", "bank_accounts", actor="tester")
     assert q(svc_conn, "SELECT l.name, g.name, l.is_active FROM ledgers l JOIN account_groups g ON g.id = l.group_id "
                        "WHERE l.id = :id", id=ledger_id) == [("HDFC Bank", "Bank Accounts", True)]
@@ -179,8 +204,8 @@ def test_add_ledger_creates_it_in_a_system_group_and_logs_it(svc_conn):
     assert log == [("create", "ledger", "HDFC Bank")]
 
 
-def test_add_ledger_in_the_clients_own_sub_group(svc_conn):
-    created = create(svc_conn)
+def test_add_ledger_in_the_clients_own_sub_group(svc_conn, client_a, client_b):
+    created = client_a
     svc_conn.execute(text("INSERT INTO account_groups (client_id, code, name, parent_id, nature, report) "
                           "SELECT :c, 'petty_bank', 'Petty Bank', id, nature, report FROM account_groups "
                           "WHERE code = 'bank_accounts' AND client_id IS NULL"), {"c": created.client_id})
@@ -189,15 +214,15 @@ def test_add_ledger_in_the_clients_own_sub_group(svc_conn):
                   id=ledger_id) == "Petty Bank"
 
 
-def test_add_ledger_with_a_name_already_used_is_refused_ignoring_case(svc_conn):
-    created = create(svc_conn)
+def test_add_ledger_with_a_name_already_used_is_refused_ignoring_case(svc_conn, client_a, client_b):
+    created = client_a
     with pytest.raises(ServiceError) as info:
         client_setup.add_ledger(svc_conn, created.client_id, "cash", "cash_in_hand", actor="tester")
     assert (info.value.code, info.value.message) == ("duplicate_ledger", "A ledger named 'cash' already exists for this client.")
 
 
-def test_add_ledger_with_an_unknown_group_or_another_clients_group_is_refused(svc_conn):
-    a, b = create(svc_conn), create(svc_conn, name="Other Client")
+def test_add_ledger_with_an_unknown_group_or_another_clients_group_is_refused(svc_conn, client_a, client_b):
+    a, b = client_a, client_b
     svc_conn.execute(text("INSERT INTO account_groups (client_id, code, name, parent_id, nature, report) "
                           "SELECT :c, 'mine', 'Mine', id, nature, report FROM account_groups "
                           "WHERE code = 'bank_accounts' AND client_id IS NULL"), {"c": a.client_id})
@@ -207,8 +232,8 @@ def test_add_ledger_with_an_unknown_group_or_another_clients_group_is_refused(sv
         assert (info.value.code, info.value.message) == ("not_found", f"Account group '{bad}' does not exist for this client.")
 
 
-def test_add_ledger_needs_a_name_a_known_client_and_an_actor(svc_conn):
-    created = create(svc_conn)
+def test_add_ledger_needs_a_name_a_known_client_and_an_actor(svc_conn, client_a, client_b):
+    created = client_a
     for args, code in (
         (("  ", "bank_accounts"), "invalid_ledger"),
     ):
@@ -241,8 +266,8 @@ def post_payment(conn, created, amount="5000"):
     return f, voucher
 
 
-def test_deactivate_a_ledger_with_nothing_on_it(svc_conn):
-    created = create(svc_conn)
+def test_deactivate_a_ledger_with_nothing_on_it(svc_conn, client_a, client_b):
+    created = client_a
     client_setup.deactivate_ledger(svc_conn, created.client_id, ids(created)["Bank Charges"], actor="tester")
     assert scalar(svc_conn, "SELECT is_active FROM ledgers WHERE id = :id", id=ids(created)["Bank Charges"]) is False
     log = q(svc_conn, "SELECT old_data->>'is_active', new_data->>'is_active' FROM audit_log "
@@ -250,8 +275,8 @@ def test_deactivate_a_ledger_with_nothing_on_it(svc_conn):
     assert log == [("true", "false")]
 
 
-def test_deactivate_is_blocked_by_a_posted_balance(svc_conn):
-    created = create(svc_conn)
+def test_deactivate_is_blocked_by_a_posted_balance(svc_conn, client_a, client_b):
+    created = client_a
     post_payment(svc_conn, created)
     with pytest.raises(ServiceError) as info:
         client_setup.deactivate_ledger(svc_conn, created.client_id, ids(created)["Cash"], actor="tester")
@@ -260,8 +285,8 @@ def test_deactivate_is_blocked_by_a_posted_balance(svc_conn):
     assert scalar(svc_conn, "SELECT is_active FROM ledgers WHERE id = :id", id=ids(created)["Cash"]) is True
 
 
-def test_deactivate_is_blocked_by_an_opening_balance(svc_conn):
-    created = create(svc_conn)
+def test_deactivate_is_blocked_by_an_opening_balance(svc_conn, client_a, client_b):
+    created = client_a
     client_setup.set_opening_balance(svc_conn, created.client_id, created.financial_year_id, ids(created)["Salary"],
                                      "100000", None, actor="tester")
     with pytest.raises(ServiceError) as info:
@@ -270,8 +295,8 @@ def test_deactivate_is_blocked_by_an_opening_balance(svc_conn):
 
 
 @pytest.mark.parametrize("approve", [False, True])
-def test_deactivate_is_blocked_by_draft_and_approved_vouchers(svc_conn, approve):
-    created = create(svc_conn)
+def test_deactivate_is_blocked_by_draft_and_approved_vouchers(svc_conn, client_a, client_b, approve):
+    created = client_a
     f = raw(svc_conn)
     voucher = f.draft(created.client_id, created.financial_year_id,
                       [(ids(created)["Rent"], "100", "0"), (ids(created)["Cash"], "0", "100")], vtype="payment")
@@ -282,8 +307,8 @@ def test_deactivate_is_blocked_by_draft_and_approved_vouchers(svc_conn, approve)
     assert info.value.message == "Ledger 'Rent' cannot be deactivated: it is used in 1 draft or approved voucher(s)."
 
 
-def test_deactivate_is_allowed_when_a_voucher_and_its_reversal_cancel_out(svc_conn):
-    created = create(svc_conn)
+def test_deactivate_is_allowed_when_a_voucher_and_its_reversal_cancel_out(svc_conn, client_a, client_b):
+    created = client_a
     f, voucher = post_payment(svc_conn, created)
     f.reverse(created.client_id, created.financial_year_id, voucher,
               [(ids(created)["Rent"], "5000", "0"), (ids(created)["Cash"], "0", "5000")])
@@ -291,8 +316,8 @@ def test_deactivate_is_allowed_when_a_voucher_and_its_reversal_cancel_out(svc_co
     assert scalar(svc_conn, "SELECT is_active FROM ledgers WHERE id = :id", id=ids(created)["Cash"]) is False
 
 
-def test_deactivate_twice_and_foreign_ledgers_are_refused(svc_conn):
-    a, b = create(svc_conn), create(svc_conn, name="Other Client")
+def test_deactivate_twice_and_foreign_ledgers_are_refused(svc_conn, client_a, client_b):
+    a, b = client_a, client_b
     client_setup.deactivate_ledger(svc_conn, a.client_id, ids(a)["Bank Charges"], actor="tester")
     with pytest.raises(ServiceError) as info:
         client_setup.deactivate_ledger(svc_conn, a.client_id, ids(a)["Bank Charges"], actor="tester")
@@ -315,8 +340,8 @@ def opening_rows(conn, created):
                    "WHERE o.client_id = :c ORDER BY l.name", c=created.client_id)
 
 
-def test_set_opening_balance_stores_it_and_logs_it(svc_conn):
-    created = create(svc_conn)
+def test_set_opening_balance_stores_it_and_logs_it(svc_conn, client_a, client_b):
+    created = client_a
     set_opening(svc_conn, created, "Cash", "50000")
     set_opening(svc_conn, created, "Ramesh Kumar Capital A/c", None, "50000.00")
     assert opening_rows(svc_conn, created) == [
@@ -327,8 +352,8 @@ def test_set_opening_balance_stores_it_and_logs_it(svc_conn):
     assert log == [("set_opening_balance", True, "50000.00", "0.00"), ("set_opening_balance", True, "0.00", "50000.00")]
 
 
-def test_set_opening_balance_again_replaces_the_value_and_logs_the_old_one(svc_conn):
-    created = create(svc_conn)
+def test_set_opening_balance_again_replaces_the_value_and_logs_the_old_one(svc_conn, client_a, client_b):
+    created = client_a
     set_opening(svc_conn, created, "Cash", "50000")
     set_opening(svc_conn, created, "Cash", None, "700.5")
     assert opening_rows(svc_conn, created) == [("Cash", D("0"), D("700.50"))]
@@ -337,8 +362,8 @@ def test_set_opening_balance_again_replaces_the_value_and_logs_the_old_one(svc_c
     assert count(svc_conn, "opening_balances") == 1
 
 
-def test_set_opening_balance_to_nothing_removes_the_row(svc_conn):
-    created = create(svc_conn)
+def test_set_opening_balance_to_nothing_removes_the_row(svc_conn, client_a, client_b):
+    created = client_a
     set_opening(svc_conn, created, "Cash", "50000")
     set_opening(svc_conn, created, "Cash", "0", "")
     assert opening_rows(svc_conn, created) == []
@@ -354,16 +379,16 @@ def test_set_opening_balance_to_nothing_removes_the_row(svc_conn):
         (12.5, None, "invalid_amount", "floating-point"),
     ],
 )
-def test_set_opening_balance_rejects_bad_amounts(svc_conn, debit, credit, code, message):
-    created = create(svc_conn)
+def test_set_opening_balance_rejects_bad_amounts(svc_conn, client_a, client_b, debit, credit, code, message):
+    created = client_a
     with pytest.raises(ServiceError) as info:
         set_opening(svc_conn, created, "Cash", debit, credit)
     assert info.value.code == code and message in info.value.message
     assert opening_rows(svc_conn, created) == []
 
 
-def test_set_opening_balance_is_allowed_while_vouchers_are_only_drafts(svc_conn):
-    created = create(svc_conn)
+def test_set_opening_balance_is_allowed_while_vouchers_are_only_drafts(svc_conn, client_a, client_b):
+    created = client_a
     f = raw(svc_conn)
     f.draft(created.client_id, created.financial_year_id,
             [(ids(created)["Rent"], "100", "0"), (ids(created)["Cash"], "0", "100")], vtype="payment")
@@ -372,8 +397,8 @@ def test_set_opening_balance_is_allowed_while_vouchers_are_only_drafts(svc_conn)
 
 
 @pytest.mark.parametrize("reverse_it", [False, True])
-def test_set_opening_balance_is_blocked_once_a_voucher_is_posted_or_reversed(svc_conn, reverse_it):
-    created = create(svc_conn)
+def test_set_opening_balance_is_blocked_once_a_voucher_is_posted_or_reversed(svc_conn, client_a, client_b, reverse_it):
+    created = client_a
     f, voucher = post_payment(svc_conn, created)
     if reverse_it:
         f.reverse(created.client_id, created.financial_year_id, voucher,
@@ -385,16 +410,16 @@ def test_set_opening_balance_is_blocked_once_a_voucher_is_posted_or_reversed(svc
     assert opening_rows(svc_conn, created) == []
 
 
-def test_set_opening_balance_only_locks_the_financial_year_that_has_posted_vouchers(svc_conn):
-    created = create(svc_conn)
+def test_set_opening_balance_only_locks_the_financial_year_that_has_posted_vouchers(svc_conn, client_a, client_b):
+    created = client_a
     post_payment(svc_conn, created)
     second_year = raw(svc_conn).fy(created.client_id, 2027)
     client_setup.set_opening_balance(svc_conn, created.client_id, second_year, ids(created)["Cash"], "10", None, actor="tester")
     assert count(svc_conn, "opening_balances") == 1
 
 
-def test_set_opening_balance_refuses_foreign_ledgers_and_years(svc_conn):
-    a, b = create(svc_conn), create(svc_conn, name="Other Client")
+def test_set_opening_balance_refuses_foreign_ledgers_and_years(svc_conn, client_a, client_b):
+    a, b = client_a, client_b
     with pytest.raises(ServiceError) as info:
         client_setup.set_opening_balance(svc_conn, b.client_id, b.financial_year_id, ids(a)["Cash"], "1", None, actor="tester")
     assert (info.value.code, info.value.message) == ("not_found", "Ledger not found for this client.")
@@ -406,8 +431,8 @@ def test_set_opening_balance_refuses_foreign_ledgers_and_years(svc_conn):
 # ================================================================================ opening_balance_difference
 
 
-def test_opening_balance_difference_shows_what_is_missing_and_clears_when_equal(svc_conn):
-    created = create(svc_conn)
+def test_opening_balance_difference_shows_what_is_missing_and_clears_when_equal(svc_conn, client_a, client_b):
+    created = client_a
     check = client_setup.opening_balance_difference(svc_conn, created.client_id, created.financial_year_id)
     assert (check.total_debit, check.total_credit, check.is_balanced) == (D("0.00"), D("0.00"), True)
 
@@ -423,8 +448,8 @@ def test_opening_balance_difference_shows_what_is_missing_and_clears_when_equal(
     assert check.is_balanced is True
 
 
-def test_opening_balance_difference_counts_only_the_given_client_and_year(svc_conn):
-    a, b = create(svc_conn), create(svc_conn, name="Other Client")
+def test_opening_balance_difference_counts_only_the_given_client_and_year(svc_conn, client_a, client_b):
+    a, b = client_a, client_b
     set_opening(svc_conn, a, "Cash", "500")
     second_year = raw(svc_conn).fy(a.client_id, 2027)
     client_setup.set_opening_balance(svc_conn, a.client_id, second_year, ids(a)["Cash"], "70", None, actor="tester")
