@@ -1,0 +1,8 @@
+group_name,ledger_name,dr,cr
+Cash-in-hand,Cash,5000.00,0.00
+Bank Accounts,HDFC Bank,46000.00,0.00
+Sundry Debtors,Rahul Enterprises,4000.00,0.00
+Capital Account,Owner Capital A/c,0.00,50000.00
+Sales Accounts,Sales,0.00,10000.00
+Indirect Expenses,Rent,5000.00,0.00
+TOTAL,,60000.00,60000.00

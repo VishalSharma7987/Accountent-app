@@ -1,0 +1,7 @@
+ref_id,date,voucher_type,ledger_name,debit,credit,narration,reference_no,expected_rule_id,expected_message_contains
+X01,2026-04-16,payment,Rent,5000.00,0.00,Rent debit is more than cash credit,,V-04,equal
+X01,2026-04-16,payment,Cash,0.00,4000.00,Rent debit is more than cash credit,,V-04,equal
+X02,2026-04-17,payment,Rent,3000.00,0.00,,,V-09,narration
+X02,2026-04-17,payment,Cash,0.00,3000.00,,,V-09,narration
+X03,2026-04-18,sales,Rahul Enterprises,1000.005,0.00,Amount with three decimal places,INV-002,V-03,decimal
+X03,2026-04-18,sales,Sales,0.00,1000.005,Amount with three decimal places,INV-002,V-03,decimal

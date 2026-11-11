@@ -1,0 +1,7 @@
+ref_id,date,voucher_type,ledger_name,debit,credit,narration,reference_no
+V01,2026-04-05,sales,Rahul Enterprises,10000.00,0.00,Goods sold to Rahul Enterprises,INV-001
+V01,2026-04-05,sales,Sales,0.00,10000.00,Goods sold to Rahul Enterprises,INV-001
+V02,2026-04-10,receipt,HDFC Bank,6000.00,0.00,Part payment received from Rahul Enterprises,UTR-1001
+V02,2026-04-10,receipt,Rahul Enterprises,0.00,6000.00,Part payment received from Rahul Enterprises,UTR-1001
+V03,2026-04-15,payment,Rent,5000.00,0.00,April shop rent paid in cash,
+V03,2026-04-15,payment,Cash,0.00,5000.00,April shop rent paid in cash,

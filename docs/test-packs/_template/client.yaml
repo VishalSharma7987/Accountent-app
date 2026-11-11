@@ -1,0 +1,7 @@
+# Client profile for this test pack. All fields are required.
+name: Template Client                # any text; use dummy names only (no real client data)
+entity_type: proprietorship          # proprietorship | partnership | llp | company
+business_type: trading               # trading | service | manufacturing
+gst_type: regular                    # regular | composition | unregistered
+fy_start: 2026-04-01                 # YYYY-MM-DD, must be 1 April
+pack_end_date: 2026-04-30            # YYYY-MM-DD, inside the financial year; the expected files are "as on" this date
