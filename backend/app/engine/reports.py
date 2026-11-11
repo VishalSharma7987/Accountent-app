@@ -127,6 +127,26 @@ def ledger_statement(
     )
 
 
+# ================================================================================================ opening check
+
+
+@dataclass(frozen=True)
+class OpeningCheck:
+    total_debit: Decimal
+    total_credit: Decimal
+    difference: Balance  # side of the bigger total; nil when balanced
+    is_balanced: bool
+
+
+def check_openings(openings: Iterable[OpeningBalance]) -> OpeningCheck:
+    """Total opening debits against total opening credits. Posting stays blocked until they are equal."""
+    rows = list(openings)
+    total_debit = sum((x.debit for x in rows), ZERO).quantize(CENTS)
+    total_credit = sum((x.credit for x in rows), ZERO).quantize(CENTS)
+    difference = Balance.from_signed(total_debit - total_credit)
+    return OpeningCheck(total_debit, total_credit, difference, difference.side is None)
+
+
 # ============================================================================================== trial balance
 
 
