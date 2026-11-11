@@ -62,3 +62,54 @@ class ValidationError:
     rule_id: str  # V-01 .. V-14
     message: str  # plain accountant language
     line_no: int | None = None  # 1-based line of the voucher, None for voucher-level errors
+
+
+@dataclass(frozen=True)
+class OpeningBalance:
+    """A ledger's opening balance for a financial year: at most one side is above zero."""
+
+    debit: Decimal
+    credit: Decimal
+
+
+@dataclass(frozen=True)
+class Balance:
+    """A balance as shown on a report: a positive amount and its side. A nil balance has side None."""
+
+    amount: Decimal
+    side: str | None  # "Dr" | "Cr" | None
+
+    @staticmethod
+    def from_signed(value: Decimal) -> "Balance":
+        """Internal convention: debit positive, credit negative (CLAUDE.md section 5)."""
+        cents = Decimal("0.01")
+        if value > 0:
+            return Balance(value.quantize(cents), "Dr")
+        if value < 0:
+            return Balance((-value).quantize(cents), "Cr")
+        return Balance(Decimal("0.00"), None)
+
+    @property
+    def signed(self) -> Decimal:
+        if self.side == "Dr":
+            return self.amount
+        if self.side == "Cr":
+            return -self.amount
+        return Decimal("0.00")
+
+
+@dataclass(frozen=True)
+class PostedLine:
+    """One line of a voucher as stored. Reports count only status 'posted' and 'reversed'."""
+
+    voucher_id: object
+    voucher_number: str | None
+    voucher_type: str
+    voucher_date: date
+    narration: str
+    status: str  # draft | approved | posted | reversed
+    line_no: int
+    ledger_id: object
+    ledger_name: str
+    debit: Decimal
+    credit: Decimal
