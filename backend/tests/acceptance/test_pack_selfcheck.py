@@ -46,10 +46,10 @@ def test_a_wrong_expected_balance_is_reported_for_that_ledger_only(pack_dir):
     # hand check: Cash = 10000.00 opening - 5000.00 rent paid = 5000.00 Dr; Capital stays 50000.00 Cr
     break_cash_and_capital(pack_dir)
     assert balance_warnings(load_pack(pack_dir)) == [
-        "expected_ledger_balances.csv: 'Cash' is Dr 4000.00 there, but ledgers.csv + vouchers.csv give "
-        "Dr 5000.00 (difference 1000.00)",
-        "expected_ledger_balances.csv: 'Owner Capital A/c' is Cr 49000.00 there, but ledgers.csv + "
-        "vouchers.csv give Cr 50000.00 (difference 1000.00)",
+        ("expected_ledger_balances.csv: 'Cash' is Dr 4000.00 there, but ledgers.csv + vouchers.csv give "
+        "Dr 5000.00 (difference 1000.00)"),
+        ("expected_ledger_balances.csv: 'Owner Capital A/c' is Cr 49000.00 there, but ledgers.csv + "
+        "vouchers.csv give Cr 50000.00 (difference 1000.00)"),
     ]
 
 
@@ -62,10 +62,10 @@ def test_wrong_side_is_reported_with_both_sides(pack_dir):
     for name in ("expected_ledger_balances.csv", "expected_trial_balance.csv"):
         edit(pack_dir, name, "Sales,0.00,10000.00", "Sales,0.00,2000.00")
     assert balance_warnings(load_pack(pack_dir)) == [
-        "expected_ledger_balances.csv: 'Rahul Enterprises' is Cr 4000.00 there, but ledgers.csv + "
-        "vouchers.csv give Dr 4000.00 (difference 8000.00)",
-        "expected_ledger_balances.csv: 'Sales' is Cr 2000.00 there, but ledgers.csv + vouchers.csv give "
-        "Cr 10000.00 (difference 8000.00)",
+        ("expected_ledger_balances.csv: 'Rahul Enterprises' is Cr 4000.00 there, but ledgers.csv + "
+        "vouchers.csv give Dr 4000.00 (difference 8000.00)"),
+        ("expected_ledger_balances.csv: 'Sales' is Cr 2000.00 there, but ledgers.csv + vouchers.csv give "
+        "Cr 10000.00 (difference 8000.00)"),
     ]
 
 
@@ -81,10 +81,10 @@ def test_a_voucher_missing_from_vouchers_csv_shows_up(pack_dir):
     lines = (pack_dir / "vouchers.csv").read_text(encoding="utf-8").splitlines(keepends=True)
     (pack_dir / "vouchers.csv").write_text("".join(x for x in lines if not x.startswith("V03")), encoding="utf-8")
     assert balance_warnings(load_pack(pack_dir)) == [
-        "expected_ledger_balances.csv: 'Cash' is Dr 5000.00 there, but ledgers.csv + vouchers.csv give "
-        "Dr 10000.00 (difference 5000.00)",
-        "expected_ledger_balances.csv: 'Rent' is Dr 5000.00 there, but ledgers.csv + vouchers.csv give "
-        "nil (difference 5000.00)",
+        ("expected_ledger_balances.csv: 'Cash' is Dr 5000.00 there, but ledgers.csv + vouchers.csv give "
+        "Dr 10000.00 (difference 5000.00)"),
+        ("expected_ledger_balances.csv: 'Rent' is Dr 5000.00 there, but ledgers.csv + vouchers.csv give "
+        "nil (difference 5000.00)"),
     ]
 
 
