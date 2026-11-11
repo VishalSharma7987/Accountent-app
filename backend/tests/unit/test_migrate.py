@@ -38,10 +38,11 @@ def test_migration_files_are_sorted_and_names_checked(tmp_path):
 
 def test_real_migrations_are_in_order():
     names = [f.name for f in migrate.migration_files()]
-    assert names[:3] == [
+    assert names[:4] == [
         "0001_schema_migrations.sql",
         "0002_revoke_rls_auto_enable.sql",
         "0003_accounting_core.sql",
+        "0004_exact_money_and_closed_grants.sql",
     ]
 
 

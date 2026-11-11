@@ -39,10 +39,13 @@ cd backend
 
 ```powershell
 cd backend
-..\.venv\Scripts\python -m pytest            # all tests
-..\.venv\Scripts\python -m pytest tests\unit # engine/unit tests only (no database)
-..\.venv\Scripts\python -m ruff check .      # lint
+..\.venv\Scripts\python -m pytest                                  # fast: unit tests only, no database
+..\.venv\Scripts\python -m pytest -m integration                   # database tests (ledgermind_test schema), ~2 min
+..\.venv\Scripts\python -m pytest -m "integration or not integration"   # everything: required before every commit
+..\.venv\Scripts\python -m ruff check .                            # lint
 ```
+
+Database tests carry the `integration` marker and only ever run in the `ledgermind_test` schema.
 
 ## Database migrations
 

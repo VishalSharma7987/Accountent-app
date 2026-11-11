@@ -64,7 +64,7 @@ the tool will not allow posting for that client.
 
 Same columns as `vouchers.csv`, plus:
 
-- `expected_rule_id` — the rule that must reject it, `V-01` … `V-12` (list in `CLAUDE.md` section 5).
+- `expected_rule_id` — the rule that must reject it, `V-01` … `V-14` (list in `CLAUDE.md` section 5).
 - `expected_message_contains` — one word the error message should contain (not case-sensitive), e.g. `narration`.
 
 All lines of one wrong voucher carry the same two values. Here anything may be wrong **except** the date format and the

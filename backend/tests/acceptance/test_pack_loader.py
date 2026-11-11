@@ -204,7 +204,7 @@ def test_invalid_vouchers_may_have_bad_amounts_unknown_ledgers_and_no_narration(
 def test_invalid_vouchers_need_a_real_rule_id(pack_dir):
     edit(pack_dir, "invalid_vouchers.csv", "V-09,narration", "V-99,narration")
     found = problems(pack_dir)
-    assert any("invalid_vouchers.csv row 4" in p and "V-01 .. V-12" in p for p in found), found
+    assert any("invalid_vouchers.csv row 4" in p and "V-01 .. V-14" in p for p in found), found
 
 
 def test_invalid_vouchers_need_an_expected_message_word(pack_dir):

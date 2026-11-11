@@ -4,10 +4,14 @@ Runs only in the ledgermind_test schema. Each test builds its own rows inside a 
 Expected values are typed literally.
 """
 
+from decimal import Decimal
+
 import pytest
 from dbfactory import Factory, check_deferred, rejected, swapped
 
 from app.db import connection, migrate
+
+pytestmark = pytest.mark.integration
 
 
 @pytest.fixture
@@ -633,7 +637,7 @@ def test_lines_cannot_be_inserted_updated_or_deleted_unless_the_voucher_is_draft
     with rejected(f.conn, message=message):
         f.conn.execute("DELETE FROM voucher_lines WHERE voucher_id = %s AND line_no = 1", (vid,))
     total = f.conn.execute("SELECT sum(debit) FROM voucher_lines WHERE voucher_id = %s", (vid,)).fetchone()[0]
-    assert str(total) == "100.00"
+    assert total == Decimal("100.00")  # unchanged by the rejected statements
 
 
 def test_lines_can_be_inserted_updated_and_deleted_while_the_voucher_is_draft(f):

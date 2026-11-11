@@ -22,20 +22,23 @@ def _emptied_test_schema(test_conn):
     """Once per session: empty every test-schema table (guarded) and put the seed data back.
 
     TRUNCATE ... CASCADE also empties the seeded account_groups, so the idempotent seed files run again.
+    When the session ends, nothing may be left behind: a test that committed data fails the whole run.
     """
     connection.clean_test_tables(test_conn)
     migrate.apply_seed_sql(test_conn)
+    yield
+    test_conn.rollback()
+    leftover = test_conn.execute("SELECT count(*) FROM clients").fetchone()[0]
+    test_conn.rollback()
+    assert leftover == 0, "a test committed data into ledgermind_test and did not clean up"
 
 
 @pytest.fixture
 def clean_db(test_conn, _emptied_test_schema):
     """The test connection, inside a transaction that is rolled back after the test.
 
-    Tests never commit, so each starts from the seeded, otherwise empty schema; a test that did commit
-    would show up here as a leftover client and fail loudly.
+    Tests never commit (the one cleanup test does, and cleans up after itself), so every test starts
+    from the seeded, otherwise empty schema.
     """
-    test_conn.rollback()
-    leftover = test_conn.execute("SELECT count(*) FROM clients").fetchone()[0]
-    assert leftover == 0, "a previous test committed data into ledgermind_test"
     yield test_conn
     test_conn.rollback()

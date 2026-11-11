@@ -24,7 +24,9 @@ Jurisdiction: India only. Currency: INR. Financial year: 1 April – 31 March.
    only through a linked reversal voucher. Never UPDATE or DELETE a posted voucher or its lines.
 3. **No guessing.** Missing or ambiguous data → reject with a clear reason or send to review. Never fill
    a default silently.
-4. **Exact money.** Python `decimal.Decimal` only (never float). DB type `NUMERIC(18,2)`.
+4. **Exact money.** Python `decimal.Decimal` only (never float). DB type `NUMERIC(18,4)` with a CHECK that the
+   amount equals `round(amount, 2)`, so the database rejects 10.005 instead of rounding it; values read back have
+   4 decimals (10.5000) and are quantized to 2 places in Python.
    Amounts with more than 2 decimal places are rejected, not rounded. Where rounding is legally
    required (tax), use `ROUND_HALF_UP` in one shared helper and test it.
 5. **Law is data, not code.** Tax rates, thresholds, section numbers, limits live in rule tables with
@@ -83,6 +85,9 @@ Supabase Edge Functions, Supabase client SDK in the frontend.
   `authenticated`) and must **never** be added to the Supabase API "exposed schemas". Only the FastAPI
   backend connects, using the Postgres connection string from `.env`. Never put a Supabase key or DB
   password in frontend code or in git.
+- **API roles hold nothing:** `anon` and `authenticated` are revoked on every table, sequence and function of the
+  schema (and `PUBLIC` on functions), and in the default privileges of the migration role (migration 0004).
+  Defaults of Supabase's own `supabase_admin` role cannot be changed by us and do not apply to our objects.
 - **Database guards (migration 0003):** the database itself rejects what the app must never do: posted/reversed
   vouchers cannot be edited or deleted; `voucher_lines` change only while the voucher is `draft`; `audit_log` is
   append-only; a client's vouchers can only use that client's ledgers (composite foreign keys). Do not weaken
@@ -154,6 +159,12 @@ Capital Account (normally debit balance).
 | V-10 | Possible duplicate (same client + type + party ledger + reference no + total) → block unless the user confirms with a reason (stored) |
 | V-11 | Only Approved vouchers can be posted; posted vouchers cannot be edited or deleted |
 | V-12 | Reversal creates a new voucher with every line's Dr/Cr swapped, linked both ways; original becomes Reversed; a voucher can be reversed only once |
+| V-13 | If a party ledger is set on the voucher, that ledger must appear in the voucher's lines |
+| V-14 | Purchase and Debit Note vouchers require a reference no (the supplier's bill number; for a Debit Note, the original bill or debit note reference) |
+
+**Error messages** are written for an accountant, in plain language, with amounts in Indian format
+(1,00,000.00), e.g. "Debit 10,000.00 and Credit 9,000.00 are not equal (difference 1,000.00)". Every error carries its
+`rule_id` and, where it applies to one line, the `line_no`.
 
 Numbering: drafts get an internal ID only. The voucher number is assigned **at posting**, sequential
 per client + financial year + voucher type, no gaps, e.g. `SAL/2026-27/0001`.
@@ -171,7 +182,10 @@ difference and block posting for that client until fixed.
 3. Write tests first (red), then code (green), then clean up.
 4. Each test for an accounting rule names the rule ID, e.g. `test_V04_unbalanced_voucher_rejected`.
 5. Expected values in tests are typed literally (hand-calculated), never computed by the code under test.
-6. Run the full test suite before saying a step is done. Paste the summary line.
+6. Run the full test suite before saying a step is done, and before every commit. Paste the summary line.
+   `pytest` alone runs the fast unit tests only (no database); `pytest -m integration` runs the database tests
+   (mark them `@pytest.mark.integration` or `pytestmark = pytest.mark.integration`); the full suite is
+   `pytest -m "integration or not integration"`. Commit only after the full suite and `ruff check .` pass.
 7. End every step with: what was built, files changed, test result, open questions, next step.
 8. Never start the next phase. The owner moves to the next phase after the accountant sign-off.
 

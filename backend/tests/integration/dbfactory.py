@@ -4,6 +4,7 @@ Tests run inside one open transaction that the fixture rolls back; deferred cons
 are fired on demand with check_deferred().
 """
 
+import uuid
 from contextlib import contextmanager
 from datetime import date
 
@@ -42,30 +43,40 @@ class Factory:
         self._n += 1
         return self._n
 
-    # ---- masters -------------------------------------------------------------------------------
-    def client(self, name: str | None = None) -> str:
-        return self.conn.execute(
-            "INSERT INTO clients (name, entity_type, business_type, gst_type) "
-            "VALUES (%s, 'proprietorship', 'trading', 'regular') RETURNING id",
-            (name or f"Client {self._next()}",),
-        ).fetchone()[0]
+    # Ids are generated here (not RETURNING id) so several statements can go to the database in ONE round
+    # trip with conn.pipeline(): the tests' time is dominated by network latency, not by the database.
 
-    def fy(self, client_id, year: int = 2026) -> str:
-        return self.conn.execute(
-            "INSERT INTO financial_years (client_id, start_date, end_date) VALUES (%s, %s, %s) RETURNING id",
-            (client_id, date(year, 4, 1), date(year + 1, 3, 31)),
-        ).fetchone()[0]
+    # ---- masters -------------------------------------------------------------------------------
+    def client(self, name: str | None = None) -> uuid.UUID:
+        client_id = uuid.uuid4()
+        self.conn.execute(
+            "INSERT INTO clients (id, name, entity_type, business_type, gst_type) "
+            "VALUES (%s, %s, 'proprietorship', 'trading', 'regular')",
+            (client_id, name or f"Client {self._next()}"),
+        )
+        return client_id
+
+    def fy(self, client_id, year: int = 2026) -> uuid.UUID:
+        fy_id = uuid.uuid4()
+        self.conn.execute(
+            "INSERT INTO financial_years (id, client_id, start_date, end_date) VALUES (%s, %s, %s, %s)",
+            (fy_id, client_id, date(year, 4, 1), date(year + 1, 3, 31)),
+        )
+        return fy_id
 
     def group(self, code: str) -> str:
         return self.conn.execute(
             "SELECT id FROM account_groups WHERE code = %s AND client_id IS NULL", (code,)
         ).fetchone()[0]
 
-    def ledger(self, client_id, name: str, group_code: str = "indirect_expenses") -> str:
-        return self.conn.execute(
-            "INSERT INTO ledgers (client_id, group_id, name) VALUES (%s, %s, %s) RETURNING id",
-            (client_id, self.group(group_code), name),
-        ).fetchone()[0]
+    def ledger(self, client_id, name: str, group_code: str = "indirect_expenses") -> uuid.UUID:
+        ledger_id = uuid.uuid4()
+        self.conn.execute(
+            "INSERT INTO ledgers (id, client_id, group_id, name) VALUES (%s, %s, "
+            "(SELECT id FROM account_groups WHERE code = %s AND client_id IS NULL), %s)",
+            (ledger_id, client_id, group_code, name),
+        )
+        return ledger_id
 
     def period(self, client_id, fy_id, start: str, end: str) -> str:
         return self.conn.execute(
@@ -79,17 +90,19 @@ class Factory:
         self, client_id, fy_id, lines, *, vtype="journal", on="2026-04-05", narration="test", reverses=None
     ) -> str:
         """A draft voucher; lines = [(ledger_id, debit, credit), ...] as strings like '100.00'."""
-        vid = self.conn.execute(
-            "INSERT INTO vouchers (client_id, financial_year_id, voucher_type, voucher_date, narration, "
-            "created_by, reverses_voucher_id) VALUES (%s, %s, %s, %s, %s, 'tester', %s) RETURNING id",
-            (client_id, fy_id, vtype, on, narration, reverses),
-        ).fetchone()[0]
-        for number, (ledger_id, debit, credit) in enumerate(lines, start=1):
+        vid = uuid.uuid4()
+        with self.conn.pipeline():  # the voucher and all its lines in one round trip
             self.conn.execute(
-                "INSERT INTO voucher_lines (client_id, voucher_id, line_no, ledger_id, debit, credit) "
-                "VALUES (%s, %s, %s, %s, %s, %s)",
-                (client_id, vid, number, ledger_id, debit, credit),
+                "INSERT INTO vouchers (id, client_id, financial_year_id, voucher_type, voucher_date, narration, "
+                "created_by, reverses_voucher_id) VALUES (%s, %s, %s, %s, %s, %s, 'tester', %s)",
+                (vid, client_id, fy_id, vtype, on, narration, reverses),
             )
+            for number, (ledger_id, debit, credit) in enumerate(lines, start=1):
+                self.conn.execute(
+                    "INSERT INTO voucher_lines (client_id, voucher_id, line_no, ledger_id, debit, credit) "
+                    "VALUES (%s, %s, %s, %s, %s, %s)",
+                    (client_id, vid, number, ledger_id, debit, credit),
+                )
         return vid
 
     def approve(self, voucher_id) -> None:
@@ -107,8 +120,9 @@ class Factory:
 
     def balanced_lines(self, client_id) -> list[tuple]:
         """Two fresh ledgers and a balanced pair of lines: Dr 100.00 / Cr 100.00."""
-        a = self.ledger(client_id, f"Expense {self._next()}")
-        b = self.ledger(client_id, f"Cash {self._next()}", "cash_in_hand")
+        with self.conn.pipeline():
+            a = self.ledger(client_id, f"Expense {self._next()}")
+            b = self.ledger(client_id, f"Cash {self._next()}", "cash_in_hand")
         return [(a, "100.00", "0.00"), (b, "0.00", "100.00")]
 
     def posted(self, client_id, fy_id) -> str:
@@ -135,6 +149,8 @@ class Factory:
         return self.conn.execute("SELECT status FROM vouchers WHERE id = %s", (voucher_id,)).fetchone()[0]
 
     def setup(self):
-        """(client_id, fy_id) for a fresh client with FY 2026-27."""
-        client_id = self.client()
-        return client_id, self.fy(client_id)
+        """(client_id, fy_id) for a fresh client with FY 2026-27 (one round trip)."""
+        with self.conn.pipeline():
+            client_id = self.client()
+            fy_id = self.fy(client_id)
+        return client_id, fy_id

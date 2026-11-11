@@ -1,5 +1,9 @@
+import pytest
+
 from app import config
 from app.db import connection, migrate
+
+pytestmark = pytest.mark.integration
 
 
 def test_migrations_apply_in_test_schema_only(test_conn):

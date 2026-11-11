@@ -33,6 +33,10 @@ include = ["app*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+# Default run = fast tests with no database. `-m integration` = database tests only.
+# Everything (required before every commit): pytest -m "integration or not integration"
+addopts = "-m 'not integration' --strict-markers"
+markers = ["integration: needs the database (runs only in the ledgermind_test schema)"]
 
 [tool.ruff]
 line-length = 100

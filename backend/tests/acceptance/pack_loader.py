@@ -41,7 +41,7 @@ BALANCE_COLS = ("ledger_name", "closing_dr", "closing_cr")
 TB_COLS = ("group_name", "ledger_name", "dr", "cr")
 
 _AMOUNT = re.compile(r"^\d+\.\d{2}$")
-_RULE_ID = re.compile(r"^V-(0[1-9]|1[0-2])$")
+_RULE_ID = re.compile(r"^V-(0[1-9]|1[0-4])$")
 _ZERO = Decimal("0.00")
 
 
@@ -353,7 +353,7 @@ def _load_invalid(folder: Path, errs: _Collector) -> list[InvalidLineRow]:
             errs.add(file, number, f"voucher_type must be one of {', '.join(VOUCHER_TYPES)} (found: '{r['voucher_type']}')")
             ok = False
         if not _RULE_ID.match(r["expected_rule_id"]):
-            errs.add(file, number, f"expected_rule_id must be V-01 .. V-12 (found: '{r['expected_rule_id']}')")
+            errs.add(file, number, f"expected_rule_id must be V-01 .. V-14 (found: '{r['expected_rule_id']}')")
             ok = False
         if not r["expected_message_contains"]:
             errs.add(file, number, "expected_message_contains is empty (give a word the error message must contain)")
