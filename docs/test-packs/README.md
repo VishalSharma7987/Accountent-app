@@ -51,13 +51,14 @@ the tool will not allow posting for that client.
 
 ## vouchers.csv — the correct vouchers
 
-`ref_id, date, voucher_type, ledger_name, debit, credit, narration, reference_no`
+`ref_id, date, voucher_type, ledger_name, debit, credit, narration, reference_no, party_ledger`
 
 - **One row per voucher line.** Rows with the same `ref_id` are **one voucher** (V01, V02, … — your own label).
   All rows of a voucher must have the same date, voucher type, narration and reference number.
 - `voucher_type` is one of: `contra`, `payment`, `receipt`, `sales`, `purchase`, `credit_note`, `debit_note`, `journal`.
 - Every voucher must balance (total debit = total credit) and every line has either a debit or a credit.
-- `narration` is required. `reference_no` (bill / cheque / UTR number) may be empty.
+- `narration` is required. `reference_no` (bill / cheque / UTR number) may be empty, except for `purchase` and `debit_note`, which need the supplier bill number or the original reference (rule V-14).
+- `party_ledger` is the voucher's party (customer or supplier) as a ledger name; leave it empty when there is none. If it is filled, that ledger must also be one of the voucher's lines (rule V-13). Every row of a voucher carries the same value.
 - Put the vouchers in the order you want them posted.
 
 ## invalid_vouchers.csv — the deliberately wrong vouchers

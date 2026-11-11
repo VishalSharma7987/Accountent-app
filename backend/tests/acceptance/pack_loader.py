@@ -35,6 +35,7 @@ CLIENT_KEYS = ("name", "entity_type", "business_type", "gst_type", "fy_start", "
 LEDGER_COLS = ("ledger_name", "group_name", "opening_dr", "opening_cr")
 VOUCHER_COLS = (
     "ref_id", "date", "voucher_type", "ledger_name", "debit", "credit", "narration", "reference_no",
+    "party_ledger",
 )
 INVALID_COLS = VOUCHER_COLS + ("expected_rule_id", "expected_message_contains")
 BALANCE_COLS = ("ledger_name", "closing_dr", "closing_cr")
@@ -93,6 +94,7 @@ class VoucherLineRow:
     credit: Decimal
     narration: str
     reference_no: str
+    party_ledger: str  # name of the voucher's party ledger, "" when there is none
 
 
 @dataclass(frozen=True)
@@ -108,6 +110,7 @@ class InvalidLineRow:
     credit: str
     narration: str
     reference_no: str
+    party_ledger: str
     expected_rule_id: str
     expected_message_contains: str
 
@@ -280,7 +283,7 @@ def _check_ref_groups(file: str, rows: list, errs: _Collector) -> None:
     first: dict[str, object] = {}
     for r in rows:
         head = first.setdefault(r.ref_id, r)
-        for attr in ("date", "voucher_type", "narration", "reference_no"):
+        for attr in ("date", "voucher_type", "narration", "reference_no", "party_ledger"):
             if getattr(r, attr) != getattr(head, attr):
                 errs.add(file, r.row, f"ref_id {r.ref_id}: {attr} differs from its first row ({head.row})")
 
@@ -308,6 +311,9 @@ def _load_vouchers(
         if r["ledger_name"] not in ledger_names:
             errs.add(file, number, f"unknown ledger '{r['ledger_name']}' (must match a name in ledgers.csv exactly)")
             ok = False
+        if r["party_ledger"] and r["party_ledger"] not in ledger_names:
+            errs.add(file, number, f"unknown party_ledger '{r['party_ledger']}' (must match a name in ledgers.csv exactly)")
+            ok = False
         dr, cr = _parse_amount(r["debit"]), _parse_amount(r["credit"])
         if dr is None or cr is None:
             errs.add(file, number, "debit and credit must be plain numbers with 2 decimals (use 0.00 for the empty side)")
@@ -321,7 +327,7 @@ def _load_vouchers(
         if ok:
             out.append(VoucherLineRow(
                 number, r["ref_id"], d, r["voucher_type"], r["ledger_name"], dr, cr,
-                r["narration"], r["reference_no"],
+                r["narration"], r["reference_no"], r["party_ledger"],
             ))
     _check_ref_groups(file, out, errs)
     by_ref: dict[str, list[VoucherLineRow]] = {}
@@ -333,6 +339,9 @@ def _load_vouchers(
         total_dr, total_cr = sum(x.debit for x in lines), sum(x.credit for x in lines)
         if total_dr != total_cr:
             errs.add(file, lines[0].row, f"voucher {ref} is not balanced: Dr {total_dr} vs Cr {total_cr}")
+        party = lines[0].party_ledger
+        if party and party not in {x.ledger_name for x in lines}:
+            errs.add(file, lines[0].row, f"voucher {ref}: party_ledger '{party}' is not one of the voucher's lines")
     return out
 
 
@@ -361,7 +370,8 @@ def _load_invalid(folder: Path, errs: _Collector) -> list[InvalidLineRow]:
         if ok:
             out.append(InvalidLineRow(
                 number, r["ref_id"], d, r["voucher_type"], r["ledger_name"], r["debit"], r["credit"],
-                r["narration"], r["reference_no"], r["expected_rule_id"], r["expected_message_contains"],
+                r["narration"], r["reference_no"], r["party_ledger"], r["expected_rule_id"],
+                r["expected_message_contains"],
             ))
     _check_ref_groups(file, out, errs)
     by_ref: dict[str, set[tuple[str, str]]] = {}

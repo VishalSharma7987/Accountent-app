@@ -163,7 +163,7 @@ Create:
   is_active, client_id), VoucherLine(ledger_id, debit, credit), VoucherDraft(client_id, voucher_type, date,
   narration, reference_no, party_ledger_id, lines), ValidationError(rule_id, message, line_no|None).
 - engine/validation.py: validate_voucher(draft, ledgers_by_id, groups_by_code, fy_ranges, period_status_for_date)
-  -> list[ValidationError]. Return ALL errors, not just the first. Implement V-01..V-09 from CLAUDE.md.
+  -> list[ValidationError]. Return ALL errors, not just the first. Implement V-01..V-09, V-13 and V-14 from CLAUDE.md (messages in plain accountant language, Indian amount format, rule_id and line_no on every error).
   For V-08 resolve a ledger's group up the parent chain (a ledger under "Sundry Debtors" is in "Current Assets").
 - engine/duplicates.py: find_possible_duplicate(draft, existing_vouchers) implementing V-10 matching rule.
 

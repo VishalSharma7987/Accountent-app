@@ -71,8 +71,8 @@ def test_wrong_side_is_reported_with_both_sides(pack_dir):
 
 def test_invalid_vouchers_are_ignored(pack_dir):
     with (pack_dir / "invalid_vouchers.csv").open("a", encoding="utf-8") as handle:
-        handle.write("X09,2026-04-20,receipt,Cash,9999.00,0.00,Should never count,,V-04,equal\n")
-        handle.write("X09,2026-04-20,receipt,Rent,0.00,1.00,Should never count,,V-04,equal\n")
+        handle.write("X09,2026-04-20,receipt,Cash,9999.00,0.00,Should never count,,,V-04,equal\n")
+        handle.write("X09,2026-04-20,receipt,Rent,0.00,1.00,Should never count,,,V-04,equal\n")
     assert balance_warnings(load_pack(pack_dir)) == []
 
 

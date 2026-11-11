@@ -47,7 +47,7 @@ def test_template_pack_loads_with_literal_expected_values():
     assert len(pack.ledgers) == 6
     assert len(pack.vouchers) == 6
     assert {v.ref_id for v in pack.vouchers} == {"V01", "V02", "V03"}
-    assert len(pack.invalid_vouchers) == 6
+    assert len(pack.invalid_vouchers) == 10
     assert pack.expected_tb_total == (Decimal("60000.00"), Decimal("60000.00"))
     cash = next(b for b in pack.expected_balances if b.ledger_name == "Cash")
     assert (cash.closing_dr, cash.closing_cr) == (Decimal("5000.00"), Decimal("0.00"))
@@ -195,10 +195,10 @@ def test_wrong_header_is_reported(pack_dir):
 
 def test_invalid_vouchers_may_have_bad_amounts_unknown_ledgers_and_no_narration(pack_dir):
     with (pack_dir / "invalid_vouchers.csv").open("a", encoding="utf-8") as handle:
-        handle.write("X04,2026-04-20,journal,No Such Ledger,-5.00,0.00,,,V-05,exist\n")
-        handle.write("X04,2026-04-20,journal,Rent,0.00,abc,,,V-05,exist\n")
+        handle.write("X08,2026-04-20,journal,No Such Ledger,-5.00,0.00,,,,V-05,exist\n")
+        handle.write("X08,2026-04-20,journal,Rent,0.00,abc,,,,V-05,exist\n")
     pack = load_pack(pack_dir)
-    assert len(pack.invalid_vouchers) == 8
+    assert len(pack.invalid_vouchers) == 12
 
 
 def test_invalid_vouchers_need_a_real_rule_id(pack_dir):
@@ -214,8 +214,8 @@ def test_invalid_vouchers_need_an_expected_message_word(pack_dir):
 
 
 def test_invalid_voucher_lines_must_agree_on_expectation(pack_dir):
-    edit(pack_dir, "invalid_vouchers.csv", "4000.00,Rent debit is more than cash credit,,V-04,equal",
-         "4000.00,Rent debit is more than cash credit,,V-02,equal")
+    edit(pack_dir, "invalid_vouchers.csv", "4000.00,Rent debit is more than cash credit,,,V-04,equal",
+         "4000.00,Rent debit is more than cash credit,,,V-02,equal")
     found = problems(pack_dir)
     assert any("voucher X01" in p and "same expected_rule_id" in p for p in found), found
 
@@ -273,3 +273,42 @@ def test_all_problems_are_reported_together_not_just_the_first(pack_dir):
     edit(pack_dir, "vouchers.csv", "Rent,5000.00", "Rentt,5000.00")
     edit(pack_dir, "expected_trial_balance.csv", "TOTAL,,60000.00,60000.00", "TOTAL,,60000.00,59000.00")
     assert len(problems(pack_dir)) >= 3
+
+
+# ------------------------------------------------------------------ party_ledger column
+
+
+def test_party_ledger_must_be_a_ledger_of_the_pack(pack_dir):
+    edit(pack_dir, "vouchers.csv", "INV-001,Rahul Enterprises\nV01", "INV-001,Rahul Enterprisez\nV01")
+    found = problems(pack_dir)
+    assert any("vouchers.csv row 2" in p and "unknown party_ledger 'Rahul Enterprisez'" in p for p in found), found
+
+
+def test_party_ledger_of_a_valid_voucher_must_be_one_of_its_lines(pack_dir):
+    # V03 is a payment from Cash to Rent: naming Rahul Enterprises as its party breaks V-13
+    for old, new in (("5000.00,0.00,April shop rent paid in cash,,", "5000.00,0.00,April shop rent paid in cash,,Rahul Enterprises"),
+                     ("0.00,5000.00,April shop rent paid in cash,,", "0.00,5000.00,April shop rent paid in cash,,Rahul Enterprises")):
+        edit(pack_dir, "vouchers.csv", old, new)
+    found = problems(pack_dir)
+    assert any("voucher V03: party_ledger 'Rahul Enterprises' is not one of the voucher's lines" in p for p in found), found
+
+
+def test_party_ledger_must_be_the_same_on_every_line_of_a_voucher(pack_dir):
+    edit(pack_dir, "vouchers.csv", "Sales,0.00,10000.00,Goods sold to Rahul Enterprises,INV-001,Rahul Enterprises",
+         "Sales,0.00,10000.00,Goods sold to Rahul Enterprises,INV-001,")
+    found = problems(pack_dir)
+    assert any("vouchers.csv row 3" in p and "party_ledger differs" in p for p in found), found
+
+
+def test_invalid_vouchers_may_name_any_party_ledger_even_one_that_does_not_exist(pack_dir):
+    with (pack_dir / "invalid_vouchers.csv").open("a", encoding="utf-8") as handle:
+        handle.write("X08,2026-04-20,sales,Cash,5.00,0.00,Unknown party,INV-9,Nobody At All,V-05,party\n")
+        handle.write("X08,2026-04-20,sales,Sales,0.00,5.00,Unknown party,INV-9,Nobody At All,V-05,party\n")
+    pack = load_pack(pack_dir)
+    assert pack.invalid_vouchers[-1].party_ledger == "Nobody At All"
+
+
+def test_old_pack_without_the_party_ledger_column_is_reported(pack_dir):
+    edit(pack_dir, "vouchers.csv", "narration,reference_no,party_ledger", "narration,reference_no")
+    found = problems(pack_dir)
+    assert any("vouchers.csv row 1" in p and "header must be exactly" in p and "party_ledger" in p for p in found), found

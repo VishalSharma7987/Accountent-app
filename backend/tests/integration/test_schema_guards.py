@@ -7,6 +7,7 @@ Expected values are typed literally.
 from decimal import Decimal
 
 import pytest
+from chart_fixture import EXPECTED_GROUPS
 from dbfactory import Factory, check_deferred, rejected, swapped
 
 from app.db import connection, migrate
@@ -73,32 +74,6 @@ def test_every_table_has_row_level_security_and_no_policies(f):
 # Seed: system account groups
 # =====================================================================================================
 
-EXPECTED_GROUPS = [
-    # code, name, parent code, nature, report
-    ("bank_accounts", "Bank Accounts", "current_assets", "asset", "balance_sheet"),
-    ("capital_account", "Capital Account", None, "liability", "balance_sheet"),
-    ("cash_in_hand", "Cash-in-hand", "current_assets", "asset", "balance_sheet"),
-    ("current_assets", "Current Assets", None, "asset", "balance_sheet"),
-    ("current_liabilities", "Current Liabilities", None, "liability", "balance_sheet"),
-    ("deposits_asset", "Deposits (Asset)", "current_assets", "asset", "balance_sheet"),
-    ("direct_expenses", "Direct Expenses", None, "expense", "trading"),
-    ("direct_incomes", "Direct Incomes", None, "income", "trading"),
-    ("duties_taxes", "Duties & Taxes", "current_liabilities", "liability", "balance_sheet"),
-    ("fixed_assets", "Fixed Assets", None, "asset", "balance_sheet"),
-    ("indirect_expenses", "Indirect Expenses", None, "expense", "profit_loss"),
-    ("indirect_incomes", "Indirect Incomes", None, "income", "profit_loss"),
-    ("investments", "Investments", None, "asset", "balance_sheet"),
-    ("loans_advances_asset", "Loans & Advances (Asset)", "current_assets", "asset", "balance_sheet"),
-    ("loans_liability", "Loans (Liability)", None, "liability", "balance_sheet"),
-    ("provisions", "Provisions", "current_liabilities", "liability", "balance_sheet"),
-    ("purchase_accounts", "Purchase Accounts", None, "expense", "trading"),
-    ("reserves_surplus", "Reserves & Surplus", "capital_account", "liability", "balance_sheet"),
-    ("sales_accounts", "Sales Accounts", None, "income", "trading"),
-    ("stock_in_hand", "Stock-in-hand", "current_assets", "asset", "balance_sheet"),
-    ("sundry_creditors", "Sundry Creditors", "current_liabilities", "liability", "balance_sheet"),
-    ("sundry_debtors", "Sundry Debtors", "current_assets", "asset", "balance_sheet"),
-    ("suspense", "Suspense A/c", None, "liability", "balance_sheet"),
-]
 
 
 def test_seed_creates_the_23_system_groups_exactly(f):

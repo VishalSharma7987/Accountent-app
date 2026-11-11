@@ -177,17 +177,26 @@ difference and block posting for that client until fixed.
 
 ## 6. How to work on a phase
 
+Working mode (set by the owner on 2026-11-11): work through ALL steps of the current phase without stopping for
+approval between steps.
+
 1. Read `CLAUDE.md`, `docs/REQUIREMENTS.md`, and the current phase prompt.
-2. Restate the task in 5–10 lines and list anything ambiguous. If anything is ambiguous, ask before coding.
-3. Write tests first (red), then code (green), then clean up.
-4. Each test for an accounting rule names the rule ID, e.g. `test_V04_unbalanced_voucher_rejected`.
-5. Expected values in tests are typed literally (hand-calculated), never computed by the code under test.
-6. Run the full test suite before saying a step is done, and before every commit. Paste the summary line.
+2. Write tests first (red), then code (green), then clean up.
+3. Each test for an accounting rule names the rule ID, e.g. `test_V04_unbalanced_voucher_rejected`.
+4. Expected values in tests are typed literally (hand-calculated), never computed by the code under test.
+5. Small decisions: choose the standard Indian accounting practice, or the safest option, yourself, and record it in
+   `docs/DECISIONS.md` (date, step, decision, reason). Do not ask the owner about them.
+6. **STOP and ask the owner ONLY for:** (a) any legal value (tax rate, threshold, limit, section) that cannot be
+   verified from an official source; (b) anything that deletes or rewrites existing data; (c) any change to the
+   approved requirements in `docs/REQUIREMENTS.md`; (d) the end of the phase.
+7. Run the full test suite before saying a step is done, and before every commit. Paste the summary line.
    `pytest` alone runs the fast unit tests only (no database); `pytest -m integration` runs the database tests
    (mark them `@pytest.mark.integration` or `pytestmark = pytest.mark.integration`); the full suite is
-   `pytest -m "integration or not integration"`. Commit only after the full suite and `ruff check .` pass.
-7. End every step with: what was built, files changed, test result, open questions, next step.
-8. Never start the next phase. The owner moves to the next phase after the accountant sign-off.
+   `pytest -m "integration or not integration"`. Commit after each step, only when the full suite and
+   `ruff check .` pass.
+8. After each step append a 5-line status to `docs/PROGRESS.md` (step, done, tests, commit, decisions added).
+9. At the end of the phase run the phase acceptance check and give the owner ONE report. Never start the next phase:
+   the owner moves on after the accountant sign-off.
 
 ## 7. Repository layout
 
