@@ -68,3 +68,26 @@ def test_connect_checks_the_guard_for_the_test_schema(monkeypatch):
     with pytest.raises(SchemaGuardError):
         connection.connect("postgresql://x", "ledgermind_test")
     assert closed == [True]
+
+
+def test_cleanup_refuses_a_connection_outside_the_test_schema_and_sends_nothing_destructive():
+    sent = []
+
+    class FakeResult:
+        def fetchone(self):
+            return ("public",)
+
+        def fetchall(self):
+            return [("vouchers",)]
+
+    class FakeConn:
+        def execute(self, sql, *_args, **_kwargs):
+            sent.append(sql)
+            return FakeResult()
+
+        def commit(self):
+            sent.append("COMMIT")
+
+    with pytest.raises(SchemaGuardError):
+        connection.clean_test_tables(FakeConn())
+    assert sent == ["SELECT current_schema()"]  # nothing but the schema check was sent

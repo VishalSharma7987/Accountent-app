@@ -71,7 +71,9 @@ Supabase Edge Functions, Supabase client SDK in the frontend.
 - Schema changes: write the SQL file in `database/migrations/` first (the file in git is the source of
   truth), then apply it with the migration CLI from `backend/`:
   `python -m app.db.migrate --target test` first, run the tests, then `--target dev`.
-  The CLI creates `ledgermind_test` if missing. The Supabase MCP in `.mcp.json` is **read-only**
+  The CLI creates `ledgermind_test` if missing, then applies `database/seeds/*.sql` (idempotent, recorded as
+  `seeds/<file>` in `schema_migrations`). Seeds hold system data only (the account groups). The Supabase MCP in
+  `.mcp.json` is **read-only**
   (`read_only=true`) and is not used to apply migrations.
 - Use the Supabase MCP for: listing tables, running **read-only** checks, and reading advisors
   (security/performance). Do not hand-edit data through MCP.
@@ -81,6 +83,10 @@ Supabase Edge Functions, Supabase client SDK in the frontend.
   `authenticated`) and must **never** be added to the Supabase API "exposed schemas". Only the FastAPI
   backend connects, using the Postgres connection string from `.env`. Never put a Supabase key or DB
   password in frontend code or in git.
+- **Database guards (migration 0003):** the database itself rejects what the app must never do: posted/reversed
+  vouchers cannot be edited or deleted; `voucher_lines` change only while the voucher is `draft`; `audit_log` is
+  append-only; a client's vouchers can only use that client's ledgers (composite foreign keys). Do not weaken
+  these triggers to make a test or an import pass; fix the caller.
 - **Go-live cleanup** (before real client data; also move to a Pro project with backups):
   `DROP SCHEMA ledgermind_test CASCADE;`
 - Free projects pause after 7 days idle — if the DB is unreachable, ask the owner to resume it.

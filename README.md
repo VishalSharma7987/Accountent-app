@@ -58,6 +58,8 @@ cd backend
 ..\.venv\Scripts\python -m app.db.migrate --target dev    # schema public
 ```
 
+- After the migrations, `database/seeds/*.sql` are applied the same way (recorded as `seeds/<file>`); seeds are safe
+  to run twice. The test cleanup (`TRUNCATE`) re-runs them.
 - Migration files are schema-agnostic: they never write `public.` or `ledgermind_test.`; a unit test checks this.
 - Schema guard: test fixtures and `--target test` refuse to run unless `current_schema() = 'ledgermind_test'`.
   Test cleanup only runs `TRUNCATE` on tables inside `ledgermind_test`; nothing is ever dropped or truncated outside it.
