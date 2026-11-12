@@ -167,12 +167,25 @@ def _check_duplicates(conn: Connection, draft: VoucherDraft, draft_id: object | 
 # ============================================================================================== create/update
 
 
+def _validate_all(
+    conn: Connection, draft: VoucherDraft, draft_id: object | None
+) -> tuple[list[ValidationError], ValidationContext]:
+    """Every rule that applies to a draft, ordered: the engine rules plus the duplicate check (V-10)."""
+    errors, ctx = _validate(conn, draft)
+    return _order(errors + _check_duplicates(conn, draft, draft_id)), ctx
+
+
+def validate_draft(conn: Connection, draft: VoucherDraft, draft_id: object | None = None) -> list[ValidationError]:
+    """The errors create_draft/update_draft would return for this draft, WITHOUT saving or logging anything.
+    draft_id is the voucher being edited (it does not clash with itself under V-10). Used by the Excel dry run."""
+    return _validate_all(conn, draft, draft_id)[0]
+
+
 def create_draft(conn: Connection, draft: VoucherDraft, *, actor: str) -> DraftResult:
     """Validate and save a new draft. On rule errors (V-01..V-10, V-13, V-14) nothing is saved and all errors are
     returned. A possible duplicate (V-10) needs `draft.duplicate_override_reason` to be saved anyway."""
     actor = require_actor(actor)
-    errors, ctx = _validate(conn, draft)
-    errors = _order(errors + _check_duplicates(conn, draft, None))
+    errors, ctx = _validate_all(conn, draft, None)
     if errors:
         return DraftResult(None, errors)
     voucher_id = _insert_voucher(conn, draft, _financial_year_id(ctx, draft.voucher_date), actor)
@@ -192,8 +205,7 @@ def update_draft(conn: Connection, voucher_id: object, draft: VoucherDraft, *, a
         )
     if draft.client_id != record.client_id:
         raise ServiceError("client_mismatch", "A voucher cannot be moved to another client.")
-    errors, ctx = _validate(conn, draft)
-    errors = _order(errors + _check_duplicates(conn, draft, record.id))
+    errors, ctx = _validate_all(conn, draft, record.id)
     if errors:
         return DraftResult(None, errors)
     conn.execute(
