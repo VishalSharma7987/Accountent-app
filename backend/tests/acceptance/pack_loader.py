@@ -32,6 +32,9 @@ KNOWN_GROUPS = frozenset({
 })
 
 CLIENT_KEYS = ("name", "entity_type", "business_type", "gst_type", "fy_start", "pack_end_date")
+CLIENT_OPTIONAL_KEYS = ("proprietor_name", "partners")
+REVERSAL_COLS = ("ref_id", "reversal_date", "reason")
+LOCKED_COLS = ("month",)
 LEDGER_COLS = ("ledger_name", "group_name", "opening_dr", "opening_cr")
 VOUCHER_COLS = (
     "ref_id", "date", "voucher_type", "ledger_name", "debit", "credit", "narration", "reference_no",
@@ -73,6 +76,16 @@ class Client:
     gst_type: str
     fy_start: date
     pack_end_date: date
+    proprietor_name: str = ""  # needed for a proprietorship (its Capital account is named after the proprietor)
+    partners: tuple[str, ...] = ()  # needed for a partnership / LLP
+
+
+@dataclass(frozen=True)
+class ReversalRow:
+    row: int
+    ref_id: str  # the voucher (of vouchers.csv) to reverse
+    reversal_date: date
+    reason: str
 
 
 @dataclass(frozen=True)
@@ -140,6 +153,8 @@ class Pack:
     expected_balances: tuple[BalanceRow, ...]
     expected_tb: tuple[TrialBalanceRow, ...]
     expected_tb_total: tuple[Decimal, Decimal]  # (dr, cr) from the TOTAL row
+    reversals: tuple[ReversalRow, ...] = ()  # applied after every valid voucher is posted
+    locked_periods: tuple[str, ...] = ()  # months 'YYYY-MM' locked after the valid vouchers, before the wrong ones
 
 
 # --------------------------------------------------------------------------- helpers
@@ -218,9 +233,23 @@ def _load_client(folder: Path, errs: _Collector) -> Client | None:
         if data.get(key) in (None, ""):
             errs.add(name, None, f"'{key}' is missing")
     for key in data:
-        if key not in CLIENT_KEYS:
+        if key not in CLIENT_KEYS and key not in CLIENT_OPTIONAL_KEYS:
             errs.add(name, None, f"unknown key '{key}'")
     text = {k: str(data[k]).strip() for k in CLIENT_KEYS if data.get(k) not in (None, "")}
+    proprietor = str(data.get("proprietor_name") or "").strip()
+    raw_partners = data.get("partners")
+    partners: tuple[str, ...] = ()
+    if raw_partners not in (None, ""):
+        if not isinstance(raw_partners, list) or any(not isinstance(x, str) or not x.strip() for x in raw_partners):
+            errs.add(name, None, "'partners' must be a list of partner names, e.g.  partners: [Anil Shah, Bina Shah]")
+        else:
+            partners = tuple(x.strip() for x in raw_partners)
+            if len({x.lower() for x in partners}) != len(partners):
+                errs.add(name, None, "'partners' has two partners with the same name")
+    if text.get("entity_type") == "proprietorship" and not proprietor:
+        errs.add(name, None, "'proprietor_name' is required for a proprietorship (it names the Capital account)")
+    if text.get("entity_type") in ("partnership", "llp") and not partners:
+        errs.add(name, None, "'partners' is required for a partnership or LLP (a list of partner names)")
     for key, allowed in (
         ("entity_type", ENTITY_TYPES), ("business_type", BUSINESS_TYPES), ("gst_type", GST_TYPES),
     ):
@@ -244,7 +273,7 @@ def _load_client(folder: Path, errs: _Collector) -> Client | None:
         return None
     return Client(
         text["name"], text["entity_type"], text["business_type"], text["gst_type"],
-        dates["fy_start"], dates["pack_end_date"],
+        dates["fy_start"], dates["pack_end_date"], proprietor, partners,
     )
 
 
@@ -458,6 +487,59 @@ def _load_tb(
     return rows, total
 
 
+def _read_optional_csv(folder: Path, name: str, columns: tuple[str, ...], errs: _Collector):
+    """Rows of an optional file: nothing when the file does not exist."""
+    if not (folder / name).is_file():
+        return []
+    return _read_csv(folder, name, columns, errs)
+
+
+def _load_reversals(folder: Path, client: Client | None, vouchers: list[VoucherLineRow], errs: _Collector) -> list[ReversalRow]:
+    file = "reversals.csv"
+    voucher_refs = {v.ref_id for v in vouchers}
+    out: list[ReversalRow] = []
+    seen: set[str] = set()
+    for number, r in _read_optional_csv(folder, file, REVERSAL_COLS, errs):
+        ok = True
+        if r["ref_id"] not in voucher_refs:
+            errs.add(file, number, f"ref_id '{r['ref_id']}' is not a voucher of vouchers.csv")
+            ok = False
+        if r["ref_id"] in seen:
+            errs.add(file, number, f"voucher {r['ref_id']} is reversed twice (a voucher can be reversed only once)")
+            ok = False
+        seen.add(r["ref_id"])
+        d = _parse_date(r["reversal_date"])
+        if d is None:
+            errs.add(file, number, f"reversal_date must be a real date as YYYY-MM-DD (found: '{r['reversal_date']}')")
+            ok = False
+        elif client and not client.fy_start <= d <= client.pack_end_date:
+            errs.add(file, number, f"reversal_date {d} is outside the pack period {client.fy_start} to {client.pack_end_date}")
+            ok = False
+        if not r["reason"]:
+            errs.add(file, number, "reason is empty (a reversal needs a reason)")
+            ok = False
+        if ok:
+            out.append(ReversalRow(number, r["ref_id"], d, r["reason"]))
+    return out
+
+
+def _load_locked_periods(folder: Path, client: Client | None, errs: _Collector) -> list[str]:
+    file = "locked_periods.csv"
+    out: list[str] = []
+    for number, r in _read_optional_csv(folder, file, LOCKED_COLS, errs):
+        month = r["month"]
+        parsed = _parse_date(month + "-01") if re.fullmatch(r"\d{4}-\d{2}", month) else None
+        if parsed is None:
+            errs.add(file, number, f"month must be YYYY-MM, e.g. 2026-04 (found: '{month}')")
+        elif client and not client.fy_start <= parsed <= date(client.fy_start.year + 1, 3, 1):
+            errs.add(file, number, f"month {month} is outside the financial year")
+        elif month in out:
+            errs.add(file, number, f"month {month} is listed twice")
+        else:
+            out.append(month)
+    return out
+
+
 # --------------------------------------------------------------------------- public
 
 
@@ -476,6 +558,8 @@ def load_pack(folder: Path) -> Pack:
     invalid = _load_invalid(folder, errs)
     balances = _load_balances(folder, names, errs)
     tb_rows, tb_total = _load_tb(folder, ledger_by_name, balances, errs)
+    reversals = _load_reversals(folder, client, vouchers, errs)
+    locked = _load_locked_periods(folder, client, errs)
 
     signoff = folder / "SIGNOFF.md"
     if not signoff.is_file():
@@ -485,7 +569,7 @@ def load_pack(folder: Path) -> Pack:
         raise PackError(errs.issues)
     return Pack(
         folder, client, tuple(ledgers), tuple(vouchers), tuple(invalid),
-        tuple(balances), tuple(tb_rows), tb_total,
+        tuple(balances), tuple(tb_rows), tb_total, tuple(reversals), tuple(locked),
     )
 
 
@@ -506,8 +590,10 @@ def balance_warnings(pack: Pack) -> list[str]:
     file: the expected answers are the accountants' to decide, a difference only tells them to look again.
     """
     net = {x.name: x.opening_dr - x.opening_cr for x in pack.ledgers}
+    reversed_refs = {r.ref_id for r in pack.reversals}  # a reversed voucher and its mirror cancel out exactly
     for line in pack.vouchers:
-        net[line.ledger_name] += line.debit - line.credit
+        if line.ref_id not in reversed_refs:
+            net[line.ledger_name] += line.debit - line.credit
     warnings = []
     for expected in pack.expected_balances:
         want = expected.closing_dr - expected.closing_cr

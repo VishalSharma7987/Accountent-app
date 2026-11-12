@@ -93,3 +93,13 @@ def test_the_self_check_never_modifies_any_pack_file(pack_dir):
     before = fingerprints(pack_dir)
     assert len(balance_warnings(load_pack(pack_dir))) == 2
     assert fingerprints(pack_dir) == before
+
+
+def test_a_reversed_voucher_and_its_mirror_cancel_out_in_the_self_check(pack_dir):
+    # V03 (rent 5000.00 paid in cash) is reversed: Cash stays 10000.00 and Rent stays nil
+    (pack_dir / "reversals.csv").write_text("ref_id,reversal_date,reason\nV03,2026-04-20,Booked in error\n", encoding="utf-8")
+    for name in ("expected_ledger_balances.csv", "expected_trial_balance.csv"):
+        edit(pack_dir, name, "Cash,5000.00,0.00", "Cash,10000.00,0.00")
+        edit(pack_dir, name, "Rent,5000.00,0.00", "Rent,0.00,0.00")
+    edit(pack_dir, "expected_trial_balance.csv", "TOTAL,,60000.00,60000.00", "TOTAL,,60000.00,60000.00")
+    assert balance_warnings(load_pack(pack_dir)) == []

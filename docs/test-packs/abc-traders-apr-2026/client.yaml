@@ -1,0 +1,8 @@
+# ABC Traders - April 2026 (dummy data only)
+name: ABC Traders
+entity_type: proprietorship
+business_type: trading
+gst_type: regular
+fy_start: 2026-04-01
+pack_end_date: 2026-04-30
+proprietor_name: Amit Verma

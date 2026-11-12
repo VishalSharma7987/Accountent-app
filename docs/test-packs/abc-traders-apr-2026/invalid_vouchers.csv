@@ -1,0 +1,33 @@
+ref_id,date,voucher_type,ledger_name,debit,credit,narration,reference_no,party_ledger,expected_rule_id,expected_message_contains
+X01,2026-04-23,payment,Cash,0.00,1500.00,Wrong voucher for the test one line only,,,V-01,at least 2 lines
+X02,2026-04-23,payment,Rent,1000.00,500.00,Wrong voucher for the test debit and credit on one line,,,V-02,either
+X02,2026-04-23,payment,Cash,0.00,500.00,Wrong voucher for the test debit and credit on one line,,,V-02,either
+X03,2026-04-23,payment,Rent,-500.00,0.00,Wrong voucher for the test negative amount,,,V-03,negative
+X03,2026-04-23,payment,Cash,0.00,500.00,Wrong voucher for the test negative amount,,,V-03,negative
+X04,2026-04-23,payment,Rent,500.005,0.00,Wrong voucher for the test three decimal places,,,V-03,decimal
+X04,2026-04-23,payment,Cash,0.00,500.005,Wrong voucher for the test three decimal places,,,V-03,decimal
+X05,2026-04-23,payment,Salary,35000.00,0.00,Wrong voucher for the test debit is more than credit,,,V-04,equal
+X05,2026-04-23,payment,HDFC Bank,0.00,30000.00,Wrong voucher for the test debit is more than credit,,,V-04,equal
+X06,2026-04-23,payment,Rent,500.00,0.00,Wrong voucher for the test ledger name misspelt,,,V-05,does not exist
+X06,2026-04-23,payment,Cash In Hand,0.00,500.00,Wrong voucher for the test ledger name misspelt,,,V-05,does not exist
+X07,2027-04-02,payment,Rent,500.00,0.00,Wrong voucher for the test date in the next financial year,,,V-06,financial year
+X07,2027-04-02,payment,Cash,0.00,500.00,Wrong voucher for the test date in the next financial year,,,V-06,financial year
+X08,2026-05-10,payment,Rent,500.00,0.00,Wrong voucher for the test date in a locked month,,,V-07,locked
+X08,2026-05-10,payment,Cash,0.00,500.00,Wrong voucher for the test date in a locked month,,,V-07,locked
+X09,2026-04-23,journal,Rent,500.00,0.00,Wrong voucher for the test journal touching the bank,,,V-08,Journal
+X09,2026-04-23,journal,HDFC Bank,0.00,500.00,Wrong voucher for the test journal touching the bank,,,V-08,Journal
+X10,2026-04-23,contra,Rahul Enterprises,2000.00,0.00,Wrong voucher for the test contra with a customer ledger,,,V-08,Contra
+X10,2026-04-23,contra,Cash,0.00,2000.00,Wrong voucher for the test contra with a customer ledger,,,V-08,Contra
+X11,2026-04-23,payment,Cash,3000.00,0.00,Wrong voucher for the test payment between cash and bank,,,V-08,Contra
+X11,2026-04-23,payment,HDFC Bank,0.00,3000.00,Wrong voucher for the test payment between cash and bank,,,V-08,Contra
+X12,2026-04-23,payment,Rent,500.00,0.00,,,,V-09,Narration
+X12,2026-04-23,payment,Cash,0.00,500.00,,,,V-09,Narration
+X13,2026-04-30,purchase,Purchases,200000.00,0.00,Same bill entered twice,SS/0412,Sharma Suppliers,V-10,already exists
+X13,2026-04-30,purchase,Input GST,36000.00,0.00,Same bill entered twice,SS/0412,Sharma Suppliers,V-10,already exists
+X13,2026-04-30,purchase,Sharma Suppliers,0.00,236000.00,Same bill entered twice,SS/0412,Sharma Suppliers,V-10,already exists
+X14,2026-04-23,sales,Cash,1000.00,0.00,Wrong voucher for the test party is not in the lines,INV-006,Rahul Enterprises,V-13,party
+X14,2026-04-23,sales,Sales,0.00,1000.00,Wrong voucher for the test party is not in the lines,INV-006,Rahul Enterprises,V-13,party
+X15,2026-04-23,purchase,Purchases,1000.00,0.00,Wrong voucher for the test purchase without the bill number,,,V-14,bill number
+X15,2026-04-23,purchase,Cash,0.00,1000.00,Wrong voucher for the test purchase without the bill number,,,V-14,bill number
+X16,2026-04-23,debit_note,Sharma Suppliers,500.00,0.00,Wrong voucher for the test debit note without the original reference,,Sharma Suppliers,V-14,original
+X16,2026-04-23,debit_note,Purchase Returns,0.00,500.00,Wrong voucher for the test debit note without the original reference,,Sharma Suppliers,V-14,original
