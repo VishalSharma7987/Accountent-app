@@ -430,6 +430,7 @@ export interface StatementPreview {
   opening_balance: string | null
   closing_balance: string | null
   problems: { row: number | null; message: string }[]
+  notes?: string[]
 }
 export interface StatementSummary {
   id: string
@@ -446,6 +447,7 @@ export interface StatementImported {
   lines: number
   opening_balance: string
   closing_balance: string
+  notes?: string[]
 }
 export interface StatementLine {
   id: string
@@ -486,6 +488,18 @@ export interface Unmatched {
   bank: BankItem[]
   book: BookItem[]
   suggestions: MatchSuggestion[]
+}
+/** One saved match of GET /clients/{c}/reconciliation/{bank}/matches. Totals are net money in (signed). */
+export interface MatchGroup {
+  match_id: string
+  method: 'auto' | 'manual'
+  note: string | null
+  created_by: string
+  created_at: string
+  bank_items: BankItem[]
+  book_items: BookItem[]
+  total_bank: string
+  total_book: string
 }
 export interface AutoMatchResult {
   matched_groups: number

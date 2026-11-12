@@ -5,10 +5,10 @@ import { Amount, ErrorBox, Field, LedgerPicker, Notice, Page, btn, btnDanger, bt
 import { useClient } from '../context'
 import { today } from '../lib/dates'
 import type { ApiFailure } from '../lib/apiError'
-import { formatInr, sumAmounts } from '../lib/money'
-import { bookItemId, cashBankLedgers, matchBody, tickTotals, toggleId } from '../lib/phase2'
+import { formatInr } from '../lib/money'
+import { bankItemsText, bookItemId, bookItemsText, cashBankLedgers, matchBody, tickTotals, toggleId } from '../lib/phase2'
 import { asFailure, useLoad } from '../lib/useLoad'
-import type { AutoMatchResult, StatementLine } from '../types'
+import type { AutoMatchResult, MatchGroup } from '../types'
 
 const nz = (v: string) => (v === '0.00' ? '' : formatInr(v))
 
@@ -27,7 +27,7 @@ export default function Reconciliation() {
   const [busy, setBusy] = useState(false)
   const [counter, setCounter] = useState<Record<string, string>>({})
   const [drafts, setDrafts] = useState<{ bank_line_id: string; voucher_id: string }[]>([])
-  const [matchedLines, setMatchedLines] = useState<StatementLine[] | null>(null)
+  const [matchedGroups, setMatchedGroups] = useState<MatchGroup[] | null>(null)
 
   const d = data.data
   const ticked = useMemo(() => {
@@ -41,7 +41,7 @@ export default function Reconciliation() {
   const refresh = () => {
     setBankTicks([])
     setBookTicks([])
-    setMatchedLines(null)
+    setMatchedGroups(null)
     data.reload()
   }
   const act = async (work: () => Promise<void>) => {
@@ -71,9 +71,7 @@ export default function Reconciliation() {
     })
   const showMatched = () =>
     act(async () => {
-      const statements = await api.listStatements(clientId, bankId)
-      const all = await Promise.all(statements.map((s) => api.statementLines(s.id)))
-      setMatchedLines(all.flat().filter((l) => l.match_id))
+      setMatchedGroups((await api.matches(clientId, bankId)).matches)
     })
   const unmatch = (matchId: string) =>
     act(async () => {
@@ -98,9 +96,6 @@ export default function Reconciliation() {
     setBookTicks(bookIds)
   }
 
-  const groups = new Map<string, StatementLine[]>()
-  for (const l of matchedLines ?? []) groups.set(l.match_id as string, [...(groups.get(l.match_id as string) ?? []), l])
-
   const t = ticked.totals
   const bankRows = d?.bank ?? []
 
@@ -108,7 +103,7 @@ export default function Reconciliation() {
     <Page title="Bank reconciliation">
       <div className="flex flex-wrap items-end gap-2 rounded border border-slate-300 bg-white p-3">
         <Field label="Bank ledger">
-          <select className={input} value={bankId} onChange={(e) => { setBankId(e.target.value); setBankTicks([]); setBookTicks([]); setMatchedLines(null) }}>
+          <select className={input} value={bankId} onChange={(e) => { setBankId(e.target.value); setBankTicks([]); setBookTicks([]); setMatchedGroups(null) }}>
             <option value="">(choose bank)</option>
             {cashBankLedgers(ledgers.data ?? [], true).map((l) => (
               <option key={l.id} value={l.id}>
@@ -282,40 +277,42 @@ export default function Reconciliation() {
         </>
       )}
 
-      {matchedLines && (
+      {matchedGroups && (
         <>
-          <h2 className="text-sm font-semibold">Matched groups ({groups.size})</h2>
+          <h2 className="text-sm font-semibold">Matched groups ({matchedGroups.length})</h2>
           <table className="w-full border-collapse bg-white">
             <thead>
               <tr>
                 <th className={th}>Group</th>
+                <th className={th}>Method</th>
                 <th className={th}>Bank lines</th>
-                <th className={thR}>Debit (out)</th>
-                <th className={thR}>Credit (in)</th>
+                <th className={th}>Book items</th>
+                <th className={thR}>Net in</th>
+                <th className={th}>Note</th>
                 <th className={th}></th>
               </tr>
             </thead>
             <tbody>
-              {[...groups.entries()].map(([id, lines]) => (
-                <tr key={id}>
-                  <td className={td + ' font-mono text-xs'}>{id.slice(0, 8)}</td>
-                  <td className={td}>{lines.map((l) => `${l.txn_date} ${l.description}`).join('; ')}</td>
+              {matchedGroups.map((g) => (
+                <tr key={g.match_id}>
+                  <td className={td + ' font-mono text-xs'}>{g.match_id.slice(0, 8)}</td>
+                  <td className={td}>{g.method}</td>
+                  <td className={td}>{bankItemsText(g.bank_items)}</td>
+                  <td className={td}>{bookItemsText(g.book_items)}</td>
                   <td className={tdR}>
-                    <Amount value={sumAmounts(lines.map((l) => l.debit)).total} />
+                    <Amount value={g.total_bank} />
                   </td>
-                  <td className={tdR}>
-                    <Amount value={sumAmounts(lines.map((l) => l.credit)).total} />
-                  </td>
+                  <td className={td}>{g.note ?? ''}</td>
                   <td className={td}>
-                    <button className={btnDanger} disabled={busy} onClick={() => unmatch(id)}>
+                    <button className={btnDanger} disabled={busy} onClick={() => unmatch(g.match_id)}>
                       Unmatch
                     </button>
                   </td>
                 </tr>
               ))}
-              {groups.size === 0 && (
+              {matchedGroups.length === 0 && (
                 <tr>
-                  <td className={td} colSpan={5}>
+                  <td className={td} colSpan={7}>
                     No matched groups.
                   </td>
                 </tr>

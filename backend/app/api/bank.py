@@ -69,7 +69,7 @@ def preview(
               for x in parsed.lines[:PREVIEW_ROWS]],
         count=len(parsed.lines), opening_balance=_opt(parsed.opening_balance),
         closing_balance=_opt(parsed.closing_balance),
-        problems=[Problem(row=p.row, message=p.message) for p in parsed.problems],
+        problems=[Problem(row=p.row, message=p.message) for p in parsed.problems], notes=parsed.notes,
     )
 
 
@@ -85,7 +85,8 @@ def import_statement(
         opening_balance, closing_balance, actor=actor,
     )
     return StatementCreated(statement_id=result.statement_id, lines=result.lines,
-                            opening_balance=money(result.opening_balance), closing_balance=money(result.closing_balance))
+                            opening_balance=money(result.opening_balance), closing_balance=money(result.closing_balance),
+                            notes=list(result.notes))
 
 
 @router.get("/clients/{client_id}/bank-statements", response_model=list[StatementOut])

@@ -42,6 +42,7 @@ class PreviewOut(BaseModel):
     opening_balance: str | None
     closing_balance: str | None
     problems: list[Problem]
+    notes: list[str] = []  # e.g. "file was newest-first; rows reversed"
 
 
 class StatementCreated(BaseModel):
@@ -49,6 +50,7 @@ class StatementCreated(BaseModel):
     lines: int
     opening_balance: str
     closing_balance: str
+    notes: list[str] = []
 
 
 class StatementOut(BaseModel):

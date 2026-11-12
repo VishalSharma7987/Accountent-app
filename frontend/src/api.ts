@@ -20,6 +20,7 @@ import type {
   PartyBody,
   PartyNature,
   StatementImported,
+  MatchGroup,
   StatementLine,
   StatementPreview,
   StatementSummary,
@@ -213,6 +214,8 @@ export const api = {
     get<Unmatched>(`/clients/${clientId}/reconciliation/${bankLedgerId}/unmatched`, { as_on: asOn }),
   autoMatch: (clientId: string, bankLedgerId: string, asOn: string) =>
     post<AutoMatchResult>(`/clients/${clientId}/reconciliation/${bankLedgerId}/auto-match`, { as_on: asOn }),
+  matches: (clientId: string, bankLedgerId: string, asOn?: string) =>
+    get<{ matches: MatchGroup[] }>(`/clients/${clientId}/reconciliation/${bankLedgerId}/matches`, { as_on: asOn }),
   createMatch: (clientId: string, bankLedgerId: string, body: MatchBody) =>
     post<{ match_id: string }>(`/clients/${clientId}/reconciliation/${bankLedgerId}/matches`, body),
   deleteMatch: (clientId: string, matchId: string) =>

@@ -13,6 +13,7 @@ import zipfile
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from decimal import Decimal
+from itertools import groupby, pairwise
 
 from openpyxl import load_workbook
 from openpyxl.utils.exceptions import InvalidFileException
@@ -60,18 +61,35 @@ class ParsedStatement:
     opening_balance: Decimal | None = None
     closing_balance: Decimal | None = None
     problems: list[RowProblem] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)  # things the user must be told (e.g. the file was reversed)
 
 
 # ================================================================================================== amounts
 
 
+_BALANCE_SIDE = re.compile(r"^(?:(cr|dr)\.?\s*)?(.*?)(?:\s*(cr|dr)\.?)?$", re.IGNORECASE | re.DOTALL)
+
+
 def parse_balance_text(value: object) -> Decimal:
-    """A balance as entered: like parse_amount but a leading minus is allowed (overdrawn account). Raises MoneyError."""
-    if isinstance(value, str):
-        text = value.strip()
+    """A balance as entered. Plain numbers: a leading minus means overdrawn. Text may carry the bank's own Cr/Dr
+    marker before or after the number ("1,234.00 Cr", "Cr 1,234.00", "1234.00Dr", "DR 500"): Cr = money in the
+    account (positive), Dr = overdrawn (negative). Both a marker and a minus, or two markers, are ambiguous and
+    rejected. Raises MoneyError."""
+    if not isinstance(value, str):
+        return parse_amount(value)
+    text = value.strip()
+    match = _BALANCE_SIDE.match(text)
+    before, number, after = (match.group(1), match.group(2).strip(), match.group(3)) if match else (None, text, None)
+    if before is None and after is None:
         if text.startswith("-"):
             return -parse_amount(text[1:].strip().replace(",", ""))
-    return parse_amount(value)
+        return parse_amount(value)
+    if before is not None and after is not None:
+        raise MoneyError("invalid", f"balance '{text}' has Cr/Dr both before and after the number")
+    if number.startswith(("-", "+")):
+        raise MoneyError("invalid", f"balance '{text}' has a sign as well as Cr/Dr; it is ambiguous")
+    amount = parse_amount(number.replace(",", "") if _COMMA_NUMBER.match(number) else number)
+    return amount if (before or after).casefold() == "cr" else -amount
 
 
 def _cell_to_amount_input(value: object) -> object:
@@ -289,8 +307,47 @@ def parse_statement(
     result.period_from = min(x.txn_date for x in result.lines)
     result.period_to = max(x.txn_date for x in result.lines)
     result.opening_balance = opening
+    if has_balance:
+        _orient(result, opening)
+    elif _newest_first_dates(result.lines):
+        problems.append(RowProblem(
+            0, "The rows are in newest-first date order and the file has no running-balance column, so the order "
+               "cannot be checked: upload an oldest-first file, or a file with a balance column"
+        ))
+        return result
     _integrity(result, opening, closing_arg, has_balance)
     return result
+
+
+def _newest_first_dates(lines: list[StatementLine]) -> bool:
+    dates = [x.txn_date for x in lines]
+    return dates[0] > dates[-1] and all(a >= b for a, b in pairwise(dates))
+
+
+def _chain_ok(lines: list[StatementLine], opening: Decimal) -> bool:
+    running = opening
+    for line in lines:
+        if line.balance != running + line.credit - line.debit:
+            return False
+        running = line.balance
+    return True
+
+
+def _orient(result: ParsedStatement, opening: Decimal | None) -> None:
+    """Newest-first export: only when the running balances prove it. The file order is kept when it validates;
+    otherwise the fully reversed rows, then the day groups reversed with the file order kept inside each day, must
+    validate every row (opening -> closing). Nothing else is ever reordered. Neither validating = left as it is.
+    (Two different same-day orders can never both agree with printed balances, so there is no tie to break.)"""
+    lines = result.lines
+    if opening is None or len(lines) < 2 or _chain_ok(lines, opening):
+        return
+    full = lines[::-1]
+    by_day = [row for _, grp in reversed([(d, list(g)) for d, g in groupby(lines, key=lambda x: x.txn_date)]) for row in grp]
+    full_ok, day_ok = _chain_ok(full, opening), _chain_ok(by_day, opening)
+    if not (full_ok or day_ok):
+        return
+    result.lines = full if full_ok else by_day
+    result.notes.append("file was newest-first; rows reversed")
 
 
 def _is_footer(raw_date: object, columns: dict[str, int], get) -> bool:
