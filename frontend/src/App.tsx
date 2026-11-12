@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, NavLink, Navigate, Route, Routes } from 'react-router-dom'
-import { getUser, setUser } from './api'
+import { API_BASE, getUser, setUser } from './api'
 import { input } from './components/ui'
 import { ClientProvider, useClient } from './context'
 import Clients from './screens/Clients'
@@ -29,7 +29,7 @@ function Shell() {
   const [health, setHealth] = useState('')
 
   useEffect(() => {
-    fetch('/health')
+    fetch(`${API_BASE}/health`)
       .then((r) => r.json())
       .then((h: { status: string; db: string }) => setHealth(`API ${h.status}, database ${h.db}`))
       .catch(() => setHealth('API not reachable'))

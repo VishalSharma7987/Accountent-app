@@ -22,7 +22,9 @@ import type {
   VoucherList,
 } from './types'
 
-export const API_BASE = '/api'
+// Deployed: VITE_API_URL is the backend root (e.g. https://accountent-app.onrender.com).
+// Local dev: unset, so calls go to /api and the Vite proxy forwards them to the backend.
+export const API_BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/+$/, '') || '/api'
 const USER_KEY = 'ledgermind.user'
 
 export function getUser(): string {

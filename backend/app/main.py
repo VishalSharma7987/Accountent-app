@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -7,6 +8,12 @@ from app.api import audit, clients, groups, imports, ledgers, periods, reports, 
 from app.api.errors import register_error_handlers
 
 app = FastAPI(title="LedgerMind AI")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=config.cors_origins(),
+    allow_methods=["*"],
+    allow_headers=["*"],  # includes X-User
+)
 
 # One entry per router; a later router (e.g. the Excel import) is one more entry here.
 ROUTERS = [
