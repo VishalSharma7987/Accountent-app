@@ -3,10 +3,18 @@ import { BrowserRouter, NavLink, Navigate, Route, Routes } from 'react-router-do
 import { API_BASE, getUser, setUser } from './api'
 import { input } from './components/ui'
 import { ClientProvider, useClient } from './context'
+import Bank from './screens/Bank'
+import Brs from './screens/Brs'
+import CashBook from './screens/CashBook'
 import Clients from './screens/Clients'
 import ImportScreen from './screens/ImportScreen'
 import Ledgers from './screens/Ledgers'
+import MsmeDue from './screens/MsmeDue'
+import OpeningBills from './screens/OpeningBills'
+import Outstanding from './screens/Outstanding'
+import Parties from './screens/Parties'
 import Periods from './screens/Periods'
+import Reconciliation from './screens/Reconciliation'
 import Statement from './screens/Statement'
 import TrialBalance from './screens/TrialBalance'
 import VoucherEntry from './screens/VoucherEntry'
@@ -20,6 +28,14 @@ const NAV: [string, string][] = [
   ['/statement', 'Ledger statement'],
   ['/trial-balance', 'Trial Balance'],
   ['/periods', 'Periods'],
+  ['/parties', 'Parties'],
+  ['/opening-bills', 'Opening bills'],
+  ['/outstanding', 'Outstanding / ageing'],
+  ['/cash-book', 'Cash / Bank book'],
+  ['/msme', 'MSME dues'],
+  ['/bank', 'Bank statements'],
+  ['/reconciliation', 'Reconciliation'],
+  ['/brs', 'BRS report'],
   ['/import', 'Excel import'],
 ]
 
@@ -93,6 +109,14 @@ function Shell() {
           <Route path="/trial-balance" element={<TrialBalance />} />
           <Route path="/periods" element={<Periods />} />
           <Route path="/import" element={<ImportScreen />} />
+          <Route path="/parties" element={<Parties />} />
+          <Route path="/opening-bills" element={<OpeningBills />} />
+          <Route path="/outstanding" element={<Outstanding />} />
+          <Route path="/cash-book" element={<CashBook />} />
+          <Route path="/msme" element={<MsmeDue />} />
+          <Route path="/bank" element={<Bank />} />
+          <Route path="/reconciliation" element={<Reconciliation />} />
+          <Route path="/brs" element={<Brs />} />
         </Routes>
       </main>
     </div>

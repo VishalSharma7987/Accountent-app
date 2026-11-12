@@ -8,20 +8,26 @@ import { useClient } from '../context'
 import { ApiFailure, errorsForLine, voucherLevelErrors, type RuleError } from '../lib/apiError'
 import { subtractAmounts, sumAmounts, isNilAmount } from '../lib/money'
 import { asFailure, useLoad } from '../lib/useLoad'
+import { AllocationEditor } from '../components/AllocationEditor'
+import { fromAllocationOut, lineAmountText, lineSide, toAllocationIn, type AllocRow } from '../lib/phase2'
 import { VOUCHER_TYPES, type Voucher, type VoucherIn, type VoucherType } from '../types'
 
 interface LineState {
   ledger_id: string
   debit: string
   credit: string
+  allocations: AllocRow[] // Phase 2: only used when the ledger is a bill-wise party
 }
-const blankLine = (): LineState => ({ ledger_id: '', debit: '', credit: '' })
+const blankLine = (): LineState => ({ ledger_id: '', debit: '', credit: '', allocations: [] })
 
 export default function VoucherEntry() {
   const { id } = useParams()
   const { clientId } = useClient()
   const navigate = useNavigate()
   const ledgers = useLoad(clientId ? () => api.listLedgers(clientId) : null, `ledgers:${clientId}`)
+  // Phase 2: parties with bill-wise on get an allocation editor under their lines (no parties endpoint = none)
+  const parties = useLoad(clientId ? () => api.listParties(clientId) : null, `parties:${clientId}:all`)
+  const billWise = useMemo(() => new Map((parties.data ?? []).filter((p) => p.bill_wise).map((p) => [p.ledger_id, p])), [parties.data])
   const loaded = useLoad(id ? () => api.getVoucher(id) : null, `voucher:${id ?? 'new'}`)
 
   const [voucherType, setVoucherType] = useState<VoucherType>('payment')
@@ -50,7 +56,7 @@ export default function VoucherEntry() {
     setReference(voucher.reference_no ?? '')
     setParty(voucher.party_ledger_id ?? '')
     setOverride(voucher.duplicate_override_reason ?? '')
-    setLines(voucher.lines.map((l) => ({ ledger_id: l.ledger_id, debit: nonZero(l.debit), credit: nonZero(l.credit) })))
+    setLines(voucher.lines.map((l) => ({ ledger_id: l.ledger_id, debit: nonZero(l.debit), credit: nonZero(l.credit), allocations: fromAllocationOut(l.allocations) })))
     setDirty(false)
     setRuleErrors([])
   }, [voucher])
@@ -85,7 +91,12 @@ export default function VoucherEntry() {
     reference_no: reference || null,
     party_ledger_id: party || null,
     duplicate_override_reason: override || null,
-    lines: lines.map((l) => ({ ledger_id: l.ledger_id, debit: l.debit.trim() || null, credit: l.credit.trim() || null })),
+    lines: lines.map((l) => ({
+      ledger_id: l.ledger_id,
+      debit: l.debit.trim() || null,
+      credit: l.credit.trim() || null,
+      ...(billWise.has(l.ledger_id) ? { allocations: toAllocationIn(l.allocations) } : {}),
+    })),
   })
 
   const fail = (e: unknown) => {
@@ -273,6 +284,27 @@ export default function VoucherEntry() {
                     )}
                   </td>
                 </tr>
+                {billWise.has(l.ledger_id) && (
+                  <tr>
+                    <td></td>
+                    <td colSpan={4} className="px-2 pb-1">
+                      <AllocationEditor
+                        clientId={clientId}
+                        partyLedgerId={l.ledger_id}
+                        partyName={billWise.get(l.ledger_id)?.ledger_name ?? ''}
+                        voucherType={voucherType}
+                        side={lineSide(l.debit, l.credit)}
+                        lineAmount={lineAmountText(l.debit, l.credit)}
+                        reference={reference}
+                        voucherDate={date}
+                        rows={l.allocations}
+                        onChange={(rows) => setLine(i, { allocations: rows })}
+                        readOnly={readOnly}
+                        hasError={errs.some((e) => e.rule_id.startsWith('B-'))}
+                      />
+                    </td>
+                  </tr>
+                )}
                 {errs.length > 0 && (
                   <tr>
                     <td></td>
