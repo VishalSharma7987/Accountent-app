@@ -12,7 +12,7 @@ from decimal import Decimal
 from sqlalchemy import Connection, text
 
 from app.engine.duplicates import ExistingVoucher
-from app.engine.models import Group, Ledger, OpeningBalance, PostedLine
+from app.engine.models import Allocation, Group, Ledger, OpeningBalance, PostedLine
 
 CENTS = Decimal("0.01")
 
@@ -141,6 +141,7 @@ class VoucherLineRecord:
     ledger_name: str
     debit: Decimal
     credit: Decimal
+    allocations: tuple[Allocation, ...] = ()  # Phase 2: bill-wise allocations of a party line (due date resolved)
 
 
 @dataclass(frozen=True)
@@ -171,7 +172,11 @@ _VOUCHER_SQL = (
     "v.duplicate_override_reason, v.created_by, v.approved_by, v.posted_by, "
     "(SELECT f.start_date FROM financial_years f WHERE f.id = v.financial_year_id), "
     "(SELECT coalesce(json_agg(json_build_object('line_no', vl.line_no, 'ledger_id', vl.ledger_id, "
-    "'ledger_name', l.name, 'debit', vl.debit::text, 'credit', vl.credit::text) ORDER BY vl.line_no), '[]'::json) "
+    "'ledger_name', l.name, 'debit', vl.debit::text, 'credit', vl.credit::text, 'allocations', "
+    "(SELECT coalesce(json_agg(json_build_object('kind', a.kind, 'bill_ref', a.bill_ref, 'due_date', a.due_date, "
+    "'amount', (a.debit + a.credit)::text) ORDER BY a.kind, a.bill_ref, a.due_date), '[]'::json) "
+    "FROM bill_allocations a WHERE a.voucher_id = vl.voucher_id AND a.line_no = vl.line_no)) "
+    "ORDER BY vl.line_no), '[]'::json) "
     "FROM voucher_lines vl JOIN ledgers l ON l.id = vl.ledger_id WHERE vl.voucher_id = v.id) "
     "FROM vouchers v WHERE v.id = :id"
 )
@@ -191,6 +196,13 @@ def load_voucher(conn: Connection, voucher_id: object, *, lock: bool = False) ->
         VoucherLineRecord(
             x["line_no"], uuid.UUID(x["ledger_id"]), x["ledger_name"],
             Decimal(x["debit"]).quantize(CENTS), Decimal(x["credit"]).quantize(CENTS),
+            tuple(
+                Allocation(
+                    a["kind"], Decimal(a["amount"]).quantize(CENTS), a["bill_ref"],
+                    None if a["due_date"] is None else date.fromisoformat(a["due_date"]),
+                )
+                for a in x["allocations"]
+            ),
         )
         for x in row[17]
     )

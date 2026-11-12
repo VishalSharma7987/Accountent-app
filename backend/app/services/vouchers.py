@@ -21,11 +21,12 @@ from sqlalchemy import Connection, text
 from app.db import repositories as repo
 from app.db.repositories import ValidationContext, VoucherRecord
 from app.engine import reports
+from app.engine.bills import mirror_allocations
 from app.engine.duplicates import duplicate_error, find_possible_duplicate
 from app.engine.models import PeriodInfo, ValidationError, VoucherDraft, VoucherLine
 from app.engine.money import format_inr, parse_amount
 from app.engine.validation import validate_voucher
-from app.services import audit
+from app.services import audit, bills
 from app.services.audit import AuditEntry
 from app.services.errors import ServiceError, VoucherRuleError, require_actor
 
@@ -72,7 +73,7 @@ def _validate(
 def _draft_from(record: VoucherRecord) -> VoucherDraft:
     return VoucherDraft(
         record.client_id, record.voucher_type, record.voucher_date, record.narration, record.reference_no,
-        record.party_ledger_id, tuple(VoucherLine(x.ledger_id, x.debit, x.credit) for x in record.lines),
+        record.party_ledger_id, tuple(VoucherLine(x.ledger_id, x.debit, x.credit, x.allocations) for x in record.lines),
         record.duplicate_override_reason,
     )
 
@@ -91,10 +92,17 @@ def _amount(raw: object) -> Decimal:
 
 
 def _lines_snapshot(lines) -> list[dict]:
-    return [
-        {"line_no": n, "ledger_id": str(x.ledger_id), "debit": f"{_amount(x.debit):.2f}", "credit": f"{_amount(x.credit):.2f}"}
-        for n, x in enumerate(lines, start=1)
-    ]
+    out = []
+    for n, x in enumerate(lines, start=1):
+        row = {"line_no": n, "ledger_id": str(x.ledger_id), "debit": f"{_amount(x.debit):.2f}", "credit": f"{_amount(x.credit):.2f}"}
+        if x.allocations:  # Phase 2: only party lines carry them, so Phase 1 snapshots are unchanged
+            row["allocations"] = [
+                {"kind": a.kind, "bill_ref": a.bill_ref, "amount": f"{_amount(a.amount):.2f}",
+                 "due_date": None if a.due_date is None else a.due_date.isoformat()}
+                for a in x.allocations
+            ]
+        out.append(row)
+    return out
 
 
 def _snapshot(draft: VoucherDraft, status: str = "draft") -> dict:
@@ -172,6 +180,7 @@ def _validate_all(
 ) -> tuple[list[ValidationError], ValidationContext]:
     """Every rule that applies to a draft, ordered: the engine rules plus the duplicate check (V-10)."""
     errors, ctx = _validate(conn, draft)
+    errors += bills.draft_errors(conn, draft, ctx, draft_id)  # B-01 .. B-05 (bill-wise party lines)
     return _order(errors + _check_duplicates(conn, draft, draft_id)), ctx
 
 
@@ -189,6 +198,7 @@ def create_draft(conn: Connection, draft: VoucherDraft, *, actor: str) -> DraftR
     if errors:
         return DraftResult(None, errors)
     voucher_id = _insert_voucher(conn, draft, _financial_year_id(ctx, draft.voucher_date), actor)
+    bills.persist_allocations(conn, voucher_id, draft, ctx)
     audit.log(conn, AuditEntry(draft.client_id, actor, "create", "voucher", voucher_id, new=_snapshot(draft)))
     return DraftResult(voucher_id, [])
 
@@ -220,7 +230,8 @@ def update_draft(conn: Connection, voucher_id: object, draft: VoucherDraft, *, a
         },
     )
     conn.execute(text("DELETE FROM voucher_lines WHERE voucher_id = :id"), {"id": record.id})
-    _insert_lines(conn, record.client_id, record.id, draft)
+    _insert_lines(conn, record.client_id, record.id, draft)  # deleting the lines cascaded to their allocations
+    bills.persist_allocations(conn, record.id, draft, ctx)
     _log(conn, record, actor, "update", _snapshot(_draft_from(record)), _snapshot(draft))
     return DraftResult(record.id, [])
 
@@ -239,7 +250,9 @@ def delete_draft(conn: Connection, voucher_id: object, *, actor: str) -> None:
 
 
 def _revalidate(conn: Connection, record: VoucherRecord) -> ValidationContext:
-    errors, ctx = _validate(conn, _draft_from(record), is_reversal=record.reverses_voucher_id is not None)
+    draft, is_reversal = _draft_from(record), record.reverses_voucher_id is not None
+    errors, ctx = _validate(conn, draft, is_reversal=is_reversal)
+    errors += bills.draft_errors(conn, draft, ctx, record.id, is_reversal=is_reversal)
     if errors:
         raise VoucherRuleError(_order(errors))
     return ctx
@@ -312,7 +325,7 @@ def _post_locked(conn: Connection, record: VoucherRecord, actor: str) -> str:
     )
     # Run the database's own posting check (>= 2 lines, Dr = Cr, date inside the year) now instead of at commit.
     # The constraint stays IMMEDIATE for the rest of the transaction, which is harmless: lines always exist first.
-    conn.execute(text("SET CONSTRAINTS vouchers_posting_check IMMEDIATE"))
+    conn.execute(text("SET CONSTRAINTS vouchers_posting_check, vouchers_allocation_check IMMEDIATE"))
     _log(conn, record, actor, "post", {"status": "approved"}, {"status": "posted", "voucher_number": number})
     return number
 
@@ -324,8 +337,12 @@ def post(conn: Connection, voucher_id: object, *, actor: str) -> str:
     record = _lock(conn, voucher_id)
     if record.status != "approved":
         raise ServiceError("not_approved", f"Only an approved voucher can be posted (this one is {record.status}).")
+    bills.lock_parties(conn, record.client_id, record.lines)
     _revalidate(conn, record)
     _check_openings(conn, record)
+    b07 = bills.opening_cover_errors(conn, record.client_id, record.financial_year_id, [x.ledger_id for x in record.lines])
+    if b07:
+        raise VoucherRuleError(b07)
     return _post_locked(conn, record, actor)
 
 
@@ -357,14 +374,16 @@ def reverse(conn: Connection, voucher_id: object, reversal_date: date, reason: s
     mirror = VoucherDraft(
         original.client_id, original.voucher_type, reversal_date,
         f"Reversal of {original.voucher_number}: {reason}", original.reference_no, original.party_ledger_id,
-        tuple(VoucherLine(x.ledger_id, x.credit, x.debit) for x in original.lines),
+        tuple(VoucherLine(x.ledger_id, x.credit, x.debit, mirror_allocations(x.allocations)) for x in original.lines),
     )
     errors, ctx = _validate(conn, mirror, is_reversal=True)
+    errors += bills.draft_errors(conn, mirror, ctx, None, is_reversal=True)
     if errors:
         raise VoucherRuleError(_order(errors))
     reversal_fy = _financial_year_id(ctx, reversal_date)
 
     reversal_id = _insert_voucher(conn, mirror, reversal_fy, actor, reverses_voucher_id=original.id)
+    bills.persist_allocations(conn, reversal_id, mirror, ctx)
     reversal = repo.load_voucher(conn, reversal_id)
     audit.log(conn, AuditEntry(original.client_id, actor, "create", "voucher", reversal_id, new=_snapshot(mirror)))
     _approve_locked(conn, reversal, actor)

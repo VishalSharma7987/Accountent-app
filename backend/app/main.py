@@ -4,7 +4,18 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
 from app import config
-from app.api import audit, clients, groups, imports, ledgers, periods, reports, vouchers
+from app.api import (
+    audit,
+    bills,
+    clients,
+    groups,
+    imports,
+    ledgers,
+    parties,
+    periods,
+    reports,
+    vouchers,
+)
 from app.api.errors import register_error_handlers
 
 app = FastAPI(title="LedgerMind AI")
@@ -19,6 +30,8 @@ app.add_middleware(
 ROUTERS = [
     clients.router, groups.router, ledgers.router, vouchers.router, periods.router, reports.router, audit.router,
     imports.router,
+    parties.router,
+    bills.router,
 ]
 for _router in ROUTERS:
     app.include_router(_router)

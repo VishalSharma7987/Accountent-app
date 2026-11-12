@@ -7,6 +7,7 @@ from sqlalchemy import Connection
 from app.api.deps import get_actor, get_conn, parse_id
 from app.api.errors import rule_errors_response
 from app.api.schemas import (
+    AllocationOut,
     OkOut,
     PostedOut,
     ReversedOut,
@@ -22,7 +23,7 @@ from app.api.schemas import (
     money,
 )
 from app.db.repositories import VoucherRecord
-from app.engine.models import VoucherDraft, VoucherLine
+from app.engine.models import Allocation, VoucherDraft, VoucherLine
 from app.services import queries, vouchers
 
 router = APIRouter(tags=["vouchers"])
@@ -31,7 +32,12 @@ router = APIRouter(tags=["vouchers"])
 def _draft(client_id: uuid.UUID, body: VoucherIn) -> VoucherDraft:
     return VoucherDraft(
         client_id, body.voucher_type, body.voucher_date, body.narration, body.reference_no, body.party_ledger_id,
-        tuple(VoucherLine(x.ledger_id, x.debit, x.credit) for x in body.lines), body.duplicate_override_reason,
+        tuple(
+            VoucherLine(x.ledger_id, x.debit, x.credit,
+                        tuple(Allocation(a.kind, a.amount, a.bill_ref, a.due_date) for a in x.allocations))
+            for x in body.lines
+        ),
+        body.duplicate_override_reason,
     )
 
 
@@ -44,7 +50,10 @@ def _voucher_out(r: VoucherRecord) -> VoucherOut:
         duplicate_override_reason=r.duplicate_override_reason, created_by=r.created_by,
         approved_by=r.approved_by, posted_by=r.posted_by,
         lines=[VoucherLineOut(line_no=x.line_no, ledger_id=x.ledger_id, ledger_name=x.ledger_name,
-                              debit=money(x.debit), credit=money(x.credit)) for x in r.lines],
+                              debit=money(x.debit), credit=money(x.credit),
+                              allocations=[AllocationOut(kind=a.kind, amount=money(a.amount), bill_ref=a.bill_ref,
+                                                         due_date=a.due_date) for a in x.allocations])
+               for x in r.lines],
     )
 
 
