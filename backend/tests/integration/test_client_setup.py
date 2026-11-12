@@ -327,6 +327,26 @@ def test_deactivate_twice_and_foreign_ledgers_are_refused(svc_conn, client_a, cl
     assert info.value.code == "not_found"
 
 
+def test_reactivate_makes_an_inactive_ledger_active_again_and_logs_it(svc_conn, client_a, client_b):
+    created = client_a
+    client_setup.deactivate_ledger(svc_conn, created.client_id, ids(created)["Bank Charges"], actor="tester")
+    client_setup.reactivate_ledger(svc_conn, created.client_id, ids(created)["Bank Charges"], actor="clerk")
+    assert scalar(svc_conn, "SELECT is_active FROM ledgers WHERE id = :id", id=ids(created)["Bank Charges"]) is True
+    action, actor = q(svc_conn, "SELECT action, actor FROM audit_log WHERE entity_id = :id ORDER BY id DESC LIMIT 1",
+                      id=ids(created)["Bank Charges"])[0]
+    assert (action, actor) == ("reactivate", "clerk")
+
+
+def test_reactivate_an_active_or_foreign_ledger_is_refused(svc_conn, client_a, client_b):
+    a, b = client_a, client_b
+    with pytest.raises(ServiceError) as info:
+        client_setup.reactivate_ledger(svc_conn, a.client_id, ids(a)["Rent"], actor="tester")
+    assert (info.value.code, info.value.message) == ("ledger_active", "Ledger 'Rent' is already active.")
+    with pytest.raises(ServiceError) as info:
+        client_setup.reactivate_ledger(svc_conn, b.client_id, ids(a)["Rent"], actor="tester")
+    assert info.value.code == "not_found"
+
+
 # ====================================================================================== set_opening_balance
 
 

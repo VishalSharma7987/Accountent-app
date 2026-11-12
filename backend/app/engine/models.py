@@ -31,10 +31,24 @@ class Ledger:
 
 
 @dataclass(frozen=True)
+class Allocation:
+    """Bill-wise allocation of a party line (Phase 2). kind: new_ref | against_ref | advance | on_account.
+
+    due_date is only for new_ref; None means "bill date + the party's credit days" (the service fills it in).
+    """
+
+    kind: str
+    amount: RawAmount
+    bill_ref: str | None = None
+    due_date: date | None = None
+
+
+@dataclass(frozen=True)
 class VoucherLine:
     ledger_id: object
     debit: RawAmount = None
     credit: RawAmount = None
+    allocations: tuple[Allocation, ...] = ()  # Phase 2: required for lines of bill-wise party ledgers
 
 
 @dataclass(frozen=True)
@@ -114,3 +128,21 @@ class PostedLine:
     ledger_name: str
     debit: Decimal
     credit: Decimal
+
+
+@dataclass(frozen=True)
+class OpenBill:
+    """One open item of a party ledger. Signed amounts: debit positive, credit negative (CLAUDE.md section 5).
+
+    kind: 'bill' (created by new_ref / opening bill), 'advance' (created by an advance) or 'on_account'
+    (unallocated amount, bill_ref None). `original` is the amount when created; `outstanding` what is still open.
+    """
+
+    party_ledger_id: object
+    party_name: str
+    bill_ref: str | None
+    kind: str
+    bill_date: date | None
+    due_date: date | None
+    original: Decimal
+    outstanding: Decimal

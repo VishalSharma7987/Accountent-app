@@ -203,6 +203,19 @@ def deactivate_ledger(conn: Connection, client_id: object, ledger_id: object, *,
                                old={"name": ledger.name, "is_active": True}, new={"name": ledger.name, "is_active": False}))
 
 
+def reactivate_ledger(conn: Connection, client_id: object, ledger_id: object, *, actor: str) -> None:
+    """Make an inactive ledger active again (logged). Needed e.g. to enter a new voucher for an old ledger."""
+    actor = require_actor(actor)
+    ledger = repo.get_ledger(conn, client_id, ledger_id)
+    if ledger is None:
+        raise ServiceError("not_found", "Ledger not found for this client.")
+    if ledger.is_active:
+        raise ServiceError("ledger_active", f"Ledger '{ledger.name}' is already active.")
+    conn.execute(text("UPDATE ledgers SET is_active = true WHERE id = :id"), {"id": ledger_id})
+    audit.log(conn, AuditEntry(client_id, actor, "reactivate", "ledger", ledger_id,
+                               old={"name": ledger.name, "is_active": False}, new={"name": ledger.name, "is_active": True}))
+
+
 # ======================================================================================= set_opening_balance
 
 

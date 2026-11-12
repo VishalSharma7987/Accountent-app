@@ -200,6 +200,17 @@ def test_V05_inactive_party_ledger_rejected():
     assert messages == ["Line 1: ledger 'Old Expense' is inactive.", "The party ledger 'Old Expense' is inactive."]
 
 
+def test_V05_reversal_may_use_a_ledger_deactivated_after_the_original_was_posted():
+    d = draft("payment", [line("retired", cr="1"), line("cash", dr="1")], party="retired")
+    assert only(run(d), "V-05") != []
+    assert only(run(d, is_reversal=True), "V-05") == []
+
+
+def test_V05_reversal_still_rejects_a_missing_or_foreign_ledger():
+    d = draft("payment", [line("ghost", cr="1"), line("cash", dr="1")])
+    assert [e.message for e in only(run(d, is_reversal=True), "V-05")] == ["Line 1: this ledger does not exist."]
+
+
 # ===================================================================================================== V-06
 
 

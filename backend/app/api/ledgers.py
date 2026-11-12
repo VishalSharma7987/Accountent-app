@@ -44,6 +44,13 @@ def deactivate_ledger(client_id: str, ledger_id: str, conn: Connection = Depends
     return OkOut()
 
 
+@router.post("/clients/{client_id}/ledgers/{ledger_id}/reactivate", response_model=OkOut)
+def reactivate_ledger(client_id: str, ledger_id: str, conn: Connection = Depends(get_conn),
+                      actor: str = Depends(get_actor)):
+    client_setup.reactivate_ledger(conn, parse_id(client_id, "Client"), parse_id(ledger_id, "Ledger"), actor=actor)
+    return OkOut()
+
+
 @router.get("/clients/{client_id}/financial-years/{fy_id}/opening-balances", response_model=OpeningBalancesOut)
 def get_opening_balances(client_id: str, fy_id: str, conn: Connection = Depends(get_conn)):
     report = queries.opening_balances_report(conn, parse_id(client_id, "Client"), parse_id(fy_id, "Financial year"))

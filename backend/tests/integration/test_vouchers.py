@@ -535,6 +535,13 @@ def test_reversal_date_outside_the_financial_year_is_refused(svc_conn, w):
     assert rule_ids(info.value.errors) == [("V-06", None)]
 
 
+def test_reverse_still_works_when_a_ledger_was_deactivated_after_the_original_was_posted(svc_conn, w):
+    original = new_posted(svc_conn, w, payment(w, narration="April rent"))
+    svc_conn.execute(text("UPDATE ledgers SET is_active = false WHERE id = :id"), {"id": w.ids["Rent"]})
+    reversal = vouchers.reverse(svc_conn, original, date(2026, 4, 25), "wrong month", actor="partner")
+    assert row(svc_conn, reversal)[0] == "posted" and row(svc_conn, original)[0] == "reversed"
+
+
 def test_reverse_needs_a_reason(svc_conn, w):
     original = new_posted(svc_conn, w)
     with pytest.raises(ServiceError) as info:

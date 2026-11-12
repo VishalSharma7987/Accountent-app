@@ -72,7 +72,8 @@ def validate_voucher(
     fy_ranges            (start, end) of each financial year of the client
     period_for_date      the period a date falls into (open/locked) or None when no period exists
     is_reversal          the voucher mirrors a posted voucher (every line swapped), so the voucher-type rules
-                         (V-08) do not apply: a reversed Payment legitimately has a debit to cash
+                         (V-08) do not apply: a reversed Payment legitimately has a debit to cash. A reversal may
+                         also use a ledger that was deactivated after the original was posted (V-05 inactive check)
     """
     if draft.voucher_type not in VOUCHER_TYPES:
         raise ValueError(f"Unknown voucher type {draft.voucher_type!r}")
@@ -123,7 +124,7 @@ def validate_voucher(
         elif ledger.client_id != draft.client_id:
             errors.append(ValidationError("V-05", f"Line {number}: ledger '{ledger.name}' belongs to another client.", number))
             ledgers_ok = False
-        elif not ledger.is_active:
+        elif not ledger.is_active and not is_reversal:
             errors.append(ValidationError("V-05", f"Line {number}: ledger '{ledger.name}' is inactive.", number))
             ledgers_ok = False
 
@@ -135,7 +136,7 @@ def validate_voucher(
         elif party.client_id != draft.client_id:
             errors.append(ValidationError("V-05", f"The party ledger '{party.name}' belongs to another client."))
             party = None
-        elif not party.is_active:
+        elif not party.is_active and not is_reversal:
             errors.append(ValidationError("V-05", f"The party ledger '{party.name}' is inactive."))
 
     # ---- V-04: Dr = Cr (only when the amounts can be trusted) ---------------------------------------

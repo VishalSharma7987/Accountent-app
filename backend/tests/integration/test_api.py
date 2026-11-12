@@ -180,6 +180,14 @@ def test_create_ledger_refusals(api, b):
     assert (r.status_code, r.json()["code"]) == (422, "invalid_ledger")
 
 
+def test_reactivate_ledger_endpoint(api, b, other):
+    api.post(f"/clients/{b.client_id}/ledgers/{b.ids['Bank Charges']}/deactivate", headers=H)
+    r = api.post(f"/clients/{b.client_id}/ledgers/{b.ids['Bank Charges']}/reactivate", headers=H)
+    assert (r.status_code, r.json()) == (200, {"ok": True})
+    again = api.post(f"/clients/{b.client_id}/ledgers/{b.ids['Bank Charges']}/reactivate", headers=H)
+    assert (again.status_code, again.json()["code"]) == (409, "ledger_active")
+
+
 def test_deactivate_ledger_blocked_by_a_balance_and_allowed_when_nil(api, b, other):
     r = api.post(f"/clients/{b.client_id}/ledgers/{b.ids['Cash']}/deactivate", headers=H)
     assert (r.status_code, r.json()["code"], r.json()["message"]) == (
