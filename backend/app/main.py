@@ -3,8 +3,16 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
 from app import config
+from app.api import audit, clients, groups, ledgers, periods, reports, vouchers
+from app.api.errors import register_error_handlers
 
 app = FastAPI(title="LedgerMind AI")
+
+# One entry per router; a later router (e.g. the Excel import) is one more entry here.
+ROUTERS = [clients.router, groups.router, ledgers.router, vouchers.router, periods.router, reports.router, audit.router]
+for _router in ROUTERS:
+    app.include_router(_router)
+register_error_handlers(app)
 
 
 def _db_status() -> str:
