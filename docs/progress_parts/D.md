@@ -1,5 +1,0 @@
-- Step 2.8 (agent D): screens Parties, Opening bills, Outstanding+Ageing, Cash/Bank book, MSME dues, Bank (formats/import/statements), Reconciliation, BRS; AllocationEditor in VoucherEntry.
-- Done: typed against docs/PHASE2_API_CONTRACT.md (api.ts/types.ts appended); pure helpers in frontend/src/lib/phase2.ts.
-- Tests: vitest 55 passed (22 new in lib/phase2.test.ts); `npm run build` (tsc -b + vite) passes. Not run against a live backend.
-- Commit: branch p2-D.
-- Decisions added: 4 rows in docs/decisions_parts/D.md.

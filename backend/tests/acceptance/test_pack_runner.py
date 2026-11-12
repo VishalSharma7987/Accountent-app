@@ -16,7 +16,8 @@ from pack_runner import format_report, run_pack
 pytestmark = pytest.mark.integration
 
 PACKS_DIR = Path(__file__).resolve().parents[3] / "docs" / "test-packs"
-PACKS = sorted(p for p in PACKS_DIR.iterdir() if p.is_dir())  # the template included: it must pass too
+# the template included: it must pass too. Phase 2 packs (they have allocations.csv) run in test_pack_runner_p2.py
+PACKS = sorted(p for p in PACKS_DIR.iterdir() if p.is_dir() and not (p / "allocations.csv").exists())
 
 
 @pytest.mark.parametrize("pack_dir", PACKS, ids=lambda p: p.name)

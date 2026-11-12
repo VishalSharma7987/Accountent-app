@@ -21,3 +21,34 @@ Five lines per finished step (see CLAUDE.md section 6).
 - **1.7 / 1.8 / 1.9 / 1.10** built in parallel worktrees (DB runs serialised by scripts/dbrun.sh), merged into main: API (44 tests), Excel import (48 unit + 21 integration + 5 API), web screens (23 vitest, build ok), ABC Traders pack (30 vouchers + 1 reversal, 16 wrong vouchers, TB 13,54,460.00 both sides, tool = hand workings) with acceptance runner (5 tests). Router `imports` wired in main.py. Decisions: 7 rows added. Full-suite gate result follows.
 - **1.7-1.10 gate** commit 1e6d9f0: full suite 760 passed (unit + integration incl. API, import, pack runner), ruff clean; frontend `npm run build` ok, vitest 23 passed. One merge bug fixed (import used a text client id where the engine compares UUIDs).
 - **Phase 1 acceptance check** run on 2026-11-12: see the report given to the owner; accountant SIGNOFF.md files are pending. Phase 2 NOT started.
+### Steps 2.1-2.3 (agent A): party master, bill-wise allocation + opening bills, outstanding + ageing
+- Done: engine/parties.py (P-01..P-07), engine/bills.py (B-01..B-05, due dates, open bills, mirrored allocations, opening-bills check, ageing), services/parties.py (P-08), services/bills.py, db/repositories_bills.py, voucher hooks (draft/approve/post/reverse, B-07), API parties + bills, allocations on voucher lines.
+- Tests: unit 22 (parties) + 57 (bills, ageing); integration 9 in tests/integration/test_bill_wise.py (services, voucher flow, reversal, DB trigger, API).
+- Commit: see git log of branch p2-A.
+- Decisions added: see docs/decisions_parts/A.md (9 rows). Contract edits: docs/PHASE2_API_CONTRACT.md (Parties, Bill-wise).
+
+Step 2.4-2.5 (agent B): Cash/Bank Book (engine/cashbook.py, services/cashbook.py, GET reports/cash-book), C-01 no-negative-cash (engine/cash_rules.py, services/cash_checks.py hooked into approve/post/reverse), D-01 duplicate payment (engine/payments.py), M-01 MSME flag (engine/msme.py, rules/msme.py, services/msme.py, GET reports/msme-due).
+Tests: 38 new unit tests (tests/unit/engine/test_cashbook|cash_rules|payments|msme.py) + 8 integration (tests/integration/test_cash_book_rules.py).
+Rule table msme_payment_rules: all 6 seed rows verification_status='pending'; reports show rule_status/rule_source.
+Shared-file edits: services/vouchers.py (4 one-line hooks), main.py (2 routers).
+Commit: branch p2-B.
+
+Step 2.6 (C1): bank statement import, formats, listing, delete.
+Done: importers/bank_statement.py (pure parser, R-01), services/bank.py (R-02, audit), api/bank.py + schemas_bank.py, router in main.py.
+Tests: 21 unit (parser) + 8 integration (service + API); ruff clean.
+Commit: on branch p2-C1.
+Decisions added: 5 (docs/decisions_parts/C1.md).
+
+- Step 2.7 (agent C2): bank reconciliation.
+- Done: engine/reconcile.py (auto_match rules 1-3, validate_match R-03/R-04), engine/brs.py (BRS, R-05), services/reconciliation.py (unmatched, auto/manual match, unmatch, opening items, BRS, bank-only suggestions and DRAFT vouchers), API app/api/reconciliation.py + schemas_recon.py.
+- Tests: tests/unit/engine/test_reconcile.py + test_brs.py (38 unit); tests/integration/test_reconciliation.py (5 integration, mini case + raw-SQL statements).
+- Commit: on branch p2-C2 (see git log).
+- Decisions added: docs/decisions_parts/C2.md (BRS signs, settled matches, FY scope, reference matching, drafts all-or-nothing).
+
+- Step 2.8 (agent D): screens Parties, Opening bills, Outstanding+Ageing, Cash/Bank book, MSME dues, Bank (formats/import/statements), Reconciliation, BRS; AllocationEditor in VoucherEntry.
+- Done: typed against docs/PHASE2_API_CONTRACT.md (api.ts/types.ts appended); pure helpers in frontend/src/lib/phase2.ts.
+- Tests: vitest 55 passed (22 new in lib/phase2.test.ts); `npm run build` (tsc -b + vite) passes. Not run against a live backend.
+- Commit: branch p2-D.
+- Decisions added: 4 rows in docs/decisions_parts/D.md.
+
+- **Phase 2 foundation** (2.0): follow-ups, migrations 0005-0007, plan docs/PHASE2_PLAN.md; commit 119b0ab. Steps 2.1-2.8 built by parallel agents and merged (see parts above). Full-suite gate and runner (2.9/2.10) follow.
