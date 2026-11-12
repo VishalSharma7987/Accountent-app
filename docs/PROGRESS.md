@@ -52,3 +52,9 @@ Decisions added: 5 (docs/decisions_parts/C1.md).
 - Decisions added: 4 rows in docs/decisions_parts/D.md.
 
 - **Phase 2 foundation** (2.0): follow-ups, migrations 0005-0007, plan docs/PHASE2_PLAN.md; commit 119b0ab. Steps 2.1-2.8 built by parallel agents and merged (see parts above). Full-suite gate and runner (2.9/2.10) follow.
+Step 2.9 (runner part): Phase 2 acceptance runner for abc-traders-phase2-jun-2026.
+Done: tests/acceptance/pack_loader_p2.py, pack_runner_p2.py, test_pack_runner_p2.py (integration), test_pack_runner_p2_helpers.py (unit).
+Tests: helpers 10 unit tests pass; integration run: 16 passed (all 15 sections + counts) in ~5 min.
+Commit: on branch p2-R.
+Decisions added: 3 (decisions_parts/R.md).
+- **Phase 2 gate**: full suite 991 passed (before runner) + Phase 2 pack runner 16 passed + Phase 1 runner 5 passed; unit 618 passed; ruff clean; frontend build ok, vitest 55 passed. Migrations 0005-0007 + seed 0002 applied to test and dev. Phase 3 NOT started.
