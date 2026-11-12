@@ -15,3 +15,5 @@ Five lines per finished step (see CLAUDE.md section 6).
 - **1.4** done: `engine/coa_templates.py` (27 tests), `reports.check_openings`, `db/engine.py` (schema-pinned SQLAlchemy engine), `db/repositories.py`, `services/{errors,audit,client_setup}.py` (create_client, add_ledger, deactivate_ledger, set_opening_balance, opening_balance_difference); 41 integration tests; 6 decisions added.
 - **1.4** commit 30ca85d (528 tests passed).
 - **1.5** done: `services/vouchers.py` (create_draft, update_draft, delete_draft, approve, return_to_draft, post with gapless numbers, reverse, get_voucher); engine `is_reversal` flag; one-query context/voucher loaders; 51 integration tests incl. 6-thread concurrency and rollback-gives-number-back; 8 decisions added; speed: services use no savepoints, shared module worlds.
+- **1.5** commit 0c805cd (583 tests passed).
+- **1.6** done: `services/periods.py` (lock/unlock/list), `services/reports.py` (statement, Trial Balance via the pure engine), repository loaders; 24 integration tests including the Step 1.3 mini case loaded through the services (TB Dr 5,65,000 = Cr 5,65,000; reversal leaves Cash 35,000, Rent nil); 3 decisions added.

@@ -20,3 +20,7 @@ frontend/dist/
 # editor / local tooling
 .vscode/
 .claude/settings.local.json
+
+# agent worktrees and gate logs
+.claude/worktrees/
+gate.log

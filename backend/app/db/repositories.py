@@ -268,3 +268,107 @@ def candidate_duplicates(
     return [
         ExistingVoucher(r[0], r[1], r[2], r[3], r[4], r[5].quantize(CENTS), r[6], r[7], r[8], r[9]) for r in rows
     ]
+
+
+# ============================================================================================ periods, reports
+
+
+@dataclass(frozen=True)
+class PeriodRecord:
+    id: object
+    financial_year_id: object
+    start: date
+    end: date
+    status: str  # open | locked
+    locked_at: object | None
+    locked_by: str | None
+
+
+_PERIOD_COLUMNS = "id, financial_year_id, period_start, period_end, status, locked_at, locked_by"
+
+
+def get_period(conn: Connection, client_id: object, period_id: object, *, lock: bool = False) -> PeriodRecord | None:
+    try:
+        uuid.UUID(str(period_id))
+    except ValueError:
+        return None
+    row = conn.execute(
+        text(f"SELECT {_PERIOD_COLUMNS} FROM periods WHERE id = :id AND client_id = :c" + (" FOR UPDATE" if lock else "")),
+        {"id": period_id, "c": client_id},
+    ).first()
+    return PeriodRecord(*row) if row else None
+
+
+def list_periods(conn: Connection, client_id: object, fy_id: object | None = None) -> list[PeriodRecord]:
+    rows = conn.execute(
+        text(
+            f"SELECT {_PERIOD_COLUMNS} FROM periods WHERE client_id = :c AND (CAST(:fy AS uuid) IS NULL OR financial_year_id = :fy) "
+            "ORDER BY period_start"
+        ),
+        {"c": client_id, "fy": fy_id},
+    )
+    return [PeriodRecord(*r) for r in rows]
+
+
+def open_vouchers_in_range(conn: Connection, client_id: object, start: date, end: date) -> list[dict]:
+    """Draft and approved vouchers dated inside [start, end]: they block locking that period."""
+    rows = conn.execute(
+        text(
+            "SELECT id, voucher_type, voucher_date, status, narration FROM vouchers WHERE client_id = :c "
+            "AND status IN ('draft', 'approved') AND voucher_date BETWEEN :s AND :e ORDER BY voucher_date, created_at"
+        ),
+        {"c": client_id, "s": start, "e": end},
+    )
+    return [
+        {"voucher_id": r[0], "voucher_type": r[1], "voucher_date": r[2], "status": r[3], "narration": r[4]} for r in rows
+    ]
+
+
+def financial_year_for_date(conn: Connection, client_id: object, on: date) -> FinancialYearRow | None:
+    row = conn.execute(
+        text(
+            "SELECT id, start_date, end_date FROM financial_years WHERE client_id = :c AND :d BETWEEN start_date AND end_date"
+        ),
+        {"c": client_id, "d": on},
+    ).first()
+    return FinancialYearRow(*row) if row else None
+
+
+def ledgers_of_client(conn: Connection, client_id: object) -> list[Ledger]:
+    rows = conn.execute(
+        text(
+            "SELECT l.id, l.name, g.code, l.is_active, l.client_id FROM ledgers l "
+            "JOIN account_groups g ON g.id = l.group_id WHERE l.client_id = :c ORDER BY l.name"
+        ),
+        {"c": client_id},
+    )
+    return [Ledger(*r) for r in rows]
+
+
+def groups_for_client(conn: Connection, client_id: object) -> dict[str, Group]:
+    rows = conn.execute(
+        text(
+            "SELECT g.code, g.name, g.nature, g.report, p.code FROM account_groups g "
+            "LEFT JOIN account_groups p ON p.id = g.parent_id WHERE g.client_id IS NULL OR g.client_id = :c"
+        ),
+        {"c": client_id},
+    )
+    return {r[0]: Group(r[0], r[1], r[2], r[3], r[4]) for r in rows}
+
+
+def all_posted_lines(conn: Connection, client_id: object, fy_id: object) -> list[PostedLine]:
+    """Every line of every posted/reversed voucher of the year."""
+    rows = conn.execute(
+        text(
+            "SELECT v.id, v.voucher_number, v.voucher_type, v.voucher_date, v.narration, v.status, vl.line_no, "
+            "vl.ledger_id, l.name, vl.debit, vl.credit FROM voucher_lines vl "
+            "JOIN vouchers v ON v.id = vl.voucher_id JOIN ledgers l ON l.id = vl.ledger_id "
+            "WHERE v.client_id = :c AND v.financial_year_id = :fy AND v.status IN ('posted', 'reversed') "
+            "ORDER BY v.voucher_date, v.voucher_number, vl.line_no"
+        ),
+        {"c": client_id, "fy": fy_id},
+    )
+    return [
+        PostedLine(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9].quantize(CENTS), r[10].quantize(CENTS))
+        for r in rows
+    ]
