@@ -27,6 +27,9 @@ class PartyIn(BaseModel):
     udyam_no: str | None = None
     msme_written_agreement: bool = False
     bill_wise: bool = True
+    msme_activity: str | None = None  # manufacturing | services | trading
+    udyam_registration_date: date | None = None
+    msme_agreed_days: int | None = None  # 1..45, only with a written agreement
 
 
 class PartyOut(BaseModel):
@@ -41,6 +44,9 @@ class PartyOut(BaseModel):
     udyam_no: str | None
     msme_written_agreement: bool
     bill_wise: bool
+    msme_activity: str | None
+    udyam_registration_date: date | None
+    msme_agreed_days: int | None
 
 
 def party_out(p: Party) -> PartyOut:

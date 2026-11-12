@@ -277,14 +277,22 @@ def test_bank_only_drafts_equal_bank_only_lines():
 def test_msme_expected_total_and_party_master_formats():
     items = [r for r in rows("expected_msme_due.csv") if r["row_type"] == "item"]
     assert sum(D(r["outstanding"]) for r in items) == D("59000.00")
-    assert [(r["party"], r["legal_due_date"], r["days_overdue"]) for r in items] == [
-        ("Patel Packaging Works", "2026-04-30", "61"), ("Gupta Wholesale", "2026-06-04", "26")]
+    assert [(r["party"], r["acceptance_date"], r["acceptance_basis"], r["legal_due_date"], r["days_overdue"]) for r in items] == [
+        ("Patel Packaging Works", "2026-04-15", "bill date", "2026-04-30", "61"),
+        ("Gupta Wholesale", "2026-05-12", "goods received date", "2026-06-11", "19")]
     ps = {r["ledger_name"]: r for r in rows("parties.csv")}
     assert len(ps) == 8
     assert {r["credit_days"] for r in ps.values()} == {"30", "45", "60"}
     assert [ps[n]["msme_category"] for n in ("Gupta Wholesale", "Patel Packaging Works", "Sharma Suppliers")] == ["micro", "small", "medium"]
     assert (ps["Gupta Wholesale"]["msme_written_agreement"], ps["Gupta Wholesale"]["credit_days"]) == ("true", "30")
     assert ps["Patel Packaging Works"]["msme_written_agreement"] == "false"
+    # new party fields: Gupta agreed 30 days in writing; Mehta is a micro TRADER (excluded from the flag)
+    assert (ps["Gupta Wholesale"]["activity"], ps["Gupta Wholesale"]["msme_agreed_days"]) == ("manufacturing", "30")
+    assert ps["Patel Packaging Works"]["msme_agreed_days"] == ""
+    assert (ps["Mehta Agencies"]["msme_category"], ps["Mehta Agencies"]["activity"]) == ("micro", "trading")
+    assert all(ps[n]["udyam_registration_date"] for n in ("Sharma Suppliers", "Gupta Wholesale", "Patel Packaging Works", "Mehta Agencies"))
+    grd = {r["ref_id"]: r["goods_received_date"] for r in rows("vouchers.csv") if r["goods_received_date"]}
+    assert grd == {"V19": "2026-05-12"}
     r = ps["Rahul Enterprises"]
     assert r["gstin"][2:12] == r["pan"] and r["gstin"][:2] == r["state_code"] == "27" and len(r["gstin"]) == 15
 

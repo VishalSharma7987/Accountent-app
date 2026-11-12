@@ -5,7 +5,7 @@ import { useClient } from '../context'
 import type { ApiFailure, RuleError } from '../lib/apiError'
 import { groupByArea, type PartyArea } from '../lib/phase2'
 import { asFailure, useLoad } from '../lib/useLoad'
-import type { MsmeCategory, Party, PartyBody, PartyNature } from '../types'
+import type { MsmeActivity, MsmeCategory, Party, PartyBody, PartyNature } from '../types'
 
 interface Form {
   gstin: string
@@ -16,6 +16,9 @@ interface Form {
   udyam_no: string
   msme_written_agreement: boolean
   bill_wise: boolean
+  msme_activity: '' | MsmeActivity
+  udyam_registration_date: string
+  msme_agreed_days: string
 }
 
 const toForm = (p: Party): Form => ({
@@ -27,6 +30,9 @@ const toForm = (p: Party): Form => ({
   udyam_no: p.udyam_no ?? '',
   msme_written_agreement: p.msme_written_agreement,
   bill_wise: p.bill_wise,
+  msme_activity: p.msme_activity ?? '',
+  udyam_registration_date: p.udyam_registration_date ?? '',
+  msme_agreed_days: p.msme_agreed_days === null || p.msme_agreed_days === undefined ? '' : String(p.msme_agreed_days),
 })
 
 const orNull = (s: string) => (s.trim() === '' ? null : s.trim())
@@ -44,6 +50,10 @@ function toBody(f: Form): PartyBody {
     udyam_no: orNull(f.udyam_no),
     msme_written_agreement: f.msme_written_agreement,
     bill_wise: f.bill_wise,
+    msme_activity: f.msme_activity === '' ? null : f.msme_activity,
+    udyam_registration_date: orNull(f.udyam_registration_date),
+    // typed as is: 0 or 60 is sent and refused by the server (P-11)
+    msme_agreed_days: f.msme_agreed_days.trim() === '' || Number.isNaN(Number(f.msme_agreed_days)) ? null : Number(f.msme_agreed_days),
   }
 }
 
@@ -114,6 +124,9 @@ export default function Parties() {
         udyam_no: null,
         msme_written_agreement: false,
         bill_wise: false,
+        msme_activity: null,
+        udyam_registration_date: null,
+        msme_agreed_days: null,
       }),
     )
     setErrors([])
@@ -198,7 +211,7 @@ export default function Parties() {
               <td className={td}>{p.pan}</td>
               <td className={td}>{p.state_code}</td>
               <td className={td}>{p.credit_days}</td>
-              <td className={td}>{p.msme_category === 'none' ? '' : `${p.msme_category} ${p.udyam_no ?? ''}`}</td>
+              <td className={td}>{p.msme_category === 'none' ? '' : `${p.msme_category}${p.msme_activity ? ` / ${p.msme_activity}` : ''} ${p.udyam_no ?? ''}`}</td>
               <td className={td}>{p.bill_wise ? 'Yes' : ''}</td>
               <td className={td}>
                 <button className={btn} onClick={() => open(p)}>
@@ -261,10 +274,30 @@ export default function Parties() {
                 <input className={cls('msme')} value={form.udyam_no} onChange={(e) => set({ udyam_no: e.target.value.toUpperCase() })} />
               </Field>
             </Box>
+            <Box area="msme_activity" errors={by}>
+              <Field label="MSME activity (micro / small)">
+                <select className={cls('msme_activity')} value={form.msme_activity} onChange={(e) => set({ msme_activity: e.target.value as '' | MsmeActivity })}>
+                  <option value="">(not set)</option>
+                  <option value="manufacturing">Manufacturing</option>
+                  <option value="services">Services</option>
+                  <option value="trading">Trading</option>
+                </select>
+              </Field>
+            </Box>
+            <Box area="udyam_date" errors={by}>
+              <Field label="Udyam registration date">
+                <input type="date" className={cls('udyam_date')} value={form.udyam_registration_date} onChange={(e) => set({ udyam_registration_date: e.target.value })} />
+              </Field>
+            </Box>
             <label className="flex items-center gap-2 pt-4 text-sm">
               <input type="checkbox" checked={form.msme_written_agreement} onChange={(e) => set({ msme_written_agreement: e.target.checked })} />
               Written agreement with the supplier
             </label>
+            <Box area="agreed_days" errors={by}>
+              <Field label="Agreed credit days (1 to 45, with written agreement)">
+                <input className={cls('agreed_days')} inputMode="numeric" value={form.msme_agreed_days} onChange={(e) => set({ msme_agreed_days: e.target.value })} />
+              </Field>
+            </Box>
             <Box area="bill_wise" errors={by}>
               <label className="flex items-center gap-2 pt-4 text-sm">
                 <input type="checkbox" checked={form.bill_wise} onChange={(e) => set({ bill_wise: e.target.checked })} />

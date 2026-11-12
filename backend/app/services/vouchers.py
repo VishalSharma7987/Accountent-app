@@ -74,7 +74,7 @@ def _draft_from(record: VoucherRecord) -> VoucherDraft:
     return VoucherDraft(
         record.client_id, record.voucher_type, record.voucher_date, record.narration, record.reference_no,
         record.party_ledger_id, tuple(VoucherLine(x.ledger_id, x.debit, x.credit, x.allocations) for x in record.lines),
-        record.duplicate_override_reason,
+        record.duplicate_override_reason, record.goods_received_date,
     )
 
 
@@ -106,7 +106,7 @@ def _lines_snapshot(lines) -> list[dict]:
 
 
 def _snapshot(draft: VoucherDraft, status: str = "draft") -> dict:
-    return {
+    snap = {
         "voucher_type": draft.voucher_type,
         "voucher_date": draft.voucher_date.isoformat(),
         "narration": draft.narration,
@@ -116,6 +116,9 @@ def _snapshot(draft: VoucherDraft, status: str = "draft") -> dict:
         "status": status,
         "lines": _lines_snapshot(draft.lines),
     }
+    if draft.goods_received_date is not None:  # Phase 2.1: only when entered, so older snapshots are unchanged
+        snap["goods_received_date"] = draft.goods_received_date.isoformat()
+    return snap
 
 
 def _insert_lines(conn: Connection, client_id: object, voucher_id: object, draft: VoucherDraft) -> None:
@@ -138,14 +141,14 @@ def _insert_voucher(
     conn.execute(
         text(
             "INSERT INTO vouchers (id, client_id, financial_year_id, voucher_type, voucher_date, narration, "
-            "reference_no, party_ledger_id, reverses_voucher_id, duplicate_override_reason, created_by) "
-            "VALUES (:id, :c, :fy, :t, :d, :n, :ref, :party, :rev, :dup, :by)"
+            "reference_no, party_ledger_id, reverses_voucher_id, duplicate_override_reason, created_by, goods_received_date) "
+            "VALUES (:id, :c, :fy, :t, :d, :n, :ref, :party, :rev, :dup, :by, :grd)"
         ),
         {
             "id": voucher_id, "c": draft.client_id, "fy": fy_id, "t": draft.voucher_type, "d": draft.voucher_date,
             "n": draft.narration, "ref": draft.reference_no.strip() if draft.reference_no else None,
             "party": draft.party_ledger_id, "rev": reverses_voucher_id, "dup": draft.duplicate_override_reason,
-            "by": actor,
+            "by": actor, "grd": draft.goods_received_date,
         },
     )
     _insert_lines(conn, draft.client_id, voucher_id, draft)
@@ -221,12 +224,14 @@ def update_draft(conn: Connection, voucher_id: object, draft: VoucherDraft, *, a
     conn.execute(
         text(
             "UPDATE vouchers SET voucher_type = :t, voucher_date = :d, financial_year_id = :fy, narration = :n, "
-            "reference_no = :ref, party_ledger_id = :party, duplicate_override_reason = :dup WHERE id = :id"
+            "reference_no = :ref, party_ledger_id = :party, duplicate_override_reason = :dup, "
+            "goods_received_date = :grd WHERE id = :id"
         ),
         {
             "t": draft.voucher_type, "d": draft.voucher_date, "fy": _financial_year_id(ctx, draft.voucher_date),
             "n": draft.narration, "ref": draft.reference_no.strip() if draft.reference_no else None,
-            "party": draft.party_ledger_id, "dup": draft.duplicate_override_reason, "id": record.id,
+            "party": draft.party_ledger_id, "dup": draft.duplicate_override_reason, "grd": draft.goods_received_date,
+            "id": record.id,
         },
     )
     conn.execute(text("DELETE FROM voucher_lines WHERE voucher_id = :id"), {"id": record.id})

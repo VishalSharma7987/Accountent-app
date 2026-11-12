@@ -5,6 +5,7 @@ Owner Capital 4,50,000 Cr, no vouchers); every test runs in a rolled-back transa
 Hand-calculated numbers are in the comments.
 """
 
+from dataclasses import replace
 from datetime import date
 from decimal import Decimal
 
@@ -19,7 +20,7 @@ from app.db import connection, migrate
 from app.engine.bills import OpeningBillIn
 from app.engine.models import Allocation, VoucherDraft, VoucherLine
 from app.main import app
-from app.services import bills, client_setup, parties, vouchers
+from app.services import bills, client_setup, msme, parties, vouchers
 from app.services.errors import ServiceError, VoucherRuleError
 
 pytestmark = pytest.mark.integration
@@ -84,9 +85,12 @@ def test_party_set_get_list_update_and_audit(svc_conn, world):
     parties.set_party(
         c, w.client_id, w.ids["Rahul Enterprises"], gstin=" 27aabcu9603r1zm ", pan="AABCU9603R", state_code="27",
         credit_days="30", msme_category="small", udyam_no="UDYAM-MH-18-0012345", actor="clerk",
+        msme_activity="services", udyam_registration_date=date(2021, 3, 1), msme_written_agreement=True,
+        msme_agreed_days=40,
     )
     p = parties.get_party(c, w.client_id, w.ids["Rahul Enterprises"])
     assert (p.nature, p.gstin, p.credit_days, p.msme_category, p.bill_wise) == ("debtor", "27AABCU9603R1ZM", 30, "small", True)
+    assert (p.msme_activity, p.udyam_registration_date, p.msme_agreed_days) == ("services", date(2021, 3, 1), 40)
 
     parties.set_party(c, w.client_id, w.ids["Sharma Suppliers"], actor="clerk")
     assert [x.ledger_name for x in parties.list_parties(c, w.client_id)] == ["Rahul Enterprises", "Sharma Suppliers"]
@@ -368,3 +372,108 @@ def test_api_parties_opening_bills_vouchers_open_bills_and_reports(api, svc_conn
     assert table["rows"] == [{"party_ledger_id": str(rahul), "party_name": "Rahul Enterprises", "not_due": "0.00",
                               "0-30": "0.00", "31-60": "20000.00", "61-90": "0.00", "90+": "0.00", "total": "20000.00"}]
     assert api.get(f"{base}/reports/ageing", params={"kind": "other", "as_on": "2026-04-30"}).status_code == 422
+
+
+# ======================================================================== Phase 2.1: MSME party fields, goods received date
+
+
+def test_P09_P10_P11_party_rules_through_the_service(svc_conn, world):
+    c, w = svc_conn, world
+    with pytest.raises(VoucherRuleError) as bad:
+        parties.set_party(
+            c, w.client_id, w.ids["Sharma Suppliers"], msme_category="micro", udyam_no="UDYAM-MH-12-0000001",
+            msme_written_agreement=True, actor="clerk",
+        )
+    assert rule_ids(bad) == [("P-09", None), ("P-10", None), ("P-11", None)]
+    with pytest.raises(VoucherRuleError) as high:
+        parties.set_party(c, w.client_id, w.ids["Sharma Suppliers"], msme_written_agreement=True, msme_agreed_days=46, actor="clerk")
+    assert rule_ids(high) == [("P-11", None)]
+    assert scalar(c, "SELECT count(*) FROM parties") == 0
+    parties.set_party(
+        c, w.client_id, w.ids["Sharma Suppliers"], msme_category="micro", udyam_no="UDYAM-MH-12-0000001",
+        msme_activity="manufacturing", udyam_registration_date=date(2020, 1, 1), msme_written_agreement=True,
+        msme_agreed_days=30, actor="clerk",
+    )
+    new = scalar(c, "SELECT new_data FROM audit_log WHERE entity = 'party' ORDER BY id DESC LIMIT 1")
+    assert new["msme_activity"] == "manufacturing" and new["udyam_registration_date"] == "2020-01-01" and new["msme_agreed_days"] == 30
+
+
+def test_V15_goods_received_date_round_trip_and_msme_report(svc_conn, world):
+    c, w = svc_conn, world
+    parties.set_party(
+        c, w.client_id, w.ids["Sharma Suppliers"], msme_category="micro", udyam_no="UDYAM-MH-12-0000001",
+        msme_activity="manufacturing", udyam_registration_date=date(2020, 1, 1), msme_written_agreement=True,
+        msme_agreed_days=30, actor="clerk",
+    )
+
+    def purchase(grd, ref="SUP/1"):
+        d = vd(w, "purchase", date(2026, 4, 10), [
+            ("Purchases", "50000", None), ("Sharma Suppliers", None, "50000", [A("new_ref", "50000", ref)])],
+            ref=ref, party="Sharma Suppliers")
+        return replace(d, goods_received_date=grd)
+
+    too_far = vouchers.create_draft(c, purchase(date(2027, 4, 11)), actor="clerk")  # 366 days after 10-04-2026
+    assert [(e.rule_id, e.line_no) for e in too_far.errors] == [("V-15", None)] and too_far.voucher_id is None
+    sale = replace(
+        vd(w, "sales", date(2026, 4, 10), [("Cash", "100", None), ("Sales", None, "100")]),
+        goods_received_date=date(2026, 4, 9))
+    assert [e.rule_id for e in vouchers.create_draft(c, sale, actor="clerk").errors] == ["V-15"]
+
+    created = vouchers.create_draft(c, purchase(date(2026, 4, 20)), actor="clerk")
+    assert created.errors == []
+    assert vouchers.get_voucher(c, created.voucher_id).goods_received_date == date(2026, 4, 20)
+    snap = scalar(c, "SELECT new_data FROM audit_log WHERE entity = 'voucher' AND entity_id = :i", i=created.voucher_id)
+    assert snap["goods_received_date"] == "2026-04-20"
+
+    # a draft can be edited
+    assert vouchers.update_draft(c, created.voucher_id, purchase(date(2026, 4, 5)), actor="clerk").errors == []
+    assert vouchers.get_voucher(c, created.voucher_id).goods_received_date == date(2026, 4, 5)
+    assert vouchers.update_draft(c, created.voucher_id, purchase(date(2026, 4, 20)), actor="clerk").errors == []
+    vouchers.approve(c, created.voucher_id, actor="partner")
+    vouchers.post(c, created.voucher_id, actor="partner")
+
+    # 20-04-2026 + 30 = 20-05-2026; 10 days overdue on 30-05-2026 (the bill date 10-04 would have given 20 days)
+    [item] = msme.msme_report(c, w.client_id, date(2026, 5, 30)).items
+    assert (item.bill_ref, item.bill_date, item.acceptance_date, item.acceptance_basis) == (
+        "SUP/1", date(2026, 4, 10), date(2026, 4, 20), "goods received date")
+    assert (item.legal_days, item.legal_due_date, item.days_overdue, item.outstanding) == (30, date(2026, 5, 20), 10, D("50000.00"))
+    assert msme.msme_report(c, w.client_id, date(2026, 5, 30)).rule_status == "secondary_verified"
+
+    # posted: the database refuses to change it, and the service refuses to edit
+    with pytest.raises(DBAPIError, match="posted voucher"), c.begin_nested():
+        c.execute(text("UPDATE vouchers SET goods_received_date = '2026-04-21' WHERE id = :i"), {"i": created.voucher_id})
+    with pytest.raises(ServiceError):
+        vouchers.update_draft(c, created.voucher_id, purchase(date(2026, 4, 21)), actor="clerk")
+
+    # without a goods received date the report counts from the bill date and says so
+    other = vouchers.create_draft(c, purchase(None, "SUP/2"), actor="clerk").voucher_id
+    vouchers.approve(c, other, actor="partner")
+    vouchers.post(c, other, actor="partner")
+    items = {i.bill_ref: i for i in msme.msme_report(c, w.client_id, date(2026, 5, 30)).items}
+    assert (items["SUP/2"].acceptance_date, items["SUP/2"].acceptance_basis, items["SUP/2"].days_overdue) == (
+        date(2026, 4, 10), "bill date", 20)
+
+
+def test_api_party_msme_fields_and_voucher_goods_received_date(api, svc_conn, world):
+    w, sharma = world, world.ids["Sharma Suppliers"]
+    base = f"/clients/{w.client_id}"
+    bad = api.put(f"{base}/parties/{sharma}", json={"msme_category": "small", "udyam_no": "UDYAM-MH-12-0000001"}, headers=H)
+    assert bad.status_code == 422
+    assert [e["rule_id"] for e in bad.json()["errors"]] == ["P-09", "P-10"]
+    ok = api.put(f"{base}/parties/{sharma}", json={
+        "msme_category": "small", "udyam_no": "UDYAM-MH-12-0000001", "msme_activity": "services",
+        "udyam_registration_date": "2021-03-01", "msme_written_agreement": True, "msme_agreed_days": 45}, headers=H)
+    assert ok.json() == {"ok": True}
+    got = api.get(f"{base}/parties/{sharma}").json()
+    assert (got["msme_activity"], got["udyam_registration_date"], got["msme_agreed_days"]) == ("services", "2021-03-01", 45)
+
+    v = api.post(f"{base}/vouchers", json={
+        "voucher_type": "purchase", "voucher_date": "2026-04-10", "narration": "Goods", "reference_no": "SUP/9",
+        "party_ledger_id": str(sharma), "goods_received_date": "2026-04-12",
+        "lines": [{"ledger_id": str(w.ids["Purchases"]), "debit": "1000"},
+                  {"ledger_id": str(sharma), "credit": "1000", "allocations": [{"kind": "new_ref", "amount": "1000", "bill_ref": "SUP/9"}]}]},
+        headers=H)
+    assert v.status_code == 201, v.text
+    assert api.get(f"/vouchers/{v.json()['voucher_id']}").json()["goods_received_date"] == "2026-04-12"
+    r = api.get(f"{base}/reports/msme-due", params={"as_on": "2026-06-30"})
+    assert r.status_code == 200 and r.json()["rule_status"] == "secondary_verified" and r.json()["items"] == []  # a draft is not a bill

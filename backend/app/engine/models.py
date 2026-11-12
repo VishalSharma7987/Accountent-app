@@ -61,6 +61,7 @@ class VoucherDraft:
     party_ledger_id: object | None
     lines: tuple[VoucherLine, ...]
     duplicate_override_reason: str | None = None  # the user's reason for saving a possible duplicate (V-10)
+    goods_received_date: date | None = None  # Purchase only (V-15): the date of acceptance when not the bill date
 
 
 @dataclass(frozen=True)
@@ -74,7 +75,7 @@ class PeriodInfo:
 
 @dataclass(frozen=True)
 class ValidationError:
-    rule_id: str  # V-01 .. V-14
+    rule_id: str  # V-01 .. V-15
     message: str  # plain accountant language
     line_no: int | None = None  # 1-based line of the voucher, None for voucher-level errors
 
@@ -146,3 +147,5 @@ class OpenBill:
     due_date: date | None
     original: Decimal
     outstanding: Decimal
+    acceptance_date: date | None = None  # MSME: goods received date of the creating voucher, else the bill date
+    acceptance_basis: str = "bill date"  # "goods received date" | "bill date"

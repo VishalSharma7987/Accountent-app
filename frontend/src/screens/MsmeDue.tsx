@@ -18,11 +18,11 @@ export default function MsmeDue() {
     if (!r) return
     exportXlsx(
       `msme-due-${asOn}.xlsx`,
-      `${client?.name ?? ''} — MSME dues as on ${asOn}${r.rule_status === 'pending' ? ' (legal rule not yet verified)' : ''}`,
-      ['Party', 'Bill ref', 'Bill date', 'Legal days', 'Legal due date', 'Days overdue', 'Outstanding'],
+      `${client?.name ?? ''} — MSME dues as on ${asOn}${r.rule_status === 'pending' ? ' (legal rule not yet verified)' : r.rule_status === 'secondary_verified' ? ' (verified from secondary sources; awaiting CA confirmation)' : ''}`,
+      ['Party', 'Bill ref', 'Bill date', 'Acceptance date', 'Acceptance basis', 'Legal days', 'Legal due date', 'Days overdue', 'Outstanding'],
       [
-        ...r.items.map((i) => [i.party_name, i.bill_ref ?? '', i.bill_date, String(i.legal_days), i.legal_due_date, String(i.days_overdue), formatInr(i.outstanding)]),
-        ['Total', '', '', '', '', '', formatInr(r.total_outstanding)],
+        ...r.items.map((i) => [i.party_name, i.bill_ref ?? '', i.bill_date, i.acceptance_date, i.acceptance_basis, String(i.legal_days), i.legal_due_date, String(i.days_overdue), formatInr(i.outstanding)]),
+        ['Total', '', '', '', '', '', '', '', formatInr(r.total_outstanding)],
       ],
     )
   }
@@ -45,6 +45,12 @@ export default function MsmeDue() {
           {r.rule_source && <div className="text-xs">Source noted: {r.rule_source}</div>}
         </div>
       )}
+      {r && r.rule_status === 'secondary_verified' && (
+        <div role="note" className="rounded border border-sky-300 bg-sky-50 px-3 py-2 text-sm text-sky-900">
+          Verified from secondary sources; awaiting CA confirmation.
+          {r.rule_source && <div className="text-xs">Source noted: {r.rule_source}</div>}
+        </div>
+      )}
       {r && (
         <>
           <div className="text-xs text-slate-600">
@@ -56,6 +62,7 @@ export default function MsmeDue() {
                 <th className={th}>Party</th>
                 <th className={th}>Bill ref</th>
                 <th className={th}>Bill date</th>
+                <th className={th}>Counted from</th>
                 <th className={thR}>Legal days</th>
                 <th className={th}>Legal due date</th>
                 <th className={thR}>Days overdue</th>
@@ -68,6 +75,9 @@ export default function MsmeDue() {
                   <td className={td}>{i.party_name}</td>
                   <td className={td}>{i.bill_ref}</td>
                   <td className={td}>{i.bill_date}</td>
+                  <td className={td}>
+                    {i.acceptance_date} <span className="text-xs text-slate-500">({i.acceptance_basis})</span>
+                  </td>
                   <td className={tdR}>{i.legal_days}</td>
                   <td className={td}>{i.legal_due_date}</td>
                   <td className={tdR + ' font-semibold text-red-700'}>{i.days_overdue}</td>
@@ -78,7 +88,7 @@ export default function MsmeDue() {
               ))}
               {r.items.length === 0 && (
                 <tr>
-                  <td className={td} colSpan={7}>
+                  <td className={td} colSpan={8}>
                     No bills past the legal limit as on {asOn}.
                   </td>
                 </tr>
@@ -86,7 +96,7 @@ export default function MsmeDue() {
             </tbody>
             <tfoot>
               <tr className="font-semibold">
-                <td className={td} colSpan={6}>
+                <td className={td} colSpan={7}>
                   Total outstanding past the limit
                 </td>
                 <td className={tdR}>

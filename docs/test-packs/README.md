@@ -148,10 +148,11 @@ dates, exact ledger names) and adds the files below. Allocations are kept in a *
 one row per voucher line. The wrong vouchers are in `wrong_vouchers.csv` (not `invalid_vouchers.csv`), because they
 carry Phase 2 rule ids (B-, C-, D-, P-). All expected files are typed by hand (see `WORKING.md`), never copied from the tool.
 Report date of this pack: 30-06-2026 (`pack_end_date`).
+`vouchers.csv` of this pack also has an optional last column `goods_received_date` (Purchase vouchers only; empty = the bill date is the date of acceptance for the MSME rule).
 
 | File | Columns | Meaning |
 | --- | --- | --- |
-| `parties.csv` | `ledger_name, gstin, pan, state_code, credit_days, msme_category, udyam_no, msme_written_agreement, bill_wise` | Party master for the ledgers under Sundry Debtors / Creditors. `msme_category` = none / micro / small / medium; flags are `true` / `false`; empty = not given. |
+| `parties.csv` | `ledger_name, gstin, pan, state_code, credit_days, msme_category, udyam_no, activity, udyam_registration_date, msme_written_agreement, bill_wise, msme_agreed_days` | Party master for the ledgers under Sundry Debtors / Creditors. `msme_category` = none / micro / small / medium; `activity` = manufacturing / services / trading (needed for micro/small); `udyam_registration_date` needed with a Udyam number; `msme_agreed_days` (1 to 45) needed with a written agreement; flags are `true` / `false`; empty = not given. |
 | `opening_bills.csv` | `ledger_name, bill_ref, bill_date, due_date, amount, side` | Opening bills (side `Dr` debtor, `Cr` creditor). Per party they must add up to that ledger's opening balance. |
 | `opening_balances.csv` | `ledger_name, opening_dr, opening_cr` | The non-zero openings of `ledgers.csv` again (a compact copy; the self-check makes sure the two agree). |
 | `allocations.csv` | `ref_id, line_no, kind, amount, bill_ref, due_date` | Bill-wise allocation of a voucher line. `ref_id` = voucher of `vouchers.csv`; `line_no` = 1-based position of the line inside that voucher; `kind` = `new_ref` / `against_ref` / `advance` / `on_account`; `bill_ref` empty for `on_account`; `due_date` optional (empty = bill date + credit days). Every party line carries allocations that add up to the line amount; one line may have several rows (an invoice that absorbs an advance: `new_ref` 88,000 + `against_ref` 30,000 on a 1,18,000 line). No allocation on non-party lines. |
@@ -167,7 +168,7 @@ Report date of this pack: 30-06-2026 (`pack_end_date`).
 | `expected_brs.csv` | `line_type, item_date, reference, description, amount` | BRS: books balance, reconciling items, bank-only items, computed and statement balance, `difference` (0.00 = ties). |
 | `expected_matches.csv` | `bank_line_no, book_refs, how` | Which statement line (1-based row of `bank_statement.csv`) matches which voucher(s) (`V24+V25+V26`), `OPENING:<cheque>`, or nothing (bank only). |
 | `expected_bank_only_drafts.csv` | `bank_line_no, txn_date, voucher_type, counter_ledger, amount` | Draft vouchers expected for the bank-only lines. |
-| `expected_msme_due.csv` | `row_type, party, bill_ref, bill_date, msme_category, written_agreement, legal_days, legal_due_date, days_overdue, outstanding` | Flagged open bills (rule status PENDING); `item` / `total`. |
+| `expected_msme_due.csv` | `row_type, party, bill_ref, bill_date, acceptance_date, acceptance_basis, msme_category, written_agreement, legal_days, legal_due_date, days_overdue, outstanding` | Flagged open bills (rule status SECONDARY_VERIFIED: awaiting the CA); `item` / `total`. `acceptance_basis` = `goods received date` or `bill date`. |
 
 The sheet `VERIFICATION_SHEET.xlsx` is built from the pack files by `scripts/build_verification_sheet_p2.py`; the
 pure self-check `backend/tests/acceptance/test_pack_p2_selfcheck.py` checks the pack's internal consistency with plain

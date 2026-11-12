@@ -116,6 +116,7 @@ export interface VoucherIn {
   reference_no?: string | null
   party_ledger_id?: string | null
   duplicate_override_reason?: string | null
+  goods_received_date?: string | null // Purchase only (V-15)
   lines: VoucherLineIn[]
 }
 export interface VoucherLineOut {
@@ -143,6 +144,7 @@ export interface Voucher {
   created_by: string
   approved_by: string | null
   posted_by: string | null
+  goods_received_date?: string | null
   lines: VoucherLineOut[]
 }
 export interface VoucherListItem {
@@ -269,6 +271,7 @@ export interface ImportCommit {
 
 export type PartyNature = 'debtor' | 'creditor'
 export type MsmeCategory = 'none' | 'micro' | 'small' | 'medium'
+export type MsmeActivity = 'manufacturing' | 'services' | 'trading'
 export interface Party {
   ledger_id: string
   ledger_name: string
@@ -281,6 +284,9 @@ export interface Party {
   udyam_no: string | null
   msme_written_agreement: boolean
   bill_wise: boolean
+  msme_activity: MsmeActivity | null
+  udyam_registration_date: string | null
+  msme_agreed_days: number | null
 }
 export type PartyBody = Omit<Party, 'ledger_id' | 'ledger_name' | 'nature'>
 
@@ -392,6 +398,8 @@ export interface MsmeDueItem {
   party_name: string
   bill_ref: string | null
   bill_date: string
+  acceptance_date: string
+  acceptance_basis: 'goods received date' | 'bill date'
   legal_days: number
   legal_due_date: string
   days_overdue: number
@@ -399,7 +407,7 @@ export interface MsmeDueItem {
 }
 export interface MsmeDue {
   as_on: string
-  rule_status: 'pending' | 'verified'
+  rule_status: 'pending' | 'secondary_verified' | 'verified'
   rule_source: string | null
   items: MsmeDueItem[]
   total_outstanding: string

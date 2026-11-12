@@ -429,3 +429,18 @@ def test_opening_bills_check_balanced_and_difference():
     assert none.is_balanced
     credit = opening_bills_check(D("-3000.00"), OpeningBalance(D("0.00"), D("1000.00")))
     assert (credit.difference.amount, credit.difference.side) == (D("2000.00"), "Dr")
+
+
+def test_M01_open_bills_carry_the_acceptance_date_and_basis():
+    opening = [OpeningBillRow("sharma", "OB1", date(2026, 3, 20), date(2026, 4, 4), D("-1000"))]
+    allocs = [
+        AllocationRow("sharma", "new_ref", "PB1", date(2026, 4, 3), date(2026, 5, 18), D("-50000"),
+                      date(2026, 4, 10)),
+        AllocationRow("sharma", "new_ref", "PB2", date(2026, 4, 4), date(2026, 5, 19), D("-7000")),
+    ]
+    got = {b.bill_ref: (b.acceptance_date, b.acceptance_basis) for b in open_bills(opening, allocs, {"sharma": "Sharma"})}
+    assert got == {
+        "OB1": (date(2026, 3, 20), "bill date"),  # an opening bill uses its bill date
+        "PB1": (date(2026, 4, 10), "goods received date"),
+        "PB2": (date(2026, 4, 4), "bill date"),
+    }

@@ -196,12 +196,14 @@ def expected_cash_book(csv_rows: list[dict]) -> dict[tuple, dict]:
     return {(r["row_type"], r["date"]): {k: r[k] for k in ("receipts", "payments", "closing_dr")} for r in csv_rows}
 
 
-MSME_FIELDS = ("bill_date", "legal_days", "legal_due_date", "days_overdue", "outstanding")
+MSME_FIELDS = ("bill_date", "acceptance_date", "acceptance_basis", "legal_days", "legal_due_date", "days_overdue",
+               "outstanding")
 
 
 def msme_rows(report) -> dict[tuple, dict]:
     rows = {("item", f.party_name, f.bill_ref or ""): {
-        "bill_date": _iso(f.bill_date), "legal_days": str(f.legal_days), "legal_due_date": _iso(f.legal_due_date),
+        "bill_date": _iso(f.bill_date), "acceptance_date": _iso(f.acceptance_date),
+        "acceptance_basis": f.acceptance_basis, "legal_days": str(f.legal_days), "legal_due_date": _iso(f.legal_due_date),
         "days_overdue": str(f.days_overdue), "outstanding": money(f.outstanding)} for f in report.items}
     rows[("total", "", "")] = {"outstanding": money(report.total_outstanding)}
     return rows
@@ -271,6 +273,7 @@ def _draft(client_id, v: VoucherRec, ledger_id) -> VoucherDraft:
             ledger_id(l.ledger_name), _amount(l.debit), _amount(l.credit),
             tuple(Allocation(a.kind, a.amount, a.bill_ref, a.due_date) for a in l.allocations),
         ) for l in v.lines),
+        goods_received_date=v.goods_received_date,
     )
 
 
@@ -278,7 +281,8 @@ def _set_party(conn, client_id, ledger_id, p: PartyRec, bill_wise: bool) -> None
     parties.set_party(
         conn, client_id, ledger_id, gstin=p.gstin, pan=p.pan, state_code=p.state_code, credit_days=p.credit_days,
         msme_category=p.msme_category, udyam_no=p.udyam_no, msme_written_agreement=p.msme_written_agreement,
-        bill_wise=bill_wise, actor=ACTOR,
+        bill_wise=bill_wise, msme_activity=p.msme_activity, udyam_registration_date=p.udyam_registration_date,
+        msme_agreed_days=p.msme_agreed_days, actor=ACTOR,
     )
 
 
@@ -492,8 +496,8 @@ def _compare_books(conn, pack: PackP2, cid, ids, tool_name, as_on: date, report:
 
     # MSME
     rep = msme.msme_report(conn, cid, as_on)
-    if rep.rule_status != "pending":
-        report.add("msme_due", f"rule status expected 'pending', tool says '{rep.rule_status}'")
+    if rep.rule_status != "secondary_verified":
+        report.add("msme_due", f"rule status expected 'secondary_verified', tool says '{rep.rule_status}'")
     for line in diff_keyed(expected_msme(exp["expected_msme_due"]), msme_rows(rep), MSME_FIELDS,
                            label=lambda k: f"msme {k[0]} {k[1]} {k[2]}".strip()):
         report.add("msme_due", line)

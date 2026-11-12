@@ -43,17 +43,19 @@ class MsmeItemOut(BaseModel):
     party_name: str
     bill_ref: str | None
     bill_date: date
+    acceptance_date: date
+    acceptance_basis: str  # "goods received date" | "bill date"
     legal_days: int
     legal_due_date: date
     days_overdue: int
     outstanding: str
-    rule_status: str  # "pending" | "verified"
+    rule_status: str  # "pending" | "secondary_verified" | "verified"
     rule_source: str
 
 
 class MsmeDueOut(BaseModel):
     as_on: date
-    rule_status: str  # "pending" | "verified"
+    rule_status: str  # "pending" | "secondary_verified" | "verified"
     rule_source: str
     items: list[MsmeItemOut]
     total_outstanding: str

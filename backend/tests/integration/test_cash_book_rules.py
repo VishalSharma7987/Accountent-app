@@ -132,30 +132,72 @@ def test_D01_duplicate_payment_blocked_unless_overridden(svc_conn, world):
     assert forced.errors == [] and forced.voucher_id is not None
 
 
-def test_M01_rule_seed_is_present_and_every_row_is_pending(svc_conn):
-    rows = svc_conn.execute(text("SELECT category, applies, verification_status FROM msme_payment_rules")).all()
+def test_M01_rule_seed_is_present_and_every_row_is_secondary_verified(svc_conn):
+    rows = svc_conn.execute(
+        text("SELECT category, applies, verification_status, covered_activities, rule_key FROM msme_payment_rules")
+    ).all()
     assert len(rows) == 6
-    assert {r[2] for r in rows} == {"pending"}
+    assert {r[2] for r in rows} == {"secondary_verified"}
     assert {(r[0], r[1]) for r in rows} == {("micro", True), ("small", True), ("medium", False)}
+    assert {(r[0], tuple(r[3])) for r in rows if r[1]} == {("micro", ("manufacturing", "services")), ("small", ("manufacturing", "services"))}
+    assert all(r[3] == [] for r in rows if not r[1])
+    assert {r[4] for r in rows} == {"msme_43bh_1961", "msme_37_2_g_2025"}
+
+
+def set_msme_party(conn, w, name, *, cat="micro", activity="manufacturing", udyam_date=date(2020, 1, 1), days=30, agreement=True):
+    conn.execute(text("DELETE FROM parties WHERE ledger_id = :l"), {"l": w.ids[name]})
+    conn.execute(
+        text(
+            "INSERT INTO parties (ledger_id, client_id, msme_category, udyam_no, msme_written_agreement, msme_agreed_days, "
+            "msme_activity, udyam_registration_date, bill_wise) VALUES (:l, :c, :cat, 'UDYAM-MH-12-0000001', :agr, :days, :act, :ud, false)"
+        ),
+        {"l": w.ids[name], "c": w.client_id, "cat": cat, "agr": agreement, "days": days if agreement else None,
+         "act": activity, "ud": udyam_date},
+    )
+
+
+def sharma_bill(w, on=date(2026, 4, 10), accepted=None):
+    return [OpenBill(
+        w.ids["Sharma Suppliers"], "Sharma Suppliers", "SUP/889", "bill", on, None, D("-10000.00"), D("-10000.00"),
+        accepted or on, "bill date" if accepted is None else "goods received date",
+    )]
 
 
 def test_M01_msme_report_with_injected_bills(svc_conn, world):
-    party = world.ids["Sharma Suppliers"]
-    svc_conn.execute(
-        text(
-            "INSERT INTO parties (ledger_id, client_id, msme_category, udyam_no, credit_days, msme_written_agreement, bill_wise) "
-            "VALUES (:l, :c, 'micro', 'UDYAM-MH-12-0000001', 30, true, false)"
-        ),
-        {"l": party, "c": world.client_id},
-    )
-    bills = [OpenBill(party, "Sharma Suppliers", "SUP/889", "bill", date(2026, 4, 10), None, D("-10000.00"), D("-10000.00"))]
-    report = msme.msme_report(svc_conn, world.client_id, date(2026, 5, 30), open_bills=bills)
-    assert report.rule_status == "pending" and "37(2)(g)" in report.rule_source
+    set_msme_party(svc_conn, world, "Sharma Suppliers")
+    report = msme.msme_report(svc_conn, world.client_id, date(2026, 5, 30), open_bills=sharma_bill(world))
+    assert report.rule_status == "secondary_verified" and "37(2)(g)" in report.rule_source
     [item] = report.items
     # 10-04-2026 + 30 days = 10-05-2026; 20 days overdue on 30-05-2026
     assert (item.legal_days, item.legal_due_date, item.days_overdue, item.outstanding) == (30, date(2026, 5, 10), 20, D("10000.00"))
+    assert (item.acceptance_date, item.acceptance_basis) == (date(2026, 4, 10), "bill date")
     assert report.total_outstanding == D("10000.00")
-    assert item.rule_status == "pending"
+    assert item.rule_status == "secondary_verified"
+
+
+def test_M01_report_uses_goods_received_date_trader_and_udyam_date_rules(svc_conn, world):
+    on = date(2026, 5, 30)
+    set_msme_party(svc_conn, world, "Sharma Suppliers")
+    # goods received 20-04-2026 + 30 = 20-05-2026; 10 days overdue on 30-05
+    [item] = msme.msme_report(svc_conn, world.client_id, on, open_bills=sharma_bill(world, accepted=date(2026, 4, 20))).items
+    assert (item.acceptance_date, item.acceptance_basis, item.legal_due_date, item.days_overdue) == (
+        date(2026, 4, 20), "goods received date", date(2026, 5, 20), 10)
+    set_msme_party(svc_conn, world, "Sharma Suppliers", activity="trading")
+    assert msme.msme_report(svc_conn, world.client_id, on, open_bills=sharma_bill(world)).items == ()
+    set_msme_party(svc_conn, world, "Sharma Suppliers", cat="medium")
+    assert msme.msme_report(svc_conn, world.client_id, on, open_bills=sharma_bill(world)).items == ()
+    set_msme_party(svc_conn, world, "Sharma Suppliers", udyam_date=date(2026, 4, 11))  # registered a day after the bill
+    assert msme.msme_report(svc_conn, world.client_id, on, open_bills=sharma_bill(world)).items == ()
+
+
+def test_M01_database_checks_the_new_party_columns(svc_conn, world):
+    with pytest.raises(Exception, match="parties_msme_agreed_days_range"), svc_conn.begin_nested():
+        set_msme_party(svc_conn, world, "Sharma Suppliers", days=46)
+    with pytest.raises(Exception, match="parties_msme_agreement_days"), svc_conn.begin_nested():
+        set_msme_party(svc_conn, world, "Sharma Suppliers", agreement=False)  # fine ...
+        svc_conn.execute(text("UPDATE parties SET msme_agreed_days = 20 WHERE ledger_id = :l"), {"l": world.ids["Sharma Suppliers"]})
+    with pytest.raises(Exception, match="parties_msme_needs_activity"), svc_conn.begin_nested():
+        set_msme_party(svc_conn, world, "Sharma Suppliers", activity=None)
 
 
 def test_api_cash_book(svc_conn, world):

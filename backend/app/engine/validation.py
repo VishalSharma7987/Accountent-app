@@ -1,4 +1,4 @@
-"""Voucher rules V-01 .. V-09 and V-13, V-14 (V-10 lives in duplicates.py; V-11 and V-12 are lifecycle rules of the
+"""Voucher rules V-01 .. V-09 and V-13 .. V-15 (V-10 lives in duplicates.py; V-11 and V-12 are lifecycle rules of the
 service layer). Pure functions: they take plain data and return ALL errors, in plain accountant language.
 
 Rules and wording: CLAUDE.md section 5. Group codes are the seeded ones (database/seeds/0001_account_groups.sql).
@@ -190,6 +190,20 @@ def validate_voucher(
         errors.append(ValidationError("V-13", f"Party ledger '{party.name}' is not in the voucher's lines."))
     if draft.voucher_type in NEEDS_REFERENCE and _is_blank(draft.reference_no):
         errors.append(ValidationError("V-14", NEEDS_REFERENCE[draft.voucher_type]))
+
+    # ---- V-15: goods received date (Purchase only, within 365 days of the voucher date) -------------
+    if draft.goods_received_date is not None and not is_reversal:
+        grd = draft.goods_received_date
+        if draft.voucher_type != "purchase":
+            errors.append(ValidationError(
+                "V-15", "Goods received date can be entered only on a Purchase voucher."
+            ))
+        elif abs((grd - draft.voucher_date).days) > 365:
+            errors.append(ValidationError(
+                "V-15",
+                f"Goods received date {_fmt_date(grd)} is more than 365 days away from the voucher date "
+                f"{_fmt_date(draft.voucher_date)}; check the date.",
+            ))
 
     errors.sort(key=lambda e: (e.rule_id, e.line_no is None, e.line_no or 0))
     return errors

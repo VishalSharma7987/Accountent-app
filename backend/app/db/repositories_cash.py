@@ -14,10 +14,13 @@ CENTS = Decimal("0.01")
 def party_facts(conn: Connection, client_id: object) -> dict[object, PartyFacts]:
     """MSME-relevant facts of every party ledger of the client (keyed by ledger id)."""
     rows = conn.execute(
-        text("SELECT ledger_id, msme_category, credit_days, msme_written_agreement FROM parties WHERE client_id = :c"),
+        text(
+            "SELECT ledger_id, msme_category, msme_written_agreement, msme_agreed_days, msme_activity, "
+            "udyam_registration_date FROM parties WHERE client_id = :c"
+        ),
         {"c": client_id},
     )
-    return {r[0]: PartyFacts(r[0], r[1], r[2], r[3]) for r in rows}
+    return {r[0]: PartyFacts(*r) for r in rows}
 
 
 def cash_movements(conn: Connection, client_id: object, ledger_id: object, fy_id: object) -> list[CashMovement]:
@@ -80,6 +83,6 @@ def candidate_payments(conn: Connection, client_id: object, party_ledger_id: obj
 def msme_rule_rows(conn: Connection) -> list[tuple]:
     return list(conn.execute(text(
         "SELECT rule_key, category, applies, days_with_agreement, days_no_agreement, effective_from, effective_to, "
-        "source_reference, verification_status FROM msme_payment_rules ORDER BY effective_from, rule_key, category"
+        "source_reference, verification_status, covered_activities FROM msme_payment_rules ORDER BY effective_from, rule_key, category"
     )))
 

@@ -221,18 +221,19 @@ def build(pack: Path) -> Path:
 
     # ---------------------------------------------------------------- 8. MSME
     ws = wb.create_sheet("8 MSME")
-    title(ws, "Expected MSME payment-time flags as on 30-06-2026 (rule values are PENDING verification)", name, 9)
-    header(ws, 2, ["Supplier", "Bill ref", "Bill date", "Category", "Written agreement", "Legal days", "Legal due date", "Days overdue", "Outstanding (Rs)"])
+    title(ws, "Expected MSME payment-time flags as on 30-06-2026 (rule status SECONDARY_VERIFIED: awaiting the CA)", name, 11)
+    header(ws, 2, ["Supplier", "Bill ref", "Bill date", "Counted from", "Basis", "Category", "Written agreement", "Legal days", "Legal due date", "Days overdue", "Outstanding (Rs)"])
     row = 3
     for r in read(pack, "expected_msme_due.csv"):
         total = r["row_type"] == "total"
-        put(ws, row, ["TOTAL" if total else r["party"], r["bill_ref"], day(r["bill_date"]), r["msme_category"], r["written_agreement"],
-                      int(r["legal_days"]) if r["legal_days"] else None, day(r["legal_due_date"]), int(r["days_overdue"]) if r["days_overdue"] else None,
-                      Decimal(r["outstanding"])], (9,), total, TOTAL_FILL if total else None)
-        dated(ws, row, 3), dated(ws, row, 7)
+        put(ws, row, ["TOTAL" if total else r["party"], r["bill_ref"], day(r["bill_date"]), day(r["acceptance_date"]), r["acceptance_basis"], r["msme_category"],
+                      r["written_agreement"], int(r["legal_days"]) if r["legal_days"] else None, day(r["legal_due_date"]),
+                      int(r["days_overdue"]) if r["days_overdue"] else None,
+                      Decimal(r["outstanding"])], (11,), total, TOTAL_FILL if total else None)
+        dated(ws, row, 3), dated(ws, row, 4), dated(ws, row, 9)
         row += 1
-    put(ws, row + 1, ["Medium and non-MSME suppliers are never flagged. Legal days: written agreement = agreed days (max 45); none = 15.", "", "", "", "", "", "", "", ""])
-    page(ws, 2, [26, 14, 12, 11, 12, 10, 14, 11, 18])
+    put(ws, row + 1, ["Medium suppliers, traders and non-MSME suppliers are never flagged; supplies before the Udyam registration date are not flagged. Legal days: written agreement = agreed days (max 45); none = 15; counted from the goods received date if entered, else the bill date.", "", "", "", "", "", "", "", "", "", ""])
+    page(ws, 2, [26, 14, 12, 12, 20, 11, 12, 10, 14, 11, 18])
 
     # ---------------------------------------------------------------- 9. wrong vouchers and parties
     ws = wb.create_sheet("9 Wrong vouchers")

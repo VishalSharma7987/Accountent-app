@@ -161,6 +161,7 @@ class VoucherIn(BaseModel):
     reference_no: str | None = None
     party_ledger_id: uuid.UUID | None = None
     duplicate_override_reason: str | None = None
+    goods_received_date: date | None = None  # Purchase only (V-15)
     lines: list[VoucherLineIn]
 
 
@@ -190,6 +191,7 @@ class VoucherOut(BaseModel):
     created_by: str
     approved_by: str | None
     posted_by: str | None
+    goods_received_date: date | None = None
     lines: list[VoucherLineOut]
 
 

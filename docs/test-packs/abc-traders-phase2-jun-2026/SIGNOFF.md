@@ -20,7 +20,7 @@ Fill this in after you have checked the pack by hand. An unsigned pack is not a 
 - [ ] Cash Book: every day's closing worked out by hand, never negative
 - [ ] Bank statement: running balance re-added; statement opening differs from books opening by the opening item only
 - [ ] BRS as on 30-06-2026 ties to the rupee (expected_brs.csv)
-- [ ] MSME legal due dates checked; the legal values (days, section) are confirmed from the official text (status is PENDING until then)
+- [ ] MSME legal due dates checked; the legal values (days, section) are confirmed from the official text (status is SECONDARY_VERIFIED until your CA signs)
 - [ ] Every wrong voucher / wrong party really is wrong, and expected_rule_id is the right rule
 - [ ] Data is dummy / anonymised (no real names, PAN, GSTIN, Udyam, Aadhaar, bank numbers)
 

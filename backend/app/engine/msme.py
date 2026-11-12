@@ -1,13 +1,16 @@
 """M-01: MSME payment-due flag (a report, not a block). Pure Python, no database.
 
-Law is data: the days, effective dates, source and verification status come from `msme_payment_rules` rows (see
-app/rules/msme.py); nothing is hardcoded here. Design assumptions (docs/PHASE2_PLAN.md): the bill date is the date
-of acceptance; only unpaid supplier bills (credit side) of micro/small suppliers are flagged; a bill whose date has
-no rule row is not flagged.
+Law is data: the days, effective dates, covered activities, source and verification status come from
+`msme_payment_rules` rows (see app/rules/msme.py); nothing is hardcoded here. Rules (docs/PHASE2_PLAN.md, 2.1):
+only unpaid supplier bills (credit side) of micro/small suppliers are flagged, only when the supplier's activity is
+one the rule row covers (manufacturing/services; traders and medium are out), only for supplies dated on or after the
+supplier's Udyam registration date; a bill whose date has no rule row is not flagged. The rule row is picked by the
+bill date (the transaction date).
 
-Legal days: with a written agreement and credit days above zero -> min(credit days, days_with_agreement of the
-rule); otherwise -> days_no_agreement of the rule. Due date = bill date + legal days; a bill is overdue only AFTER
-the due date.
+Legal days: with a written agreement (msme_agreed_days set) -> min(agreed days, days_with_agreement of the rule);
+otherwise -> days_no_agreement of the rule. They are counted from the acceptance date: the goods received date when
+the bill's voucher has one, else the bill date (OpenBill.acceptance_basis says which). Due date = acceptance date +
+legal days; a bill is overdue only AFTER the due date.
 """
 
 from collections.abc import Mapping, Sequence
@@ -30,15 +33,18 @@ class MsmeRule:
     effective_from: date
     effective_to: date | None
     source_reference: str
-    verification_status: str  # verified | pending
+    verification_status: str  # verified | secondary_verified | pending
+    covered_activities: tuple[str, ...] = ()  # manufacturing | services | trading
 
 
 @dataclass(frozen=True)
 class PartyFacts:
     ledger_id: object
     msme_category: str  # none | micro | small | medium
-    credit_days: int
     msme_written_agreement: bool
+    msme_agreed_days: int | None = None
+    msme_activity: str | None = None  # manufacturing | services | trading
+    udyam_registration_date: date | None = None
 
 
 @dataclass(frozen=True)
@@ -47,18 +53,20 @@ class MsmeFlag:
     party_name: str
     bill_ref: str | None
     bill_date: date
+    acceptance_date: date
+    acceptance_basis: str  # "goods received date" | "bill date"
     legal_days: int
     legal_due_date: date
     days_overdue: int
     outstanding: Decimal  # positive: what is still owed
-    rule_status: str  # verified | pending
+    rule_status: str  # verified | secondary_verified | pending
     rule_source: str
 
 
 @dataclass(frozen=True)
 class MsmeReport:
     as_on: date
-    rule_status: str  # "pending" until every rule row in force on as_on is verified
+    rule_status: str  # verified | secondary_verified | pending (see rules_status)
     rule_source: str
     items: tuple[MsmeFlag, ...]
     total_outstanding: Decimal
@@ -75,9 +83,16 @@ def pick_rule(rules: Sequence[MsmeRule], category: str, on: date) -> MsmeRule | 
 
 
 def rules_status(rules: Sequence[MsmeRule], as_on: date) -> tuple[str, str]:
-    """('verified' | 'pending', source text) for the rows in force on as_on. No rows in force = pending."""
+    """(status, source text) for the rows in force on as_on. 'verified' = every row verified; 'secondary_verified' =
+    every row verified or secondary_verified; otherwise (or no rows in force) 'pending'."""
     active = [r for r in rules if _in_force(r, as_on)]
-    status = "verified" if active and all(r.verification_status == "verified" for r in active) else "pending"
+    states = {r.verification_status for r in active}
+    if active and states == {"verified"}:
+        status = "verified"
+    elif active and states <= {"verified", "secondary_verified"}:
+        status = "secondary_verified"
+    else:
+        status = "pending"
     sources: list[str] = []
     for r in active:
         if r.source_reference not in sources:
@@ -99,19 +114,24 @@ def flag_msme_overdue(
             continue
         if bill.kind != "bill" or bill.bill_date is None or bill.outstanding >= 0:
             continue
+        if facts.udyam_registration_date is None or bill.bill_date < facts.udyam_registration_date:
+            continue  # the supply predates the Udyam registration (or the date is not known)
         rule = pick_rule(rules, facts.msme_category, bill.bill_date)
         if rule is None or not rule.applies or rule.days_no_agreement is None or rule.days_with_agreement is None:
             continue
-        if facts.msme_written_agreement and facts.credit_days > 0:
-            legal_days = min(facts.credit_days, rule.days_with_agreement)
+        if facts.msme_activity is None or facts.msme_activity not in rule.covered_activities:
+            continue
+        if facts.msme_written_agreement and facts.msme_agreed_days:
+            legal_days = min(facts.msme_agreed_days, rule.days_with_agreement)
         else:
             legal_days = rule.days_no_agreement
-        due = bill.bill_date + timedelta(days=legal_days)
+        accepted = bill.acceptance_date or bill.bill_date
+        due = accepted + timedelta(days=legal_days)
         if as_on <= due:
             continue
         flags.append(MsmeFlag(
-            bill.party_ledger_id, bill.party_name, bill.bill_ref, bill.bill_date, legal_days, due,
-            (as_on - due).days, (-bill.outstanding).quantize(Decimal("0.01")),
+            bill.party_ledger_id, bill.party_name, bill.bill_ref, bill.bill_date, accepted, bill.acceptance_basis,
+            legal_days, due, (as_on - due).days, (-bill.outstanding).quantize(Decimal("0.01")),
             rule.verification_status, rule.source_reference,
         ))
     return sorted(flags, key=lambda f: (f.legal_due_date, f.party_name, f.bill_ref or ""))
