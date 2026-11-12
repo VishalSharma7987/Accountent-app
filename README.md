@@ -35,6 +35,19 @@ cd backend
 `db` is `"error"` until `DATABASE_URL` in `.env` is valid and the Supabase project is awake
 (free projects pause after 7 days idle).
 
+## API
+
+The FastAPI app serves the endpoints of [docs/API_CONTRACT.md](docs/API_CONTRACT.md); interactive docs are at
+`http://127.0.0.1:8000/docs` while the backend runs.
+
+- **No login in Phase 1.** Every request that changes data must send the header `X-User: <name>`; that name is written to
+  the audit log as the actor. A missing or blank header gives `400 invalid_actor`. Reads do not need it. Real login and
+  roles come before anyone besides the owner uses the tool.
+- Amounts travel as **strings** with 2 decimals (`"12500.00"`); a JSON number for an amount is refused with 422.
+- Each request is one database transaction: committed when the handler finishes, rolled back on any error.
+- Rule failures of a voucher answer `422 {"errors": [{"rule_id", "message", "line_no"}]}`; other refusals answer
+  `{"code", "message", "details"}` (404 not found, 409 conflict, 422 invalid input).
+
 ## Run the tests
 
 ```powershell

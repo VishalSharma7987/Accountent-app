@@ -70,3 +70,29 @@ def clean_db(test_conn, _emptied_test_schema):
     """
     yield test_conn
     test_conn.rollback()
+
+
+@pytest.fixture(scope="module")
+def books(test_engine, test_conn):
+    """The mini case, committed ONCE per test module (two clients); each test runs in a rolled-back transaction.
+
+    Cleaned (guarded) when the module ends.
+    """
+    from books import build_books, mini_case
+
+    from app.services import vouchers
+
+    connection.clean_test_tables(test_conn)
+    migrate.apply_seed_sql(test_conn)
+    with test_engine.begin() as conn:
+        mine = build_books(conn)
+        for key, d in mini_case(mine).items():
+            result = vouchers.create_draft(conn, d, actor="clerk")
+            assert result.errors == [], (key, result.errors)
+            vouchers.approve(conn, result.voucher_id, actor="partner")
+            vouchers.post(conn, result.voucher_id, actor="partner")
+            mine.voucher_ids[key] = result.voucher_id
+        other = build_books(conn, "Other Client")
+    yield mine, other
+    connection.clean_test_tables(test_conn)
+    migrate.apply_seed_sql(test_conn)
