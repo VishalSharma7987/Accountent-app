@@ -7,6 +7,7 @@ rules as the voucher screen (vouchers.validate_draft / create_draft). Import nev
 Services take a SQLAlchemy Connection and never commit (the caller owns the transaction).
 """
 
+import uuid
 from dataclasses import dataclass, field
 from decimal import Decimal
 
@@ -95,6 +96,10 @@ def _prepare(conn: Connection, client_id: object, data: bytes) -> list[_Prepared
         parsed = parse_workbook(data)
     except ImportFileError as problem:
         raise ServiceError("invalid_file", str(problem)) from problem
+    try:
+        client_id = uuid.UUID(str(client_id))  # ids from the URL are text; the engine compares them with UUIDs
+    except ValueError:
+        raise ServiceError("not_found", "Client not found.") from None
     if conn.execute(text("SELECT 1 FROM clients WHERE id = :c"), {"c": client_id}).first() is None:
         raise ServiceError("not_found", "Client not found.")
     ledger_ids = _ledger_ids(conn, client_id)
