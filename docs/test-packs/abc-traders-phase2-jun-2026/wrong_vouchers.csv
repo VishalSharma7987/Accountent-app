@@ -1,0 +1,15 @@
+ref_id,date,voucher_type,ledger_name,debit,credit,narration,reference_no,party_ledger,expected_rule_id,expected_message_contains
+X01,2026-06-20,sales,Rahul Enterprises,118000.00,0.00,Wrong voucher for the test line not fully allocated,INV-2026-099,Rahul Enterprises,B-01,allocated
+X01,2026-06-20,sales,Sales,0.00,100000.00,Wrong voucher for the test line not fully allocated,INV-2026-099,Rahul Enterprises,B-01,allocated
+X01,2026-06-20,sales,Output GST,0.00,18000.00,Wrong voucher for the test line not fully allocated,INV-2026-099,Rahul Enterprises,B-01,allocated
+X02,2026-06-20,receipt,HDFC Bank,5000.00,0.00,Wrong voucher for the test new reference on the wrong side,RC-X1,Rahul Enterprises,B-02,side
+X02,2026-06-20,receipt,Rahul Enterprises,0.00,5000.00,Wrong voucher for the test new reference on the wrong side,RC-X1,Rahul Enterprises,B-02,side
+X03,2026-06-20,sales,Rahul Enterprises,11800.00,0.00,Wrong voucher for the test bill reference already used,INV-2025-118,Rahul Enterprises,B-03,already
+X03,2026-06-20,sales,Sales,0.00,10000.00,Wrong voucher for the test bill reference already used,INV-2025-118,Rahul Enterprises,B-03,already
+X03,2026-06-20,sales,Output GST,0.00,1800.00,Wrong voucher for the test bill reference already used,INV-2025-118,Rahul Enterprises,B-03,already
+X04,2026-06-20,receipt,HDFC Bank,15000.00,0.00,Wrong voucher for the test receipt more than the bill outstanding,RCPT-X4,Kapoor & Sons,B-04,outstanding
+X04,2026-06-20,receipt,Kapoor & Sons,0.00,15000.00,Wrong voucher for the test receipt more than the bill outstanding,RCPT-X4,Kapoor & Sons,B-04,outstanding
+X05,2026-04-05,payment,Office Expenses,100000.00,0.00,Wrong voucher for the test cash would go negative,,,C-01,negative
+X05,2026-04-05,payment,Cash,0.00,100000.00,Wrong voucher for the test cash would go negative,,,C-01,negative
+X06,2026-04-11,payment,Sharma Suppliers,100000.00,0.00,Wrong voucher for the test same payment again after three days,N0411DUP,Sharma Suppliers,D-01,duplicate
+X06,2026-04-11,payment,HDFC Bank,0.00,100000.00,Wrong voucher for the test same payment again after three days,N0411DUP,Sharma Suppliers,D-01,duplicate

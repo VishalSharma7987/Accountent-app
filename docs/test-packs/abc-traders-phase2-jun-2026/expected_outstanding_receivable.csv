@@ -1,0 +1,16 @@
+row_type,party,bill_ref,kind,side,bill_date,due_date,original,outstanding,days_past_due,bucket
+bill,Rahul Enterprises,INV-2025-118,bill,Dr,2026-01-20,2026-02-19,50000.00,50000.00,131,90+
+bill,Rahul Enterprises,INV-2025-131,bill,Dr,2026-03-05,2026-04-04,70000.00,7500.00,87,61-90
+bill,Rahul Enterprises,INV-2026-004,bill,Dr,2026-05-12,2026-06-11,177000.00,103400.00,19,0-30
+party_total,Rahul Enterprises,,,Dr,,,,160900.00,,
+bill,Meena Traders,MT/INV/090,bill,Dr,2026-02-10,2026-03-27,45000.00,25000.00,95,90+
+bill,Meena Traders,MT/INV/104,bill,Dr,2026-03-25,2026-05-09,35000.00,35000.00,52,31-60
+bill,Meena Traders,INV-2026-001,bill,Dr,2026-04-03,2026-05-18,118000.00,64500.00,43,31-60
+party_total,Meena Traders,,,Dr,,,,124500.00,,
+bill,Sunrise Stores,SR-077,bill,Dr,2026-03-28,2026-05-27,90000.00,10000.00,34,31-60
+bill,Sunrise Stores,INV-2026-006,bill,Dr,2026-05-20,2026-07-19,88000.00,88000.00,-19,not_due
+party_total,Sunrise Stores,,,Dr,,,,98000.00,,
+bill,Kapoor & Sons,KS-0056,bill,Dr,2026-03-15,2026-04-14,40000.00,4000.00,77,61-90
+bill,Kapoor & Sons,INV-2026-009,bill,Dr,2026-06-15,2026-07-30,59000.00,59000.00,-30,not_due
+party_total,Kapoor & Sons,,,Dr,,,,63000.00,,
+grand_total,,,,Dr,,,,446400.00,,

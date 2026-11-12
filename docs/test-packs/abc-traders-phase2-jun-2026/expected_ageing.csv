@@ -1,0 +1,11 @@
+kind,row_type,party,not_due,0-30,31-60,61-90,90+,total
+receivable,party,Rahul Enterprises,0.00,103400.00,0.00,7500.00,50000.00,160900.00
+receivable,party,Meena Traders,0.00,0.00,99500.00,0.00,25000.00,124500.00
+receivable,party,Sunrise Stores,88000.00,0.00,10000.00,0.00,0.00,98000.00
+receivable,party,Kapoor & Sons,59000.00,0.00,0.00,4000.00,0.00,63000.00
+receivable,total,,147000.00,103400.00,109500.00,11500.00,75000.00,446400.00
+payable,party,Sharma Suppliers,82600.00,0.00,0.00,50000.00,40000.00,172600.00
+payable,party,Gupta Wholesale,47200.00,23600.00,0.00,0.00,0.00,70800.00
+payable,party,Patel Packaging Works,0.00,0.00,35400.00,0.00,0.00,35400.00
+payable,party,Mehta Agencies,0.00,9000.00,0.00,55000.00,0.00,64000.00
+payable,total,,129800.00,32600.00,35400.00,105000.00,40000.00,342800.00

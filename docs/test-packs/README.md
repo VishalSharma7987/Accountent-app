@@ -139,3 +139,36 @@ you may have mistyped a voucher or an expected figure; the accountant decides wh
 cd backend
 ..\.venv\Scripts\python -c "import sys; sys.path.insert(0,'tests/acceptance'); from pack_loader import load_pack, balance_warnings; w = balance_warnings(load_pack(r'..\docs\test-packs\_template')); print('\n'.join(w) or 'no differences')"
 ```
+
+## Phase 2 pack files (parties, bill-wise, cash, bank, BRS)
+
+The Phase 2 pack `abc-traders-phase2-jun-2026/` keeps the Phase 1 formats unchanged (`client.yaml`, `ledgers.csv`,
+`vouchers.csv`, `reversals.csv`, `expected_trial_balance.csv`; same writing rules: 2-decimal amounts, `YYYY-MM-DD`
+dates, exact ledger names) and adds the files below. Allocations are kept in a **separate file** so `vouchers.csv` stays
+one row per voucher line. The wrong vouchers are in `wrong_vouchers.csv` (not `invalid_vouchers.csv`), because they
+carry Phase 2 rule ids (B-, C-, D-, P-). All expected files are typed by hand (see `WORKING.md`), never copied from the tool.
+Report date of this pack: 30-06-2026 (`pack_end_date`).
+
+| File | Columns | Meaning |
+| --- | --- | --- |
+| `parties.csv` | `ledger_name, gstin, pan, state_code, credit_days, msme_category, udyam_no, msme_written_agreement, bill_wise` | Party master for the ledgers under Sundry Debtors / Creditors. `msme_category` = none / micro / small / medium; flags are `true` / `false`; empty = not given. |
+| `opening_bills.csv` | `ledger_name, bill_ref, bill_date, due_date, amount, side` | Opening bills (side `Dr` debtor, `Cr` creditor). Per party they must add up to that ledger's opening balance. |
+| `opening_balances.csv` | `ledger_name, opening_dr, opening_cr` | The non-zero openings of `ledgers.csv` again (a compact copy; the self-check makes sure the two agree). |
+| `allocations.csv` | `ref_id, line_no, kind, amount, bill_ref, due_date` | Bill-wise allocation of a voucher line. `ref_id` = voucher of `vouchers.csv`; `line_no` = 1-based position of the line inside that voucher; `kind` = `new_ref` / `against_ref` / `advance` / `on_account`; `bill_ref` empty for `on_account`; `due_date` optional (empty = bill date + credit days). Every party line carries allocations that add up to the line amount; one line may have several rows (an invoice that absorbs an advance: `new_ref` 88,000 + `against_ref` 30,000 on a 1,18,000 line). No allocation on non-party lines. |
+| `wrong_vouchers.csv` | the `vouchers.csv` columns + `expected_rule_id, expected_message_contains` | Wrong vouchers (B-, C-, D- rules), tried AFTER all correct vouchers and reversals are posted. `expected_message_contains` is advisory. |
+| `wrong_allocations.csv` | same columns as `allocations.csv` | Allocations of the wrong vouchers (by their `ref_id`). |
+| `wrong_parties.csv` | the `parties.csv` columns, with `ledger_name` of an existing party, + `ref_id` first and `expected_rule_id, expected_message_contains` last | Party edits that must be refused (P-01, P-03, P-05). |
+| `bank_format.json` | `{name, bank_ledger, mapping{...}}` | The saved column mapping of the bank's CSV (see `PHASE2_API_CONTRACT.md`, Mapping); `mapping.opening_balance` is the statement's opening balance. |
+| `bank_statement.csv` | `Txn Date, Narration, Chq/Ref No, Withdrawal Amt, Deposit Amt, Closing Balance` | The bank's own file: dates `dd/mm/yyyy`, plain amounts, the empty side left blank. |
+| `bank_opening_items.csv` | `kind, reference, item_date, amount` | Reconciling items carried from the previous year (`issued_not_presented` / `deposited_not_cleared`). |
+| `expected_outstanding_receivable.csv`, `expected_outstanding_payable.csv` | `row_type, party, bill_ref, kind, side, bill_date, due_date, original, outstanding, days_past_due, bucket` | `row_type` = `bill` / `on_account` / `party_total` / `grand_total`. Amounts positive; `side` is the direction of the item (an item on the side opposite to the party's natural side reduces the party total). `days_past_due` = report date minus due date (negative = still to run). Fully settled bills are not listed. |
+| `expected_ageing.csv` | `kind, row_type, party, not_due, 0-30, 31-60, 61-90, 90+, total` | `kind` = receivable / payable; `row_type` = `party` / `total`. Buckets by days past due date; items on the opposite side net off inside their bucket. |
+| `expected_cash_book.csv` | `row_type, date, receipts, payments, closing_dr` | Cash ledger, `opening` / `day` (only days with entries) / `total`. |
+| `expected_brs.csv` | `line_type, item_date, reference, description, amount` | BRS: books balance, reconciling items, bank-only items, computed and statement balance, `difference` (0.00 = ties). |
+| `expected_matches.csv` | `bank_line_no, book_refs, how` | Which statement line (1-based row of `bank_statement.csv`) matches which voucher(s) (`V24+V25+V26`), `OPENING:<cheque>`, or nothing (bank only). |
+| `expected_bank_only_drafts.csv` | `bank_line_no, txn_date, voucher_type, counter_ledger, amount` | Draft vouchers expected for the bank-only lines. |
+| `expected_msme_due.csv` | `row_type, party, bill_ref, bill_date, msme_category, written_agreement, legal_days, legal_due_date, days_overdue, outstanding` | Flagged open bills (rule status PENDING); `item` / `total`. |
+
+The sheet `VERIFICATION_SHEET.xlsx` is built from the pack files by `scripts/build_verification_sheet_p2.py`; the
+pure self-check `backend/tests/acceptance/test_pack_p2_selfcheck.py` checks the pack's internal consistency with plain
+Decimal arithmetic. The Phase 1 loader `pack_loader.py` does not read this pack (it needs `invalid_vouchers.csv`).

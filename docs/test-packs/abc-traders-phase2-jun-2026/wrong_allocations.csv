@@ -1,0 +1,6 @@
+ref_id,line_no,kind,amount,bill_ref,due_date
+X01,1,new_ref,100000.00,INV-2026-099,
+X02,2,new_ref,5000.00,RC-X1,
+X03,1,new_ref,11800.00,INV-2025-118,
+X04,2,against_ref,15000.00,KS-0056,
+X06,1,on_account,100000.00,,

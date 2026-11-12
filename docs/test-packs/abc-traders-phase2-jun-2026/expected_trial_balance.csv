@@ -1,0 +1,33 @@
+group_name,ledger_name,dr,cr
+Cash-in-hand,Cash,35600.00,0.00
+Bank Accounts,HDFC Bank,448000.00,0.00
+Stock-in-hand,Opening Stock,200000.00,0.00
+Fixed Assets,Furniture,50000.00,0.00
+Sundry Debtors,Rahul Enterprises,160900.00,0.00
+Sundry Debtors,Meena Traders,124500.00,0.00
+Sundry Debtors,Sunrise Stores,98000.00,0.00
+Sundry Debtors,Kapoor & Sons,63000.00,0.00
+Sundry Creditors,Sharma Suppliers,0.00,172600.00
+Sundry Creditors,Gupta Wholesale,0.00,70800.00
+Sundry Creditors,Patel Packaging Works,0.00,35400.00
+Sundry Creditors,Mehta Agencies,0.00,64000.00
+Capital Account,Amit Verma Capital A/c,0.00,772500.00
+Capital Account,Drawings A/c,0.00,0.00
+Purchase Accounts,Purchases,220000.00,0.00
+Purchase Accounts,Purchase Returns,0.00,10000.00
+Sales Accounts,Sales,0.00,445000.00
+Sales Accounts,Sales Returns,20000.00,0.00
+Duties & Taxes,Output GST,0.00,76500.00
+Duties & Taxes,Input GST,37800.00,0.00
+Suspense A/c,Suspense A/c,0.00,0.00
+Indirect Expenses,Rent,50000.00,0.00
+Indirect Expenses,Salary,106500.00,0.00
+Indirect Expenses,Electricity,11400.00,0.00
+Indirect Expenses,Telephone & Internet,0.00,0.00
+Indirect Expenses,Printing & Stationery,0.00,0.00
+Indirect Expenses,Travelling,7900.00,0.00
+Indirect Expenses,Repairs & Maintenance,0.00,0.00
+Indirect Expenses,Bank Charges,0.00,0.00
+Indirect Expenses,Office Expenses,13200.00,0.00
+Indirect Incomes,Interest Received,0.00,0.00
+TOTAL,,1646800.00,1646800.00

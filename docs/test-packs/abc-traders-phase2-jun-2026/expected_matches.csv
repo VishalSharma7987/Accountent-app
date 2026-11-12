@@ -1,0 +1,22 @@
+bank_line_no,book_refs,how
+1,V01,reference UTR2604020011
+2,OPENING:000451,opening item cheque 000451
+3,V05,reference N0408SHA
+4,V06,reference CDM0409
+5,V04,reference 000452
+6,V12,reference N0422SAL
+7,V13,reference UTR2604240032
+8,,bank only
+9,V15,reference 000453
+10,V17,reference 000455
+11,V20,reference 614212345678
+12,V21,reference 000456
+13,V24+V25+V26,one bank credit of 32000.00 = 11000.00 + 12500.00 + 8500.00
+14,V30,reference UTR2605220077
+15,V33,reference CDM0531
+16,V32,reference 000457
+17,V36,reference UTR2606080044
+18,,bank only
+19,V43,reference N0620MEH
+20,V44,reference UTR2606220051
+21,,bank only

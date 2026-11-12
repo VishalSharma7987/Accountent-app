@@ -1,0 +1,9 @@
+ledger_name,gstin,pan,state_code,credit_days,msme_category,udyam_no,msme_written_agreement,bill_wise
+Rahul Enterprises,27ABCPR1234F1Z5,ABCPR1234F,27,30,none,,false,true
+Meena Traders,,,27,45,none,,false,true
+Sunrise Stores,,,27,60,none,,false,true
+Kapoor & Sons,,,27,30,none,,false,true
+Sharma Suppliers,,,27,60,medium,UDYAM-MH-03-0011111,true,true
+Gupta Wholesale,,,27,30,micro,UDYAM-MH-03-0012345,true,true
+Patel Packaging Works,,,24,45,small,UDYAM-GJ-05-0023456,false,true
+Mehta Agencies,,,27,45,none,,false,true
