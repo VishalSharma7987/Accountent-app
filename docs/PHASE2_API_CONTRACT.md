@@ -17,8 +17,8 @@ Voucher line gets `allocations: [{kind, amount, bill_ref?, due_date?}]` (kind = 
 - `GET /clients/{c}/reports/ageing?kind=&as_on=` → party-wise bucket table `{rows:[{party_ledger_id, party_name, not_due, "0-30", "31-60", "61-90", "90+", total}], totals:{…}}`
 
 ## Cash / Bank book, MSME (agent B)
-- `GET /clients/{c}/reports/cash-book?ledger_id=&from=&to=` → `{ledger_name, opening: Balance, days:[{date, receipts, payments, closing: Balance, entries:[{voucher_id, voucher_number, voucher_type, narration, counter_ledgers:[str], receipt, payment}]}], total_receipts, total_payments, closing: Balance}` (works for any Cash-in-hand or Bank ledger; "Bank Book" is the same call)
-- `GET /clients/{c}/reports/msme-due?as_on=` → `{as_on, rule_status: "pending"|"verified", rule_source, items:[{party_ledger_id, party_name, bill_ref, bill_date, legal_days, legal_due_date, days_overdue, outstanding}], total_outstanding}`
+- `GET /clients/{c}/reports/cash-book?ledger_id=&from=&to=` → `{ledger_name, opening: Balance, days:[{date, receipts, payments, closing: Balance, entries:[{voucher_id, voucher_number, voucher_type, narration, counter_ledgers:[str], receipt, payment}]}], total_receipts, total_payments, closing: Balance}` (works for any Cash-in-hand or Bank ledger; "Bank Book" is the same call; also returns `ledger_id`, `from_date`, `to_date`; other ledgers give `not_a_book_ledger` 409; dates must lie in one financial year)
+- `GET /clients/{c}/reports/msme-due?as_on=` → `{as_on, rule_status: "pending"|"verified", rule_source, items:[{party_ledger_id, party_name, bill_ref, bill_date, legal_days, legal_due_date, days_overdue, outstanding, rule_status, rule_source}], total_outstanding}` (`rule_status` stays "pending" until the legal rule rows are verified)
 - Cash rule C-01 and duplicate-payment D-01 appear as ordinary voucher rule errors on approve/post (and D-01 on create/update).
 
 ## Bank statements (agent C1)

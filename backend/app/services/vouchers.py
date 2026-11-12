@@ -25,7 +25,7 @@ from app.engine.duplicates import duplicate_error, find_possible_duplicate
 from app.engine.models import PeriodInfo, ValidationError, VoucherDraft, VoucherLine
 from app.engine.money import format_inr, parse_amount
 from app.engine.validation import validate_voucher
-from app.services import audit
+from app.services import audit, cash_checks
 from app.services.audit import AuditEntry
 from app.services.errors import ServiceError, VoucherRuleError, require_actor
 
@@ -172,7 +172,7 @@ def _validate_all(
 ) -> tuple[list[ValidationError], ValidationContext]:
     """Every rule that applies to a draft, ordered: the engine rules plus the duplicate check (V-10)."""
     errors, ctx = _validate(conn, draft)
-    return _order(errors + _check_duplicates(conn, draft, draft_id)), ctx
+    return _order(errors + _check_duplicates(conn, draft, draft_id) + cash_checks.duplicate_payment_errors(conn, draft, draft_id)), ctx
 
 
 def validate_draft(conn: Connection, draft: VoucherDraft, draft_id: object | None = None) -> list[ValidationError]:
@@ -260,6 +260,7 @@ def approve(conn: Connection, voucher_id: object, *, actor: str) -> None:
     if record.status != "draft":
         raise ServiceError("not_draft", f"Only a draft voucher can be approved (this one is {record.status}).")
     _revalidate(conn, record)
+    cash_checks.raise_if_cash_negative(conn, record.client_id, record.voucher_date, record.lines)  # C-01
     _approve_locked(conn, record, actor)
 
 
@@ -325,6 +326,7 @@ def post(conn: Connection, voucher_id: object, *, actor: str) -> str:
     if record.status != "approved":
         raise ServiceError("not_approved", f"Only an approved voucher can be posted (this one is {record.status}).")
     _revalidate(conn, record)
+    cash_checks.raise_if_cash_negative(conn, record.client_id, record.voucher_date, record.lines)  # C-01
     _check_openings(conn, record)
     return _post_locked(conn, record, actor)
 
@@ -363,6 +365,7 @@ def reverse(conn: Connection, voucher_id: object, reversal_date: date, reason: s
     if errors:
         raise VoucherRuleError(_order(errors))
     reversal_fy = _financial_year_id(ctx, reversal_date)
+    cash_checks.raise_if_cash_negative(conn, mirror.client_id, reversal_date, mirror.lines)  # C-01
 
     reversal_id = _insert_voucher(conn, mirror, reversal_fy, actor, reverses_voucher_id=original.id)
     reversal = repo.load_voucher(conn, reversal_id)
