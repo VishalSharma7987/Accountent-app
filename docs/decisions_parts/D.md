@@ -1,0 +1,4 @@
+| 2026-11-12 | 2.8 | Matched groups on the Reconciliation screen are derived from the statement lines (`match_id`) of the bank ledger, loaded on demand | The contract has no "list matches" endpoint |
+| 2026-11-12 | 2.8 | Sales/Purchase party line: the New Ref row is prefilled visibly (reference = voucher Reference No, amount = line amount) and follows later edits of those two fields until the user changes the row | Prefill must never be hidden or silently overwrite user edits |
+| 2026-11-12 | 2.8 | Tick totals on Reconciliation: bank net = credits - debits, book net = Dr - Cr; "Match selected" enabled only when both sides are ticked and the nets are equal (server still decides) | docs/PHASE2_PLAN.md bank sign convention |
+| 2026-11-12 | 2.8 | The credit-days box is sent as typed number (fractions/negatives included) so the server's P-06 answers, not the browser | No business rules in the frontend |

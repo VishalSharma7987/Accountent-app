@@ -3,6 +3,27 @@
 
 import { ApiFailure, mapApiError } from './lib/apiError'
 import type {
+  AgeingReport,
+  AutoMatchResult,
+  BankFormat,
+  BankMapping,
+  BankOnlyDraftsResult,
+  Brs,
+  CashBook,
+  MatchBody,
+  MsmeDue,
+  OpenBill,
+  OpeningBillIn,
+  OpeningBills,
+  OutstandingReport,
+  Party,
+  PartyBody,
+  PartyNature,
+  StatementImported,
+  StatementLine,
+  StatementPreview,
+  StatementSummary,
+  Unmatched,
   AuditEntry,
   ClientDetail,
   ClientSummary,
@@ -147,6 +168,59 @@ export const api = {
     form.append('ref_ids', refIds.join(','))
     return request<ImportCommit>('POST', `/clients/${clientId}/imports/vouchers/commit`, { form, write: true })
   },
+
+  // ---- Phase 2 (docs/PHASE2_API_CONTRACT.md) ----
+  listParties: (clientId: string, nature?: PartyNature) => get<Party[]>(`/clients/${clientId}/parties`, { nature }),
+  saveParty: (clientId: string, ledgerId: string, body: PartyBody) =>
+    request<{ ok: boolean }>('PUT', `/clients/${clientId}/parties/${ledgerId}`, { body, write: true }),
+  getOpeningBills: (clientId: string, fyId: string, ledgerId: string) =>
+    get<OpeningBills>(`/clients/${clientId}/financial-years/${fyId}/opening-bills/${ledgerId}`),
+  saveOpeningBills: (clientId: string, fyId: string, ledgerId: string, bills: OpeningBillIn[]) =>
+    request<{ ok: boolean }>('PUT', `/clients/${clientId}/financial-years/${fyId}/opening-bills/${ledgerId}`, {
+      body: { bills },
+      write: true,
+    }),
+  openBills: (clientId: string, partyLedgerId: string, asOn: string) =>
+    get<OpenBill[]>(`/clients/${clientId}/open-bills`, { party_ledger_id: partyLedgerId, as_on: asOn }),
+  outstanding: (clientId: string, kind: 'receivable' | 'payable', asOn: string) =>
+    get<OutstandingReport>(`/clients/${clientId}/reports/outstanding`, { kind, as_on: asOn }),
+  ageing: (clientId: string, kind: 'receivable' | 'payable', asOn: string) =>
+    get<AgeingReport>(`/clients/${clientId}/reports/ageing`, { kind, as_on: asOn }),
+  cashBook: (clientId: string, ledgerId: string, from: string, to: string) =>
+    get<CashBook>(`/clients/${clientId}/reports/cash-book`, { ledger_id: ledgerId, from, to }),
+  msmeDue: (clientId: string, asOn: string) => get<MsmeDue>(`/clients/${clientId}/reports/msme-due`, { as_on: asOn }),
+  listBankFormats: (clientId: string) => get<BankFormat[]>(`/clients/${clientId}/bank-formats`),
+  createBankFormat: (clientId: string, name: string, mapping: BankMapping) =>
+    post<{ format_id: string }>(`/clients/${clientId}/bank-formats`, { name, mapping }),
+  previewStatement: (clientId: string, file: File, formatId: string) => {
+    const form = new FormData()
+    form.append('file', file)
+    form.append('format_id', formatId)
+    return request<StatementPreview>('POST', `/clients/${clientId}/bank-statements/preview`, { form, write: true })
+  },
+  importStatement: (clientId: string, file: File, bankLedgerId: string, formatId: string) => {
+    const form = new FormData()
+    form.append('file', file)
+    form.append('bank_ledger_id', bankLedgerId)
+    form.append('format_id', formatId)
+    return request<StatementImported>('POST', `/clients/${clientId}/bank-statements`, { form, write: true })
+  },
+  listStatements: (clientId: string, bankLedgerId?: string) =>
+    get<StatementSummary[]>(`/clients/${clientId}/bank-statements`, { bank_ledger_id: bankLedgerId }),
+  statementLines: (statementId: string) => get<StatementLine[]>(`/bank-statements/${statementId}/lines`),
+  deleteStatement: (statementId: string) => request<void>('DELETE', `/bank-statements/${statementId}`, { write: true }),
+  unmatched: (clientId: string, bankLedgerId: string, asOn: string) =>
+    get<Unmatched>(`/clients/${clientId}/reconciliation/${bankLedgerId}/unmatched`, { as_on: asOn }),
+  autoMatch: (clientId: string, bankLedgerId: string, asOn: string) =>
+    post<AutoMatchResult>(`/clients/${clientId}/reconciliation/${bankLedgerId}/auto-match`, { as_on: asOn }),
+  createMatch: (clientId: string, bankLedgerId: string, body: MatchBody) =>
+    post<{ match_id: string }>(`/clients/${clientId}/reconciliation/${bankLedgerId}/matches`, body),
+  deleteMatch: (clientId: string, matchId: string) =>
+    request<void>('DELETE', `/clients/${clientId}/reconciliation/matches/${matchId}`, { write: true }),
+  brs: (clientId: string, bankLedgerId: string, asOn: string) =>
+    get<Brs>(`/clients/${clientId}/reconciliation/${bankLedgerId}/brs`, { as_on: asOn }),
+  bankOnlyDrafts: (clientId: string, bankLedgerId: string, items: { bank_line_id: string; counter_ledger_id: string }[]) =>
+    post<BankOnlyDraftsResult>(`/clients/${clientId}/reconciliation/${bankLedgerId}/bank-only-drafts`, { items }),
 }
 
 export { ApiFailure }
