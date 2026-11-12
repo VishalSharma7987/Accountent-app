@@ -1,4 +1,4 @@
-"""Party master rules P-01 .. P-07 (P-08 needs the database and lives in services/parties.py).
+"""Party master rules P-01 .. P-07 and P-09 .. P-11 (P-08 needs the database and lives in services/parties.py).
 
 Pure functions: plain data in, a list of ValidationError out, in plain accountant language. Format checks only:
 the GSTIN check digit is a Phase 3 matter. The patterns are the same as the CHECK constraints of migration 0005.
@@ -6,6 +6,7 @@ the GSTIN check digit is a Phase 3 matter. The patterns are the same as the CHEC
 
 import re
 from collections.abc import Mapping
+from datetime import date
 
 from app.engine.models import Group, Ledger, ValidationError
 from app.engine.validation import group_chain
@@ -15,6 +16,8 @@ PAN_RE = re.compile(r"^[A-Z]{5}[0-9]{4}[A-Z]$")
 STATE_RE = re.compile(r"^[0-9]{2}$")
 UDYAM_RE = re.compile(r"^UDYAM-[A-Z]{2}-[0-9]{2}-[0-9]{7}$")
 MSME_CATEGORIES = ("none", "micro", "small", "medium")
+MSME_ACTIVITIES = ("manufacturing", "services", "trading")
+MSME_MAX_AGREED_DAYS = 45  # MSMED Act 2006 s.15: an agreed credit period is never longer than 45 days
 
 
 def normalise_id(value: str | None) -> str | None:
@@ -58,6 +61,10 @@ def validate_party(
     credit_days: object = 0,
     msme_category: str = "none",
     udyam_no: str | None = None,
+    msme_activity: str | None = None,
+    udyam_registration_date: date | None = None,
+    msme_written_agreement: bool = False,
+    msme_agreed_days: int | None = None,
 ) -> list[ValidationError]:
     """Every problem with the party details of one ledger (empty list = valid). Values are checked as given:
     use normalise_id first if capitals/blank should be forgiven."""
@@ -107,6 +114,38 @@ def validate_party(
     if udyam_no is not None and UDYAM_RE.match(udyam_no) is None:
         errors.append(ValidationError(
             "P-05", f"Udyam number '{udyam_no}' is not valid: use the form UDYAM-XX-00-0000000."
+        ))
+
+    if msme_activity is not None and msme_activity not in MSME_ACTIVITIES:
+        errors.append(ValidationError("P-09", "MSME activity must be manufacturing, services or trading."))
+    elif msme_category in ("micro", "small") and msme_activity is None:
+        errors.append(ValidationError(
+            "P-09",
+            f"MSME category '{msme_category}' needs the supplier's activity (manufacturing, services or trading): "
+            "the payment-time rule covers manufacturing and services suppliers only.",
+        ))
+    if udyam_no is not None and udyam_registration_date is None:
+        errors.append(ValidationError(
+            "P-10", "The Udyam registration date is required when a Udyam number is given: only supplies on or "
+            "after that date are covered by the payment-time rule."
+        ))
+
+    days_ok = (
+        isinstance(msme_agreed_days, int) and not isinstance(msme_agreed_days, bool)
+        and 1 <= msme_agreed_days <= MSME_MAX_AGREED_DAYS
+    )
+    if msme_written_agreement and msme_agreed_days is None:
+        errors.append(ValidationError(
+            "P-11", "A written agreement needs the agreed credit days (1 to 45): MSMED Act s.15 allows no more than 45 days."
+        ))
+    elif msme_agreed_days is not None and not msme_written_agreement:
+        errors.append(ValidationError(
+            "P-11", "Agreed credit days can be entered only when a written agreement exists; without one the legal limit is 15 days."
+        ))
+    elif msme_agreed_days is not None and not days_ok:
+        errors.append(ValidationError(
+            "P-11", f"Agreed credit days must be a whole number from 1 to 45 (got {msme_agreed_days!r}): "
+            "MSMED Act s.15 does not allow an agreed period above 45 days."
         ))
 
     if not _credit_days_ok(credit_days):

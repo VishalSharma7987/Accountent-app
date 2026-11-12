@@ -34,6 +34,7 @@ export default function VoucherEntry() {
   const [date, setDate] = useState(today())
   const [narration, setNarration] = useState('')
   const [reference, setReference] = useState('')
+  const [goodsReceived, setGoodsReceived] = useState('')
   const [party, setParty] = useState('')
   const [override, setOverride] = useState('')
   const [lines, setLines] = useState<LineState[]>([blankLine(), blankLine()])
@@ -54,6 +55,7 @@ export default function VoucherEntry() {
     setDate(voucher.voucher_date)
     setNarration(voucher.narration)
     setReference(voucher.reference_no ?? '')
+    setGoodsReceived(voucher.goods_received_date ?? '')
     setParty(voucher.party_ledger_id ?? '')
     setOverride(voucher.duplicate_override_reason ?? '')
     setLines(voucher.lines.map((l) => ({ ledger_id: l.ledger_id, debit: nonZero(l.debit), credit: nonZero(l.credit), allocations: fromAllocationOut(l.allocations) })))
@@ -89,6 +91,7 @@ export default function VoucherEntry() {
     voucher_date: date,
     narration,
     reference_no: reference || null,
+    goods_received_date: voucherType === 'purchase' ? goodsReceived || null : null,
     party_ledger_id: party || null,
     duplicate_override_reason: override || null,
     lines: lines.map((l) => ({
@@ -210,6 +213,11 @@ export default function VoucherEntry() {
         <Field label="Reference no (bill / cheque / UTR)">
           <input className={input} value={reference} disabled={readOnly} onChange={(e) => { setReference(e.target.value); touch() }} />
         </Field>
+        {voucherType === 'purchase' && (
+          <Field label="Goods received date (optional)">
+            <input type="date" className={input} value={goodsReceived} disabled={readOnly} onChange={(e) => { setGoodsReceived(e.target.value); touch() }} />
+          </Field>
+        )}
         <Field label="Party ledger">
           <LedgerPicker ledgers={activeLedgers} value={party} onChange={(v) => { setParty(v); touch() }} placeholder="(none)" />
         </Field>

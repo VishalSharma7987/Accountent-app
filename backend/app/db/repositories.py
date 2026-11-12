@@ -164,6 +164,7 @@ class VoucherRecord:
     posted_by: str | None
     financial_year_start: date
     lines: tuple[VoucherLineRecord, ...]
+    goods_received_date: date | None = None
 
 
 _VOUCHER_SQL = (
@@ -177,7 +178,8 @@ _VOUCHER_SQL = (
     "'amount', (a.debit + a.credit)::text) ORDER BY a.kind, a.bill_ref, a.due_date), '[]'::json) "
     "FROM bill_allocations a WHERE a.voucher_id = vl.voucher_id AND a.line_no = vl.line_no)) "
     "ORDER BY vl.line_no), '[]'::json) "
-    "FROM voucher_lines vl JOIN ledgers l ON l.id = vl.ledger_id WHERE vl.voucher_id = v.id) "
+    "FROM voucher_lines vl JOIN ledgers l ON l.id = vl.ledger_id WHERE vl.voucher_id = v.id), "
+    "v.goods_received_date "
     "FROM vouchers v WHERE v.id = :id"
 )
 
@@ -206,7 +208,7 @@ def load_voucher(conn: Connection, voucher_id: object, *, lock: bool = False) ->
         )
         for x in row[17]
     )
-    return VoucherRecord(*row[:17], lines)
+    return VoucherRecord(*row[:17], lines, row[18])
 
 
 @dataclass(frozen=True)

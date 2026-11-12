@@ -76,6 +76,7 @@ class AllocationRow:
     voucher_date: date
     due_date: date | None
     amount: Decimal
+    goods_received_date: date | None = None  # of the voucher (Purchase, V-15): the MSME acceptance date
 
 
 @dataclass(frozen=True)
@@ -344,6 +345,8 @@ class _Bill:
     due_date: date | None
     original: Decimal
     outstanding: Decimal
+    acceptance_date: date | None = None
+    acceptance_basis: str = "bill date"
 
 
 def _fold(
@@ -364,7 +367,8 @@ def _fold(
             if key in bills:
                 raise ValueError(f"bill {a.bill_ref!r} of party {a.party_ledger_id!r} is created twice")
             bills[key] = _Bill(a.party_ledger_id, _clean(a.bill_ref), "bill" if a.kind == "new_ref" else "advance",
-                               a.voucher_date, a.due_date, a.amount, a.amount)
+                               a.voucher_date, a.due_date, a.amount, a.amount, a.goods_received_date,
+                               "bill date" if a.goods_received_date is None else "goods received date")
         elif a.kind == "against_ref":
             key = ref_key(a.party_ledger_id, a.bill_ref or "")
             if key not in bills:
@@ -407,6 +411,7 @@ def open_bills(
         OpenBill(
             b.party_ledger_id, party_names[b.party_ledger_id], b.ref or None, b.kind, b.bill_date, b.due_date,
             b.original.quantize(cents), b.outstanding.quantize(cents),
+            b.acceptance_date or b.bill_date, b.acceptance_basis,
         )
         for b in items
     ]

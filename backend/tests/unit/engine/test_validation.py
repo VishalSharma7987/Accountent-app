@@ -3,6 +3,7 @@
 Expected rule IDs, line numbers and key messages are typed literally.
 """
 
+from dataclasses import replace
 from datetime import date
 from decimal import Decimal
 
@@ -470,6 +471,37 @@ def test_V14_other_voucher_types_do_not_need_a_reference(vtype):
         "journal": [line("rent", dr="1"), line("outstanding_rent", cr="1")],
     }[vtype]
     assert only(run(draft(vtype, lines)), "V-14") == []
+
+
+# ===================================================================================================== V-15
+
+
+def _purchase_with_grd(grd, vtype="purchase"):
+    lines = [line("purchases", dr="100"), line("sharma", cr="100")] if vtype == "purchase" else [
+        line("rahul", dr="100"), line("sales", cr="100")]
+    return replace(draft(vtype, lines, reference_no="SUP/1"), goods_received_date=grd)
+
+
+def test_V15_goods_received_date_before_or_after_the_bill_date_passes():
+    assert only(run(_purchase_with_grd(date(2026, 4, 1))), "V-15") == []  # before the bill date 05-04-2026
+    assert only(run(_purchase_with_grd(date(2026, 4, 20))), "V-15") == []  # after
+    assert only(run(_purchase_with_grd(None)), "V-15") == []
+
+
+def test_V15_exactly_365_days_away_passes_366_rejected():
+    assert only(run(_purchase_with_grd(date(2027, 4, 5))), "V-15") == []  # 05-04-2026 + 365 = 05-04-2027
+    errors = only(run(_purchase_with_grd(date(2027, 4, 6))), "V-15")
+    assert [(e.line_no, e.message) for e in errors] == [(
+        None,
+        "Goods received date 06-04-2027 is more than 365 days away from the voucher date 05-04-2026; check the date.",
+    )]
+    assert only(run(_purchase_with_grd(date(2025, 4, 5))), "V-15") == []  # 05-04-2025 is 365 days before
+    assert only(run(_purchase_with_grd(date(2025, 4, 4))), "V-15") != []
+
+
+def test_V15_goods_received_date_only_on_a_purchase_voucher():
+    errors = only(run(_purchase_with_grd(date(2026, 4, 1), "sales")), "V-15")
+    assert [e.message for e in errors] == ["Goods received date can be entered only on a Purchase voucher."]
 
 
 # ===================================================================================================== misc

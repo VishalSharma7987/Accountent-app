@@ -8,6 +8,7 @@ first write; every change is audit-logged.
 
 import uuid
 from dataclasses import asdict, dataclass
+from datetime import date
 
 from sqlalchemy import Connection
 
@@ -35,11 +36,16 @@ class Party:
     udyam_no: str | None
     msme_written_agreement: bool
     bill_wise: bool
+    msme_activity: str | None = None
+    udyam_registration_date: date | None = None
+    msme_agreed_days: int | None = None
 
 
 def _snapshot(row: repo_b.PartyRow) -> dict:
     data = asdict(row)
     data["ledger_id"] = str(row.ledger_id)
+    if row.udyam_registration_date is not None:
+        data["udyam_registration_date"] = row.udyam_registration_date.isoformat()
     return data
 
 
@@ -91,6 +97,9 @@ def set_party(
     udyam_no: str | None = None,
     msme_written_agreement: bool = False,
     bill_wise: bool = True,
+    msme_activity: str | None = None,
+    udyam_registration_date: date | None = None,
+    msme_agreed_days: int | None = None,
     actor: str,
 ) -> None:
     """Create or update the party details of a debtor/creditor ledger. On rule errors (P-01 .. P-08) raises
@@ -104,7 +113,9 @@ def set_party(
     state_code = (state_code or "").strip() or None
     errors = engine.validate_party(
         ledger, groups, gstin=gstin, pan=pan, state_code=state_code, credit_days=credit_days,
-        msme_category=msme_category, udyam_no=udyam_no,
+        msme_category=msme_category, udyam_no=udyam_no, msme_activity=msme_activity,
+        udyam_registration_date=udyam_registration_date, msme_written_agreement=msme_written_agreement,
+        msme_agreed_days=msme_agreed_days,
     )
     existing = repo_b.party_rows_for(conn, client_id, [ledger_id]).get(ledger.id)
     if not any(e.rule_id == "P-07" for e in errors):
@@ -114,7 +125,7 @@ def set_party(
 
     row = repo_b.PartyRow(
         ledger.id, gstin, pan, state_code, _credit_days(credit_days), msme_category, udyam_no,
-        bool(msme_written_agreement), bool(bill_wise),
+        bool(msme_written_agreement), bool(bill_wise), msme_activity, udyam_registration_date, msme_agreed_days,
     )
     repo_b.upsert_party(conn, client_id, row)
     audit.log(conn, AuditEntry(
@@ -126,7 +137,8 @@ def set_party(
 def _party(ledger, nature: str, row: repo_b.PartyRow) -> Party:
     return Party(
         ledger.id, ledger.name, nature, row.gstin, row.pan, row.state_code, row.credit_days, row.msme_category,
-        row.udyam_no, row.msme_written_agreement, row.bill_wise,
+        row.udyam_no, row.msme_written_agreement, row.bill_wise, row.msme_activity, row.udyam_registration_date,
+        row.msme_agreed_days,
     )
 
 

@@ -99,6 +99,7 @@ class VoucherRec:
     lines: tuple[Line, ...]
     expected_rule_id: str | None = None
     expected_message_contains: str | None = None
+    goods_received_date: date | None = None  # optional column of vouchers.csv (Purchase only)
 
 
 def load_allocations(rows: list[dict]) -> dict[tuple[str, int], tuple[Alloc, ...]]:
@@ -132,6 +133,7 @@ def build_vouchers(rows: list[dict], allocations: dict[tuple[str, int], tuple[Al
             ref, parse_date(head["date"], where), head["voucher_type"], head["narration"],
             head["reference_no"] or None, head["party_ledger"] or None, lines,
             head.get("expected_rule_id") or None, head.get("expected_message_contains") or None,
+            parse_date(head["goods_received_date"], where) if head.get("goods_received_date") else None,
         ))
     return sorted(out, key=lambda v: v.date)  # sorted() is stable
 
@@ -150,6 +152,9 @@ class PartyRec:
     ref_id: str | None = None
     expected_rule_id: str | None = None
     expected_message_contains: str | None = None
+    msme_activity: str | None = None
+    udyam_registration_date: date | None = None
+    msme_agreed_days: int | None = None
 
 
 def build_party(r: dict) -> PartyRec:
@@ -159,6 +164,9 @@ def build_party(r: dict) -> PartyRec:
         int(r["credit_days"] or 0), r["msme_category"] or "none", r["udyam_no"] or None,
         parse_bool(r["msme_written_agreement"] or "false", where), parse_bool(r["bill_wise"] or "true", where),
         r.get("ref_id") or None, r.get("expected_rule_id") or None, r.get("expected_message_contains") or None,
+        r.get("activity") or None,
+        parse_date(r["udyam_registration_date"], where) if r.get("udyam_registration_date") else None,
+        int(r["msme_agreed_days"]) if r.get("msme_agreed_days") else None,
     )
 
 

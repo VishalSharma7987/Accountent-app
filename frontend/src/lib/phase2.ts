@@ -131,7 +131,17 @@ export function bucketLabel(key: string): string {
 
 // ---- parties ----
 
-export type PartyArea = 'gstin' | 'pan' | 'state_code' | 'credit_days' | 'msme' | 'bill_wise' | 'general'
+export type PartyArea =
+  | 'gstin'
+  | 'pan'
+  | 'state_code'
+  | 'credit_days'
+  | 'msme'
+  | 'msme_activity'
+  | 'udyam_date'
+  | 'agreed_days'
+  | 'bill_wise'
+  | 'general'
 
 /** Which part of the party form a P-0x rule error belongs to (so the message is shown next to it). */
 export function partyArea(ruleId: string): PartyArea {
@@ -149,6 +159,12 @@ export function partyArea(ruleId: string): PartyArea {
       return 'credit_days'
     case 'P-08':
       return 'bill_wise'
+    case 'P-09':
+      return 'msme_activity'
+    case 'P-10':
+      return 'udyam_date'
+    case 'P-11':
+      return 'agreed_days'
     default:
       return 'general'
   }

@@ -1,7 +1,7 @@
 """MSME payment-due report (M-01): open supplier bills of micro/small suppliers past their legal due date.
 
 A report, never a block. The rule rows come from `msme_payment_rules` and carry their verification status
-('pending' until the owner/CA has checked the legal text); the report shows that status."""
+('pending' / 'secondary_verified' until the owner's CA has signed the legal text); the report shows that status."""
 
 from collections.abc import Sequence
 from datetime import date

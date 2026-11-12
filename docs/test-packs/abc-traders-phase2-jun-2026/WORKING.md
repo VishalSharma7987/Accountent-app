@@ -270,22 +270,29 @@ The bank-only items are explained in the BRS but are NOT in the books or in the 
 DRAFT vouchers for them: `expected_bank_only_drafts.csv`). Once those drafts are approved and posted the books balance
 would become 4,48,000 + 1,875 - 826 = 4,49,049, with the same reconciling cheques: 4,49,049 + 66,500 - 50,000 = 4,65,549.
 
-## 7. MSME payment-time flags as on 30-06-2026 (rule status: PENDING - see below)
+## 7. MSME payment-time flags as on 30-06-2026 (rule status: SECONDARY_VERIFIED - awaiting your CA)
 
-Rule used (all rows `verification_status = pending` in the seed): micro and small only; with a written agreement the
-agreed days (never more than 45); without one, 15 days; counted from the bill date (acceptance date assumed = bill date).
+Rule used (rows `verification_status = secondary_verified`: checked against secondary sources, not yet signed by the CA):
+Income-tax Act 2025 s.37(2)(g) applies to supplies from 01-04-2026 (the 1961 Act s.43B(h) applies up to 31-03-2026);
+MSMED Act 2006 s.15 gives the time limit. Flagged only if ALL of these hold: supplier is micro or small; activity is
+manufacturing or services (a trader and a medium enterprise are never flagged); the supply is dated on or after the
+supplier's Udyam registration date. Legal days: written agreement = the agreed days (1 to 45); none = 15. Days are
+counted from the date of acceptance: the goods received date if the purchase voucher has one, else the bill date. A bill
+is overdue only after its legal due date.
 
-| Supplier | Category | Agreement | Bill | Bill date | Legal days | Legal due | Overdue | Open | Flagged |
-| --- | --- | --- | --- | --- | ---: | --- | ---: | ---: | --- |
-| Gupta Wholesale | micro | yes, 30 days | GW/0412 | 05-05 | 30 | 04-06 (05-05 + 30) | 26 | 23,600 | yes |
-| Gupta Wholesale | micro | yes, 30 days | GW/0455 | 18-06 | 30 | 18-07 | - | 47,200 | no (not yet past legal due) |
-| Patel Packaging Works | small | no | PP/131 | 15-04 | 15 | 30-04 (15-04 + 15) | 61 (30-04 to 30-06) | 35,400 | yes |
-| Sharma Suppliers | medium | - | all | - | - | - | - | - | never (medium is not covered) |
-| Mehta Agencies | none | - | all | - | - | - | - | - | never (not MSME) |
+| Supplier | Category / activity | Registered | Agreement | Bill | Bill date | Counted from | Legal days | Legal due | Overdue at 30-06 | Open | Flagged |
+| --- | --- | --- | --- | --- | --- | --- | ---: | --- | ---: | ---: | --- |
+| Patel Packaging Works | small / manufacturing | 15-06-2022 | no | PP/131 | 15-04 | 15-04 (bill date) | 15 | 30-04 (15-04 + 15) | 61 (30-04 to 30-06) | 35,400 | yes |
+| Gupta Wholesale | micro / manufacturing | 01-03-2021 | yes, 30 days | GW/0412 | 05-05 | 12-05 (goods received date) | 30 | 11-06 (12-05 + 19 = 31-05, + 11) | 19 (11-06 to 30-06) | 23,600 | yes |
+| Gupta Wholesale | micro / manufacturing | 01-03-2021 | yes, 30 days | GW/0455 | 18-06 | 18-06 (bill date) | 30 | 18-07 | - | 47,200 | no (not yet past legal due) |
+| Sharma Suppliers | medium / manufacturing | 20-11-2019 | - | all | - | - | - | - | - | - | never (medium is not covered) |
+| Mehta Agencies | micro / TRADING | 10-08-2020 | no | MA-441, MA-502 | - | - | - | - | - | 94,000 | never (a trader is not covered, although the bills are overdue by the 15-day count) |
 
-Flagged total 23,600 + 35,400 = 59,000. Settled bills (GW/0310 paid 06-04, PP/118 paid 08-05) are not open and are not
+Flagged total 35,400 + 23,600 = 59,000. Settled bills (GW/0310 paid 06-04, PP/118 paid 08-05) are not open and are not
 flagged. Note PP/131's agreed credit period (45 days, due 30-05) is longer than the legal 15 days: the legal date governs.
-**The legal values are unverified (pending) and must be confirmed by the owner / CA from the official text.**
+GW/0412 shows both bases in this pack: its purchase voucher (V19) carries a goods received date of 12-05-2026, the other
+flagged bill uses its bill date. Open Mehta bills: MA-441 55,000 + MA-502 39,000 = 94,000.
+**The legal values are SECONDARY_VERIFIED only: your CA must confirm them from the official text before the status becomes verified.**
 
 ## 8. Trial Balance as on 30-06-2026 (ledger by ledger, plain addition)
 

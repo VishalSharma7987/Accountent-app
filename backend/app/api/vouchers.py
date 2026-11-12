@@ -37,7 +37,7 @@ def _draft(client_id: uuid.UUID, body: VoucherIn) -> VoucherDraft:
                         tuple(Allocation(a.kind, a.amount, a.bill_ref, a.due_date) for a in x.allocations))
             for x in body.lines
         ),
-        body.duplicate_override_reason,
+        body.duplicate_override_reason, body.goods_received_date,
     )
 
 
@@ -48,7 +48,7 @@ def _voucher_out(r: VoucherRecord) -> VoucherOut:
         reference_no=r.reference_no, party_ledger_id=r.party_ledger_id, status=r.status,
         reverses_voucher_id=r.reverses_voucher_id, reversed_by_voucher_id=r.reversed_by_voucher_id,
         duplicate_override_reason=r.duplicate_override_reason, created_by=r.created_by,
-        approved_by=r.approved_by, posted_by=r.posted_by,
+        approved_by=r.approved_by, posted_by=r.posted_by, goods_received_date=r.goods_received_date,
         lines=[VoucherLineOut(line_no=x.line_no, ledger_id=x.ledger_id, ledger_name=x.ledger_name,
                               debit=money(x.debit), credit=money(x.credit),
                               allocations=[AllocationOut(kind=a.kind, amount=money(a.amount), bill_ref=a.bill_ref,

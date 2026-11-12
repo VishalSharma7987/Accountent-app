@@ -35,10 +35,14 @@ class PartyRow:
     udyam_no: str | None
     msme_written_agreement: bool
     bill_wise: bool
+    msme_activity: str | None = None
+    udyam_registration_date: date | None = None
+    msme_agreed_days: int | None = None
 
 
 _PARTY_COLUMNS = (
-    "ledger_id, gstin, pan, state_code, credit_days, msme_category, udyam_no, msme_written_agreement, bill_wise"
+    "ledger_id, gstin, pan, state_code, credit_days, msme_category, udyam_no, msme_written_agreement, bill_wise, "
+    "msme_activity, udyam_registration_date, msme_agreed_days"
 )
 
 
@@ -62,16 +66,20 @@ def upsert_party(conn: Connection, client_id: object, row: PartyRow) -> None:
     conn.execute(
         text(
             "INSERT INTO parties (ledger_id, client_id, gstin, pan, state_code, credit_days, msme_category, udyam_no, "
-            "msme_written_agreement, bill_wise) VALUES (:l, :c, :gstin, :pan, :state, :days, :cat, :udyam, :agr, :bw) "
+            "msme_written_agreement, bill_wise, msme_activity, udyam_registration_date, msme_agreed_days) "
+            "VALUES (:l, :c, :gstin, :pan, :state, :days, :cat, :udyam, :agr, :bw, :act, :udate, :adays) "
             "ON CONFLICT (ledger_id) DO UPDATE SET gstin = EXCLUDED.gstin, pan = EXCLUDED.pan, "
             "state_code = EXCLUDED.state_code, credit_days = EXCLUDED.credit_days, "
             "msme_category = EXCLUDED.msme_category, udyam_no = EXCLUDED.udyam_no, "
-            "msme_written_agreement = EXCLUDED.msme_written_agreement, bill_wise = EXCLUDED.bill_wise"
+            "msme_written_agreement = EXCLUDED.msme_written_agreement, bill_wise = EXCLUDED.bill_wise, "
+            "msme_activity = EXCLUDED.msme_activity, udyam_registration_date = EXCLUDED.udyam_registration_date, "
+            "msme_agreed_days = EXCLUDED.msme_agreed_days"
         ),
         {
             "l": row.ledger_id, "c": client_id, "gstin": row.gstin, "pan": row.pan, "state": row.state_code,
             "days": row.credit_days, "cat": row.msme_category, "udyam": row.udyam_no,
-            "agr": row.msme_written_agreement, "bw": row.bill_wise,
+            "agr": row.msme_written_agreement, "bw": row.bill_wise, "act": row.msme_activity,
+            "udate": row.udyam_registration_date, "adays": row.msme_agreed_days,
         },
     )
 
@@ -189,7 +197,7 @@ def allocation_rows(
 ) -> list[AllocationRow]:
     """Allocations of the posted/reversed vouchers of the year dated up to as_on (all if None)."""
     sql = (
-        "SELECT a.party_ledger_id, a.kind, a.bill_ref, v.voucher_date, a.due_date, a.debit - a.credit "
+        "SELECT a.party_ledger_id, a.kind, a.bill_ref, v.voucher_date, a.due_date, a.debit - a.credit, v.goods_received_date "
         "FROM bill_allocations a JOIN vouchers v ON v.id = a.voucher_id "
         "WHERE a.client_id = :c AND v.financial_year_id = :fy AND v.status IN ('posted', 'reversed')"
     )
@@ -201,7 +209,7 @@ def allocation_rows(
         sql += " AND a.party_ledger_id = ANY(:ids)"
         params["ids"] = _uuids(party_ids)
     rows = conn.execute(text(sql + " ORDER BY v.voucher_date, v.voucher_number, a.line_no"), params)
-    return [AllocationRow(r[0], r[1], r[2], r[3], r[4], r[5].quantize(CENTS)) for r in rows]
+    return [AllocationRow(r[0], r[1], r[2], r[3], r[4], r[5].quantize(CENTS), r[6]) for r in rows]
 
 
 def used_refs(

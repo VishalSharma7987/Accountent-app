@@ -1,4 +1,4 @@
-row_type,party,bill_ref,bill_date,msme_category,written_agreement,legal_days,legal_due_date,days_overdue,outstanding
-item,Patel Packaging Works,PP/131,2026-04-15,small,false,15,2026-04-30,61,35400.00
-item,Gupta Wholesale,GW/0412,2026-05-05,micro,true,30,2026-06-04,26,23600.00
-total,,,,,,,,,59000.00
+row_type,party,bill_ref,bill_date,acceptance_date,acceptance_basis,msme_category,written_agreement,legal_days,legal_due_date,days_overdue,outstanding
+item,Patel Packaging Works,PP/131,2026-04-15,2026-04-15,bill date,small,false,15,2026-04-30,61,35400.00
+item,Gupta Wholesale,GW/0412,2026-05-05,2026-05-12,goods received date,micro,true,30,2026-06-11,19,23600.00
+total,,,,,,,,,,,59000.00

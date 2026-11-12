@@ -1,4 +1,6 @@
-"""validate_party: rules P-01 .. P-07. Expected rule ids and key words are typed literally."""
+"""validate_party: rules P-01 .. P-07 and P-09 .. P-11. Expected rule ids and key words are typed literally."""
+
+from datetime import date
 
 from engine_helpers import GROUPS, LEDGERS, ids
 
@@ -16,7 +18,8 @@ def check(ledger=RAHUL, **kw):
 
 def test_valid_party_with_everything_filled_passes():
     assert check(gstin=GSTIN, pan=PAN, state_code="27", credit_days=30, msme_category="micro",
-                 udyam_no="UDYAM-MH-18-0012345") == []
+                 udyam_no="UDYAM-MH-18-0012345", msme_activity="manufacturing",
+                 udyam_registration_date=date(2021, 3, 1), msme_written_agreement=True, msme_agreed_days=30) == []
 
 
 def test_valid_party_with_nothing_filled_passes():
@@ -66,13 +69,13 @@ def test_P04_state_code_must_match_gstin():
 
 
 def test_P05_msme_category_needs_udyam_number():
-    errors = check(msme_category="small")
+    errors = check(msme_category="small", msme_activity="services")
     assert ids(errors) == [("P-05", None)]
     assert "Udyam" in errors[0].message
 
 
 def test_P05_malformed_udyam_rejected_even_without_category():
-    assert ids(check(udyam_no="UDYAM-MH-18-12345")) == [("P-05", None)]
+    assert ids(check(udyam_no="UDYAM-MH-18-12345", udyam_registration_date=date(2021, 3, 1))) == [("P-05", None)]
 
 
 def test_P05_unknown_category_rejected():
@@ -120,10 +123,54 @@ def test_party_nature_of_debtor_and_creditor():
 
 def test_all_errors_are_reported_together():
     errors = check(gstin="BAD", pan="BAD", state_code="1", credit_days=-5, msme_category="micro")
-    assert sorted(e.rule_id for e in errors) == ["P-01", "P-02", "P-04", "P-05", "P-06"]
+    assert sorted(e.rule_id for e in errors) == ["P-01", "P-02", "P-04", "P-05", "P-06", "P-09"]
 
 
 def test_normalise_id_trims_and_uppercases_blank_becomes_none():
     assert normalise_id("  aabcu9603r ") == "AABCU9603R"
     assert normalise_id("   ") is None
     assert normalise_id(None) is None
+
+
+UDYAM = "UDYAM-MH-18-0012345"
+
+
+def test_P09_micro_and_small_need_an_activity_medium_and_none_do_not():
+    kw = {"udyam_no": UDYAM, "udyam_registration_date": date(2021, 3, 1)}
+    for cat in ("micro", "small"):
+        errors = check(msme_category=cat, **kw)
+        assert ids(errors) == [("P-09", None)]
+        assert "manufacturing, services or trading" in errors[0].message
+        assert check(msme_category=cat, msme_activity="trading", **kw) == []
+    assert check(msme_category="medium", **kw) == []
+    assert check() == []
+
+
+def test_P09_unknown_activity_rejected():
+    assert ids(check(msme_activity="retail")) == [("P-09", None)]
+
+
+def test_P10_udyam_number_needs_the_registration_date():
+    errors = check(udyam_no=UDYAM)
+    assert ids(errors) == [("P-10", None)]
+    assert "registration date" in errors[0].message
+    assert check(udyam_no=UDYAM, udyam_registration_date=date(2021, 3, 1)) == []
+
+
+def test_P11_written_agreement_needs_agreed_days():
+    errors = check(msme_written_agreement=True)
+    assert ids(errors) == [("P-11", None)]
+    assert "agreed credit days" in errors[0].message
+
+
+def test_P11_agreed_days_without_agreement_rejected():
+    assert ids(check(msme_agreed_days=30)) == [("P-11", None)]
+
+
+def test_P11_agreed_days_must_be_1_to_45():
+    for bad in (0, 46, 60, -5):
+        errors = check(msme_written_agreement=True, msme_agreed_days=bad)
+        assert ids(errors) == [("P-11", None)], bad
+    assert "45" in errors[0].message
+    for good in (1, 45):
+        assert check(msme_written_agreement=True, msme_agreed_days=good) == []
