@@ -1,6 +1,9 @@
 """Read vouchers from an Excel file (pure parsing: no database, no accounting rules).
 
-Columns are exactly those of the test packs' vouchers.csv. Rows with the same ref_id form one voucher. Every
+Columns are those of the test packs' vouchers.csv plus the bill allocation columns (bill_type, bill_ref,
+bill_amount, due_date). Rows with the same ref_id form one voucher. A line of a bill-wise party may be split into
+several allocations: the first allocation goes on the line's own row, each further one on a CONTINUATION row (same
+ref_id, ledger_name/debit/credit empty, only the bill columns filled). Every
 problem carries the Excel row number. Amounts are NOT judged here beyond what Excel cells can hide (formulas
 without a saved result, TRUE/FALSE): text and numbers are handed on as entered (numbers as their exact Decimal)
 and the rule engine rejects bad amounts under V-03 with the line's row number.
@@ -18,7 +21,11 @@ from openpyxl.utils.exceptions import InvalidFileException
 
 COLUMNS = (
     "ref_id", "date", "voucher_type", "ledger_name", "debit", "credit", "narration", "reference_no", "party_ledger",
+    "bill_type", "bill_ref", "bill_amount", "due_date",
 )
+LEGACY_COLUMNS = COLUMNS[:9]  # files made before bill allocations existed are still accepted
+BILL_KINDS = {"newref": "new_ref", "againstref": "against_ref", "advance": "advance", "onaccount": "on_account"}
+BILL_TYPE_PROBLEM = "bill_type must be one of New Ref, Against Ref, Advance, On Account"
 VOUCHER_TYPES = (
     "contra", "payment", "receipt", "sales", "purchase", "credit_note", "debit_note", "journal",
 )
@@ -40,11 +47,21 @@ class RowError:
 
 
 @dataclass(frozen=True)
+class ParsedAllocation:
+    row: int
+    kind: str  # new_ref | against_ref | advance | on_account
+    bill_ref: str | None
+    amount: str | Decimal | None  # as entered, like debit/credit
+    due_date: date | None
+
+
+@dataclass
 class ParsedLine:
     row: int
     ledger_name: str
     debit: str | Decimal | None  # as entered: text (commas stripped) or the cell's exact number
     credit: str | Decimal | None
+    allocations: list[ParsedAllocation] = field(default_factory=list)
 
 
 @dataclass
@@ -121,6 +138,32 @@ def _amount(value: object, formula: bool, column: str, row: int, errors: list[Ro
     return text.replace(",", "") if _COMMA_NUMBER.match(text) else text
 
 
+def _bill_kind(value: object) -> str | None:
+    return BILL_KINDS.get(re.sub(r"[\s_]+", "", _text(value).lower()))
+
+
+def _allocation(cells: list, formulas: list[bool], row: int, errors: list[RowError]) -> ParsedAllocation | None:
+    """The allocation of one row (cells = bill_type, bill_ref, bill_amount, due_date), None when all four are empty."""
+    if all(_text(v) == "" for v in cells):
+        return None
+    kind = _bill_kind(cells[0])
+    if kind is None:
+        found = _text(cells[0])
+        errors.append(RowError(row, BILL_TYPE_PROBLEM + (f" (found: {found!r})" if found else " (bill_type is empty)")))
+    before = len(errors)
+    amount = _amount(cells[2], formulas[2], "bill_amount", row, errors)
+    if amount is None and len(errors) == before:
+        errors.append(RowError(row, "bill_amount is empty"))
+    due = None
+    if _text(cells[3]):
+        due = _parse_date(cells[3])
+        if due is None:
+            errors.append(RowError(row, "due_date must be a real date, as an Excel date or text like 2026-04-05 or 05-04-2026"))
+    if kind is None:
+        return None
+    return ParsedAllocation(row, kind, _text(cells[1]) or None, amount, due)
+
+
 # ================================================================================================= workbook
 
 
@@ -138,7 +181,7 @@ def _check_header(sheet) -> None:
     found = [_text(c.value).lower() for c in sheet[1]]
     while found and not found[-1]:
         found.pop()
-    if found != list(COLUMNS):
+    if found not in (list(COLUMNS), list(LEGACY_COLUMNS)):
         raise ImportFileError(
             f"The first row of the sheet must be exactly: {', '.join(COLUMNS)} (found: {', '.join(found)})."
         )
@@ -157,6 +200,17 @@ def parse_workbook(data: bytes) -> ParseResult:
             continue
         is_formula = [formulas.cell(row=row, column=i + 1).data_type == "f" for i in range(len(COLUMNS))]
         ref = _text(cells[0])
+        bill_cells = cells[9:13]
+        continuation = (
+            ref in vouchers and vouchers[ref].lines and _text(cells[3]) == "" and _text(cells[4]) == ""
+            and _text(cells[5]) == "" and any(_text(v) for v in bill_cells)
+        )
+        if continuation:  # a further allocation of the previous line of this voucher
+            voucher = vouchers[ref]
+            allocation = _allocation(bill_cells, is_formula[9:13], row, voucher.errors)
+            if allocation is not None:
+                voucher.lines[-1].allocations.append(allocation)
+            continue
         errors: list[RowError] = []
         if not ref:
             ref = f"(row {row})"
@@ -193,7 +247,11 @@ def parse_workbook(data: bytes) -> ParseResult:
             voucher.errors.append(RowError(row, "ledger_name is empty"))
         debit = _amount(cells[4], is_formula[4], "debit", row, voucher.errors)
         credit = _amount(cells[5], is_formula[5], "credit", row, voucher.errors)
-        voucher.lines.append(ParsedLine(row, ledger_name, debit, credit))
+        line = ParsedLine(row, ledger_name, debit, credit)
+        allocation = _allocation(bill_cells, is_formula[9:13], row, voucher.errors)
+        if allocation is not None:
+            line.allocations.append(allocation)
+        voucher.lines.append(line)
 
     if not vouchers:
         raise ImportFileError("The sheet has a header but no voucher rows.")

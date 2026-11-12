@@ -15,7 +15,8 @@ def test_template_has_the_import_columns_a_styled_header_and_a_notes_sheet():
     assert all(c.font.bold for c in sheet[1])
     assert sheet.freeze_panes == "A2"
     notes = " ".join(str(c.value) for row in wb["Notes"].iter_rows() for c in row if c.value)
-    for must_say in ("ref_id", "never creates ledgers", "drafts", "delete the example"):
+    for must_say in ("ref_id", "never creates ledgers", "drafts", "delete the example", "bill_type", "New Ref",
+                     "Against Ref", "rows just below", "auto New Ref", "rule B-01"):
         assert must_say in notes
 
 

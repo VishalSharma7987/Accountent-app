@@ -13,6 +13,17 @@ from app.api.deps import get_actor, get_conn
 from app.importers.voucher_template import build_template
 from app.services import voucher_import
 
+
+def _allocations(items) -> list[dict]:
+    return [
+        {
+            "line_no": a.line_no, "row": a.row, "kind": a.kind, "bill_ref": a.bill_ref, "amount": a.amount,
+            "due_date": a.due_date.isoformat() if a.due_date else None, "auto": a.auto,
+        }
+        for a in items
+    ]
+
+
 router = APIRouter(prefix="/clients/{client_id}/imports/vouchers", tags=["imports"])
 
 XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -43,6 +54,7 @@ def dry_run(client_id: str, file: Upload, conn: Conn) -> dict:
                 "errors": [
                     {"rule_id": e.rule_id, "message": e.message, "line_no": e.line_no, "row": e.row} for e in v.errors
                 ],
+                "allocations": _allocations(v.allocations),
             }
             for v in result.vouchers
         ],
@@ -56,6 +68,9 @@ def commit(client_id: str, file: Upload, conn: Conn, actor: Actor, ref_ids: Anno
     chosen = [r.strip() for r in ref_ids.split(",") if r.strip()]
     result = voucher_import.commit(conn, client_id, file.file.read(), chosen, actor=actor)
     return {
-        "created": [{"ref_id": c.ref_id, "voucher_id": str(c.voucher_id)} for c in result.created],
+        "created": [
+            {"ref_id": c.ref_id, "voucher_id": str(c.voucher_id), "allocations": _allocations(c.allocations)}
+            for c in result.created
+        ],
         "skipped": [{"ref_id": s.ref_id, "reason": s.reason} for s in result.skipped],
     }

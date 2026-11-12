@@ -254,6 +254,16 @@ export interface ImportVoucher {
   first_row: number
   status: 'ok' | 'error'
   errors: ImportError[]
+  allocations: ImportAllocation[]
+}
+export interface ImportAllocation {
+  line_no: number
+  row: number
+  kind: 'new_ref' | 'against_ref' | 'advance' | 'on_account'
+  bill_ref: string | null
+  amount: string
+  due_date: string | null
+  auto: boolean // New Ref built by the importer from the voucher's reference_no (not in the sheet)
 }
 export interface DryRun {
   vouchers: ImportVoucher[]
@@ -261,7 +271,7 @@ export interface DryRun {
   error_count: number
 }
 export interface ImportCommit {
-  created: { ref_id: string; voucher_id: string }[]
+  created: { ref_id: string; voucher_id: string; allocations: ImportAllocation[] }[]
   skipped: { ref_id: string; reason: string }[]
 }
 

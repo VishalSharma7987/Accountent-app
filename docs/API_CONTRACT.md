@@ -81,6 +81,20 @@ created_by, approved_by, posted_by, lines: [{line_no, ledger_id, ledger_name, de
 ## Excel import (added in step 1.8)
 - `GET /clients/{client_id}/imports/vouchers/template` -> the `.xlsx` template (download)
 - `POST /clients/{client_id}/imports/vouchers/dry-run` multipart `file` ->
-  `{vouchers: [{ref_id, first_row, status: "ok"|"error", errors: [{rule_id, message, line_no, row}]}], ok_count, error_count}`
+  `{vouchers: [{ref_id, first_row, status: "ok"|"error", errors: [{rule_id, message, line_no, row}],
+  allocations: [{line_no, row, kind, bill_ref, amount, due_date, auto}]}], ok_count, error_count}`
 - `POST /clients/{client_id}/imports/vouchers/commit` multipart `file` + form field `ref_ids` (comma separated, empty =
-  all OK vouchers) -> `{created: [{ref_id, voucher_id}], skipped: [{ref_id, reason}]}` (drafts only; never posts)
+  all OK vouchers) -> `{created: [{ref_id, voucher_id, allocations}], skipped: [{ref_id, reason}]}` (drafts only; never posts)
+
+Bill allocation columns (Phase 2.1). The voucher sheet is `ref_id, date, voucher_type, ledger_name, debit, credit,
+narration, reference_no, party_ledger, bill_type, bill_ref, bill_amount, due_date` (the old 9-column header is still
+accepted). `bill_type`: New Ref / Against Ref / Advance / On Account (case, spaces and underscores ignored) =
+`new_ref / against_ref / advance / on_account`; `bill_amount` follows the debit/credit amount rules (max 2 decimals,
+text commas stripped); `due_date` is optional and for New Ref only. The first allocation of a line goes on the line's
+own row; more allocations of the same line go on continuation rows right below: same `ref_id`, `ledger_name`, `debit`
+and `credit` empty, only the bill columns filled. The allocations of a line must add up to the line amount (B-01).
+A Sales or Purchase line of a bill-wise party ledger WITHOUT allocation gets ONE New Ref for the full amount with
+`bill_ref` = the voucher's `reference_no` (flagged `auto: true` in `allocations`, dry run and commit); a blank
+`reference_no` is an error (Sales: B-03, Purchase: V-14). Receipt, Payment, Credit Note, Debit Note and Journal lines
+of a bill-wise party are never allocated automatically (B-01). Allocations on non-bill-wise ledgers are passed on and
+rejected by the engine (B-01). Errors and `row` numbers point at the Excel row of the line or of the allocation.

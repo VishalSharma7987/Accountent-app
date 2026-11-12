@@ -6,7 +6,13 @@ from decimal import Decimal
 import pytest
 from xlsx_helpers import APRIL_5, GOOD_ROWS, inject_cached_value, make_xlsx
 
-from app.importers.voucher_excel import COLUMNS, ImportFileError, parse_workbook
+from app.importers.voucher_excel import (
+    COLUMNS,
+    LEGACY_COLUMNS,
+    ImportFileError,
+    ParsedAllocation,
+    parse_workbook,
+)
 
 D = Decimal
 
@@ -18,7 +24,9 @@ def messages(voucher):
 def test_columns_are_exactly_the_pack_format():
     assert COLUMNS == (
         "ref_id", "date", "voucher_type", "ledger_name", "debit", "credit", "narration", "reference_no", "party_ledger",
+        "bill_type", "bill_ref", "bill_amount", "due_date",
     )
+    assert LEGACY_COLUMNS == COLUMNS[:9]
 
 
 def test_two_valid_vouchers_are_parsed_with_their_row_numbers():
@@ -57,8 +65,9 @@ def test_a_missing_or_renamed_column_is_a_file_error_that_lists_the_expected_hea
         parse_workbook(bad)
     assert str(info.value) == (
         "The first row of the sheet must be exactly: ref_id, date, voucher_type, ledger_name, debit, credit, "
-        "narration, reference_no, party_ledger (found: ref_id, date, voucher_type, ledger_name, debit, credit, "
-        "remarks, reference_no, party_ledger)."
+        "narration, reference_no, party_ledger, bill_type, bill_ref, bill_amount, due_date (found: ref_id, date, "
+        "voucher_type, ledger_name, debit, credit, remarks, reference_no, party_ledger, bill_type, bill_ref, "
+        "bill_amount, due_date)."
     )
 
 
@@ -208,3 +217,74 @@ def test_text_cells_are_trimmed_but_never_rewritten():
 def test_a_missing_ledger_name_is_reported_on_its_row():
     rows = [["V1", APRIL_5, "payment", None, 1, None, "n", None, None]]
     assert messages(parse_workbook(make_xlsx(rows)).vouchers[0]) == [(2, "ledger_name is empty")]
+
+
+def test_the_old_nine_column_header_is_still_accepted():
+    assert len(parse_workbook(make_xlsx(GOOD_ROWS, header=LEGACY_COLUMNS)).vouchers) == 2
+
+
+# ------------------------------------------------------------------------------------ bill allocations
+
+
+def bill_row(ledger, dr, cr, *bill, ref="V1", vtype="sales", reference="INV-1"):
+    """bill = (bill_type, bill_ref, bill_amount, due_date) cells; ledger None/dr None/cr None = continuation row."""
+    return [ref, APRIL_5, vtype, ledger, dr, cr, "n", reference, "Rahul Enterprises", *bill]
+
+
+@pytest.mark.parametrize(
+    ("cell", "kind"),
+    [("New Ref", "new_ref"), ("new_ref", "new_ref"), (" NEW  REF ", "new_ref"), ("Against Ref", "against_ref"),
+     ("against_ref", "against_ref"), ("ADVANCE", "advance"), ("On Account", "on_account"), ("on_account", "on_account")],
+)
+def test_bill_type_is_case_and_space_insensitive(cell, kind):
+    rows = [bill_row("Rahul Enterprises", 100, None, cell, "INV-1", 100), bill_row("Sales", None, 100)]
+    voucher = parse_workbook(make_xlsx(rows)).vouchers[0]
+    assert voucher.errors == []
+    assert voucher.lines[0].allocations == [ParsedAllocation(2, kind, "INV-1", D("100"), None)]
+    assert voucher.lines[1].allocations == []
+
+
+def test_continuation_rows_add_allocations_to_the_line_above_and_are_not_lines():
+    rows = [
+        bill_row("Rahul Enterprises", 1000, None, "Against Ref", "OB1", 600),
+        bill_row(None, None, None, "New Ref", "INV-9", "400.00", "2026-05-05"),
+        bill_row("Sales", None, 1000),
+    ]
+    voucher = parse_workbook(make_xlsx(rows)).vouchers[0]
+    assert voucher.errors == []
+    assert [(x.row, x.ledger_name) for x in voucher.lines] == [(2, "Rahul Enterprises"), (4, "Sales")]
+    assert voucher.lines[0].allocations == [
+        ParsedAllocation(2, "against_ref", "OB1", D("600"), None),
+        ParsedAllocation(3, "new_ref", "INV-9", "400.00", date(2026, 5, 5)),
+    ]
+
+
+def test_bill_amount_follows_the_amount_rules_text_commas_stripped_and_exact_floats_kept():
+    rows = [bill_row("Rahul Enterprises", 1, None, "New Ref", "A", "1,000.50"),
+            bill_row(None, None, None, "New Ref", "B", 0.5),
+            bill_row(None, None, None, "New Ref", "C", "10.005")]
+    allocations = parse_workbook(make_xlsx(rows)).vouchers[0].lines[0].allocations
+    assert [a.amount for a in allocations] == ["1000.50", D("0.5"), "10.005"]  # "10.005" is rejected later by the engine (B-05)
+
+
+def test_bill_cell_problems_are_reported_on_their_rows():
+    rows = [
+        bill_row("Rahul Enterprises", 100, None, "Settle", "A", 100),
+        bill_row(None, None, None, None, "B", 5),
+        bill_row(None, None, None, "New Ref", "C", None),
+        bill_row(None, None, None, "New Ref", "D", True),
+        bill_row(None, None, None, "New Ref", "E", 5, "soon"),
+    ]
+    voucher = parse_workbook(make_xlsx(rows)).vouchers[0]
+    assert messages(voucher) == [
+        (2, "bill_type must be one of New Ref, Against Ref, Advance, On Account (found: 'Settle')"),
+        (3, "bill_type must be one of New Ref, Against Ref, Advance, On Account (bill_type is empty)"),
+        (4, "bill_amount is empty"),
+        (5, "bill_amount is a TRUE/FALSE value, not an amount"),
+        (6, "due_date must be a real date, as an Excel date or text like 2026-04-05 or 05-04-2026"),
+    ]
+
+
+def test_a_continuation_row_of_an_unknown_voucher_is_an_ordinary_row_with_its_problems():
+    voucher = parse_workbook(make_xlsx([bill_row(None, None, None, "New Ref", "A", 5)])).vouchers[0]
+    assert ("ledger_name is empty" in [m for _, m in messages(voucher)]) and voucher.lines[0].allocations[0].amount == D("5")

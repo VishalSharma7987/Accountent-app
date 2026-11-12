@@ -4,7 +4,30 @@ import { ErrorBox, Notice, Page, btn, btnPrimary, td, th } from '../components/u
 import { useClient } from '../context'
 import type { ApiFailure } from '../lib/apiError'
 import { asFailure } from '../lib/useLoad'
-import type { DryRun, ImportCommit } from '../types'
+import type { DryRun, ImportAllocation, ImportCommit } from '../types'
+
+const KIND: Record<ImportAllocation['kind'], string> = {
+  new_ref: 'New Ref',
+  against_ref: 'Against Ref',
+  advance: 'Advance',
+  on_account: 'On Account',
+}
+
+function Allocations({ items }: { items: ImportAllocation[] }) {
+  if (items.length === 0) return null
+  return (
+    <ul className="mt-1 text-xs text-slate-700">
+      {items.map((a, i) => (
+        <li key={i}>
+          Line {a.line_no}: {KIND[a.kind]}
+          {a.bill_ref ? ` ${a.bill_ref}` : ''} {a.amount}
+          {a.due_date ? `, due ${a.due_date}` : ''}
+          {a.auto && <b className="ml-1 rounded bg-amber-100 px-1 text-amber-900">auto New Ref</b>}
+        </li>
+      ))}
+    </ul>
+  )
+}
 
 export default function ImportScreen() {
   const { clientId } = useClient()
@@ -119,6 +142,7 @@ export default function ImportScreen() {
                         ))}
                       </ul>
                     )}
+                    <Allocations items={v.allocations} />
                   </td>
                 </tr>
               ))}
@@ -132,6 +156,8 @@ export default function ImportScreen() {
       {result && (
         <Notice>
           Created {result.created.length} draft(s)
+          {result.created.some((c) => c.allocations.some((a) => a.auto)) &&
+            ` (auto New Ref bill allocation made for: ${result.created.filter((c) => c.allocations.some((a) => a.auto)).map((c) => c.ref_id).join(', ')})`}
           {result.skipped.length > 0 && `; skipped ${result.skipped.length}: ${result.skipped.map((s) => `${s.ref_id} (${s.reason})`).join(', ')}`}.
         </Notice>
       )}

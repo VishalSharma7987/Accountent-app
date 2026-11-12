@@ -17,7 +17,7 @@ from fastapi.testclient import TestClient
 
 from app.db import connection, migrate
 from app.main import app
-from app.services import client_setup
+from app.services import client_setup, parties
 from app.services.client_setup import ClientProfile
 
 pytestmark = pytest.mark.integration
@@ -33,7 +33,8 @@ def client_id(test_engine, test_conn):
             conn, ClientProfile("ABC Traders", "proprietorship", "trading", "regular"),
             fy_start=date(2026, 4, 1), actor="setup", proprietor_name="Owner",
         )
-        client_setup.add_ledger(conn, created.client_id, "Rahul Enterprises", "sundry_debtors", actor="setup")
+        rahul = client_setup.add_ledger(conn, created.client_id, "Rahul Enterprises", "sundry_debtors", actor="setup")
+        parties.set_party(conn, created.client_id, rahul, credit_days=30, actor="setup")  # bill-wise party
     yield str(created.client_id)
     connection.clean_test_tables(test_conn)
     migrate.apply_seed_sql(test_conn)
@@ -56,7 +57,7 @@ def test_template_download_is_an_xlsx_with_the_import_columns(api, client_id):
     assert response.headers["content-type"].startswith(XLSX)
     assert "voucher_import_template.xlsx" in response.headers["content-disposition"]
     header = [c.value for c in load_workbook(io.BytesIO(response.content))["Vouchers"][1]]
-    assert header[:3] == ["ref_id", "date", "voucher_type"] and len(header) == 9
+    assert header[:3] == ["ref_id", "date", "voucher_type"] and len(header) == 13 and header[9:] == ["bill_type", "bill_ref", "bill_amount", "due_date"]
 
 
 def test_dry_run_returns_each_voucher_with_status_and_row_numbered_errors(api, client_id):
@@ -66,10 +67,10 @@ def test_dry_run_returns_each_voucher_with_status_and_row_numbered_errors(api, c
     assert response.status_code == 200
     assert response.json() == {
         "vouchers": [
-            {"ref_id": "V1", "first_row": 2, "status": "ok", "errors": []},
+            {"ref_id": "V1", "first_row": 2, "status": "ok", "errors": [], "allocations": []},
             {"ref_id": "V9", "first_row": 4, "status": "error", "errors": [{
                 "rule_id": "V-04", "line_no": None, "row": 4,
-                "message": "Debit 10.00 and Credit 9.00 are not equal (difference 1.00)"}]},
+                "message": "Debit 10.00 and Credit 9.00 are not equal (difference 1.00)"}], "allocations": []},
         ],
         "ok_count": 1, "error_count": 1,
     }
@@ -97,3 +98,16 @@ def test_an_unreadable_file_is_a_422_with_the_service_error_shape(api, client_id
     assert response.status_code == 422
     assert response.json()["code"] == "invalid_file"
     assert response.json()["message"] == "The upload is not a valid Excel (.xlsx) file."
+
+
+AUTO_NEW_REF = {"line_no": 1, "row": 4, "kind": "new_ref", "bill_ref": "INV-1", "amount": "5000.50", "due_date": None, "auto": True}
+
+
+def test_dry_run_and_commit_show_the_automatic_new_ref_of_a_sales_line_for_a_bill_wise_party(api, svc_conn, client_id):
+    dry = api.post(f"/clients/{client_id}/imports/vouchers/dry-run", files=upload(make_xlsx(GOOD_ROWS)))
+    assert dry.json()["vouchers"][1] == {"ref_id": "V2", "first_row": 4, "status": "ok", "errors": [], "allocations": [AUTO_NEW_REF]}
+    response = api.post(f"/clients/{client_id}/imports/vouchers/commit", files=upload(make_xlsx(GOOD_ROWS)),
+                        data={"ref_ids": "V2"}, headers={"X-User": "clerk"})
+    created = response.json()["created"]
+    assert [(c["ref_id"], c["allocations"]) for c in created] == [("V2", [AUTO_NEW_REF])]
+    assert svc_conn.execute(text("SELECT kind, bill_ref FROM bill_allocations")).all() == [("new_ref", "INV-1")]
