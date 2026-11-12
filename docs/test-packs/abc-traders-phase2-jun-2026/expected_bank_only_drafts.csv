@@ -1,0 +1,4 @@
+bank_line_no,txn_date,voucher_type,counter_ledger,amount
+8,2026-04-28,payment,Bank Charges,590.00
+18,2026-06-10,payment,Bank Charges,236.00
+21,2026-06-30,receipt,Interest Received,1875.00

@@ -1,0 +1,15 @@
+{
+  "name": "HDFC Current A/c CSV (ABC Traders)",
+  "bank_ledger": "HDFC Bank",
+  "mapping": {
+    "header_row": 1,
+    "date_col": "Txn Date",
+    "date_format": "%d/%m/%Y",
+    "description_col": "Narration",
+    "reference_col": "Chq/Ref No",
+    "debit_col": "Withdrawal Amt",
+    "credit_col": "Deposit Amt",
+    "balance_col": "Closing Balance",
+    "opening_balance": "500000.00"
+  }
+}

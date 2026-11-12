@@ -1,0 +1,16 @@
+line_type,item_date,reference,description,amount
+balance_per_books,2026-06-30,,Balance as per books (HDFC Bank ledger) before the bank-only items are booked,448000.00
+issued_not_presented,2026-06-26,000471,Cheque to Mehta Agencies not yet presented,30000.00
+issued_not_presented,2026-06-29,000472,Salary cheque not yet presented,36500.00
+total_issued_not_presented,,,,66500.00
+deposited_not_cleared,2026-06-29,889900,Cheque from Sunrise Stores not yet cleared,40000.00
+deposited_not_cleared,2026-06-30,902177,Cheque from Rahul Enterprises not yet cleared,10000.00
+total_deposited_not_cleared,,,,50000.00
+bank_only_credit,2026-06-30,,INT PD TILL 29-06-2026,1875.00
+total_bank_only_credits,,,,1875.00
+bank_only_debit,2026-04-28,,ACCT MAINT CHGS,590.00
+bank_only_debit,2026-06-10,,CHQ RETURN AND ADMIN CHGS,236.00
+total_bank_only_debits,,,,826.00
+computed_bank_balance,2026-06-30,,books + issued not presented - deposited not cleared + bank-only credits - bank-only debits,465549.00
+balance_per_bank,2026-06-30,,Closing balance of the statement on 30-06-2026,465549.00
+difference,,,,0.00

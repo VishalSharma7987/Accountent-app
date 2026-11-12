@@ -1,0 +1,114 @@
+ref_id,date,voucher_type,ledger_name,debit,credit,narration,reference_no,party_ledger
+V01,2026-04-02,receipt,HDFC Bank,40000.00,0.00,Part receipt from Rahul Enterprises against invoice INV-2025-131 by NEFT,UTR2604020011,Rahul Enterprises
+V01,2026-04-02,receipt,Rahul Enterprises,0.00,40000.00,Part receipt from Rahul Enterprises against invoice INV-2025-131 by NEFT,UTR2604020011,Rahul Enterprises
+V02,2026-04-03,sales,Meena Traders,118000.00,0.00,Goods sold to Meena Traders,INV-2026-001,Meena Traders
+V02,2026-04-03,sales,Sales,0.00,100000.00,Goods sold to Meena Traders,INV-2026-001,Meena Traders
+V02,2026-04-03,sales,Output GST,0.00,18000.00,Goods sold to Meena Traders,INV-2026-001,Meena Traders
+V03,2026-04-03,sales,Cash,23600.00,0.00,Cash sale at the counter,CS-0001,
+V03,2026-04-03,sales,Sales,0.00,20000.00,Cash sale at the counter,CS-0001,
+V03,2026-04-03,sales,Output GST,0.00,3600.00,Cash sale at the counter,CS-0001,
+V04,2026-04-06,payment,Gupta Wholesale,60000.00,0.00,Paid to Gupta Wholesale against bill GW/0310 by cheque,000452,Gupta Wholesale
+V04,2026-04-06,payment,HDFC Bank,0.00,60000.00,Paid to Gupta Wholesale against bill GW/0310 by cheque,000452,Gupta Wholesale
+V05,2026-04-08,payment,Sharma Suppliers,100000.00,0.00,Part payment to Sharma Suppliers against bill SS/2026/0091 by NEFT,N0408SHA,Sharma Suppliers
+V05,2026-04-08,payment,HDFC Bank,0.00,100000.00,Part payment to Sharma Suppliers against bill SS/2026/0091 by NEFT,N0408SHA,Sharma Suppliers
+V06,2026-04-09,contra,HDFC Bank,20000.00,0.00,Cash deposited into the bank,CDM0409,
+V06,2026-04-09,contra,Cash,0.00,20000.00,Cash deposited into the bank,CDM0409,
+V07,2026-04-10,payment,Electricity,3400.00,0.00,Electricity bill paid in cash,,
+V07,2026-04-10,payment,Cash,0.00,3400.00,Electricity bill paid in cash,,
+V08,2026-04-13,receipt,Cash,25000.00,0.00,Cash received from Kapoor and Sons against bill KS-0056,RCPT-001,Kapoor & Sons
+V08,2026-04-13,receipt,Kapoor & Sons,0.00,25000.00,Cash received from Kapoor and Sons against bill KS-0056,RCPT-001,Kapoor & Sons
+V09,2026-04-15,purchase,Purchases,30000.00,0.00,Packing material purchased from Patel Packaging Works,PP/131,Patel Packaging Works
+V09,2026-04-15,purchase,Input GST,5400.00,0.00,Packing material purchased from Patel Packaging Works,PP/131,Patel Packaging Works
+V09,2026-04-15,purchase,Patel Packaging Works,0.00,35400.00,Packing material purchased from Patel Packaging Works,PP/131,Patel Packaging Works
+V10,2026-04-16,payment,Office Expenses,4800.00,0.00,Office expenses paid in cash,,
+V10,2026-04-16,payment,Cash,0.00,4800.00,Office expenses paid in cash,,
+V11,2026-04-20,purchase,Purchases,50000.00,0.00,Goods purchased from Mehta Agencies,MA-502,Mehta Agencies
+V11,2026-04-20,purchase,Input GST,9000.00,0.00,Goods purchased from Mehta Agencies,MA-502,Mehta Agencies
+V11,2026-04-20,purchase,Mehta Agencies,0.00,59000.00,Goods purchased from Mehta Agencies,MA-502,Mehta Agencies
+V12,2026-04-22,payment,Salary,35000.00,0.00,Staff salary for April paid by NEFT,N0422SAL,
+V12,2026-04-22,payment,HDFC Bank,0.00,35000.00,Staff salary for April paid by NEFT,N0422SAL,
+V13,2026-04-24,receipt,HDFC Bank,20000.00,0.00,Part receipt from Meena Traders against invoice MT/INV/090 by NEFT,UTR2604240032,Meena Traders
+V13,2026-04-24,receipt,Meena Traders,0.00,20000.00,Part receipt from Meena Traders against invoice MT/INV/090 by NEFT,UTR2604240032,Meena Traders
+V14,2026-04-27,payment,Travelling,2600.00,0.00,Travelling expenses paid in cash,,
+V14,2026-04-27,payment,Cash,0.00,2600.00,Travelling expenses paid in cash,,
+V15,2026-04-28,payment,Rent,25000.00,0.00,April shop rent paid by cheque,000453,
+V15,2026-04-28,payment,HDFC Bank,0.00,25000.00,April shop rent paid by cheque,000453,
+V16,2026-04-30,sales,Cash,11800.00,0.00,Cash sale at the counter,CS-0002,
+V16,2026-04-30,sales,Sales,0.00,10000.00,Cash sale at the counter,CS-0002,
+V16,2026-04-30,sales,Output GST,0.00,1800.00,Cash sale at the counter,CS-0002,
+V17,2026-05-02,contra,Cash,30000.00,0.00,Cash withdrawn from the bank by self cheque,000455,
+V17,2026-05-02,contra,HDFC Bank,0.00,30000.00,Cash withdrawn from the bank by self cheque,000455,
+V18,2026-05-02,payment,Salary,35000.00,0.00,Staff salary paid in cash,,
+V18,2026-05-02,payment,Cash,0.00,35000.00,Staff salary paid in cash,,
+V19,2026-05-05,purchase,Purchases,20000.00,0.00,Goods purchased from Gupta Wholesale,GW/0412,Gupta Wholesale
+V19,2026-05-05,purchase,Input GST,3600.00,0.00,Goods purchased from Gupta Wholesale,GW/0412,Gupta Wholesale
+V19,2026-05-05,purchase,Gupta Wholesale,0.00,23600.00,Goods purchased from Gupta Wholesale,GW/0412,Gupta Wholesale
+V20,2026-05-06,receipt,HDFC Bank,30000.00,0.00,Advance received from Sunrise Stores by UPI,614212345678,Sunrise Stores
+V20,2026-05-06,receipt,Sunrise Stores,0.00,30000.00,Advance received from Sunrise Stores by UPI,614212345678,Sunrise Stores
+V21,2026-05-08,payment,Patel Packaging Works,30000.00,0.00,Paid to Patel Packaging Works against bill PP/118 by cheque,000456,Patel Packaging Works
+V21,2026-05-08,payment,HDFC Bank,0.00,30000.00,Paid to Patel Packaging Works against bill PP/118 by cheque,000456,Patel Packaging Works
+V22,2026-05-10,payment,Electricity,3900.00,0.00,Electricity bill paid in cash,,
+V22,2026-05-10,payment,Cash,0.00,3900.00,Electricity bill paid in cash,,
+V23,2026-05-12,sales,Rahul Enterprises,177000.00,0.00,Goods sold to Rahul Enterprises,INV-2026-004,Rahul Enterprises
+V23,2026-05-12,sales,Sales,0.00,150000.00,Goods sold to Rahul Enterprises,INV-2026-004,Rahul Enterprises
+V23,2026-05-12,sales,Output GST,0.00,27000.00,Goods sold to Rahul Enterprises,INV-2026-004,Rahul Enterprises
+V24,2026-05-12,receipt,HDFC Bank,11000.00,0.00,Cheque from Kapoor and Sons against bill KS-0056 deposited with slip 5521,330145,Kapoor & Sons
+V24,2026-05-12,receipt,Kapoor & Sons,0.00,11000.00,Cheque from Kapoor and Sons against bill KS-0056 deposited with slip 5521,330145,Kapoor & Sons
+V25,2026-05-13,receipt,HDFC Bank,12500.00,0.00,Cheque from Rahul Enterprises against invoice INV-2025-131 deposited with slip 5521,771212,Rahul Enterprises
+V25,2026-05-13,receipt,Rahul Enterprises,0.00,12500.00,Cheque from Rahul Enterprises against invoice INV-2025-131 deposited with slip 5521,771212,Rahul Enterprises
+V26,2026-05-14,receipt,HDFC Bank,8500.00,0.00,Cheque from Meena Traders against invoice INV-2026-001 deposited with slip 5521,445509,Meena Traders
+V26,2026-05-14,receipt,Meena Traders,0.00,8500.00,Cheque from Meena Traders against invoice INV-2026-001 deposited with slip 5521,445509,Meena Traders
+V27,2026-05-16,payment,Travelling,3100.00,0.00,Travelling expenses paid in cash,,
+V27,2026-05-16,payment,Cash,0.00,3100.00,Travelling expenses paid in cash,,
+V28,2026-05-18,payment,Office Expenses,5500.00,0.00,Office expenses paid in cash,,
+V28,2026-05-18,payment,Cash,0.00,5500.00,Office expenses paid in cash,,
+V29,2026-05-20,sales,Sunrise Stores,118000.00,0.00,Goods sold to Sunrise Stores with the advance adjusted,INV-2026-006,Sunrise Stores
+V29,2026-05-20,sales,Sales,0.00,100000.00,Goods sold to Sunrise Stores with the advance adjusted,INV-2026-006,Sunrise Stores
+V29,2026-05-20,sales,Output GST,0.00,18000.00,Goods sold to Sunrise Stores with the advance adjusted,INV-2026-006,Sunrise Stores
+V30,2026-05-22,receipt,HDFC Bank,40000.00,0.00,Part receipt from Sunrise Stores against bill SR-077 by NEFT,UTR2605220077,Sunrise Stores
+V30,2026-05-22,receipt,Sunrise Stores,0.00,40000.00,Part receipt from Sunrise Stores against bill SR-077 by NEFT,UTR2605220077,Sunrise Stores
+V31,2026-05-25,credit_note,Sales Returns,20000.00,0.00,Goods returned by Rahul Enterprises against invoice INV-2026-004,CN-001,Rahul Enterprises
+V31,2026-05-25,credit_note,Output GST,3600.00,0.00,Goods returned by Rahul Enterprises against invoice INV-2026-004,CN-001,Rahul Enterprises
+V31,2026-05-25,credit_note,Rahul Enterprises,0.00,23600.00,Goods returned by Rahul Enterprises against invoice INV-2026-004,CN-001,Rahul Enterprises
+V32,2026-05-30,payment,Rent,25000.00,0.00,May shop rent paid by cheque,000457,
+V32,2026-05-30,payment,HDFC Bank,0.00,25000.00,May shop rent paid by cheque,000457,
+V33,2026-05-31,contra,HDFC Bank,25000.00,0.00,Cash deposited into the bank,CDM0531,
+V33,2026-05-31,contra,Cash,0.00,25000.00,Cash deposited into the bank,CDM0531,
+V34,2026-06-03,sales,Cash,17700.00,0.00,Cash sale at the counter,CS-0003,
+V34,2026-06-03,sales,Sales,0.00,15000.00,Cash sale at the counter,CS-0003,
+V34,2026-06-03,sales,Output GST,0.00,2700.00,Cash sale at the counter,CS-0003,
+V35,2026-06-05,payment,Electricity,4100.00,0.00,Electricity bill paid in cash,,
+V35,2026-06-05,payment,Cash,0.00,4100.00,Electricity bill paid in cash,,
+V36,2026-06-08,receipt,HDFC Bank,45000.00,0.00,Part receipt from Meena Traders against invoice INV-2026-001 by NEFT,UTR2606080044,Meena Traders
+V36,2026-06-08,receipt,Meena Traders,0.00,45000.00,Part receipt from Meena Traders against invoice INV-2026-001 by NEFT,UTR2606080044,Meena Traders
+V37,2026-06-10,purchase,Purchases,80000.00,0.00,Goods purchased from Sharma Suppliers,SS/2026/0140,Sharma Suppliers
+V37,2026-06-10,purchase,Input GST,14400.00,0.00,Goods purchased from Sharma Suppliers,SS/2026/0140,Sharma Suppliers
+V37,2026-06-10,purchase,Sharma Suppliers,0.00,94400.00,Goods purchased from Sharma Suppliers,SS/2026/0140,Sharma Suppliers
+V38,2026-06-11,purchase,Purchases,10000.00,0.00,Bill MA-519 of Mehta Agencies entered by mistake,MA-519,Mehta Agencies
+V38,2026-06-11,purchase,Input GST,1800.00,0.00,Bill MA-519 of Mehta Agencies entered by mistake,MA-519,Mehta Agencies
+V38,2026-06-11,purchase,Mehta Agencies,0.00,11800.00,Bill MA-519 of Mehta Agencies entered by mistake,MA-519,Mehta Agencies
+V39,2026-06-12,debit_note,Sharma Suppliers,11800.00,0.00,Goods returned to Sharma Suppliers against bill SS/2026/0140,SS/2026/0140,Sharma Suppliers
+V39,2026-06-12,debit_note,Purchase Returns,0.00,10000.00,Goods returned to Sharma Suppliers against bill SS/2026/0140,SS/2026/0140,Sharma Suppliers
+V39,2026-06-12,debit_note,Input GST,0.00,1800.00,Goods returned to Sharma Suppliers against bill SS/2026/0140,SS/2026/0140,Sharma Suppliers
+V40,2026-06-15,sales,Kapoor & Sons,59000.00,0.00,Goods sold to Kapoor and Sons on special terms,INV-2026-009,Kapoor & Sons
+V40,2026-06-15,sales,Sales,0.00,50000.00,Goods sold to Kapoor and Sons on special terms,INV-2026-009,Kapoor & Sons
+V40,2026-06-15,sales,Output GST,0.00,9000.00,Goods sold to Kapoor and Sons on special terms,INV-2026-009,Kapoor & Sons
+V41,2026-06-16,payment,Travelling,2200.00,0.00,Travelling expenses paid in cash,,
+V41,2026-06-16,payment,Cash,0.00,2200.00,Travelling expenses paid in cash,,
+V42,2026-06-18,purchase,Purchases,40000.00,0.00,Goods purchased from Gupta Wholesale,GW/0455,Gupta Wholesale
+V42,2026-06-18,purchase,Input GST,7200.00,0.00,Goods purchased from Gupta Wholesale,GW/0455,Gupta Wholesale
+V42,2026-06-18,purchase,Gupta Wholesale,0.00,47200.00,Goods purchased from Gupta Wholesale,GW/0455,Gupta Wholesale
+V43,2026-06-20,payment,Mehta Agencies,20000.00,0.00,Part payment to Mehta Agencies against bill MA-502 by NEFT,N0620MEH,Mehta Agencies
+V43,2026-06-20,payment,HDFC Bank,0.00,20000.00,Part payment to Mehta Agencies against bill MA-502 by NEFT,N0620MEH,Mehta Agencies
+V44,2026-06-22,receipt,HDFC Bank,50000.00,0.00,Part receipt from Rahul Enterprises against invoice INV-2026-004 by NEFT,UTR2606220051,Rahul Enterprises
+V44,2026-06-22,receipt,Rahul Enterprises,0.00,50000.00,Part receipt from Rahul Enterprises against invoice INV-2026-004 by NEFT,UTR2606220051,Rahul Enterprises
+V45,2026-06-26,payment,Mehta Agencies,30000.00,0.00,Payment on account to Mehta Agencies by cheque,000471,Mehta Agencies
+V45,2026-06-26,payment,HDFC Bank,0.00,30000.00,Payment on account to Mehta Agencies by cheque,000471,Mehta Agencies
+V46,2026-06-29,payment,Salary,36500.00,0.00,Staff salary for June paid by cheque,000472,
+V46,2026-06-29,payment,HDFC Bank,0.00,36500.00,Staff salary for June paid by cheque,000472,
+V47,2026-06-29,receipt,HDFC Bank,40000.00,0.00,Cheque from Sunrise Stores against bill SR-077 deposited,889900,Sunrise Stores
+V47,2026-06-29,receipt,Sunrise Stores,0.00,40000.00,Cheque from Sunrise Stores against bill SR-077 deposited,889900,Sunrise Stores
+V48,2026-06-30,receipt,HDFC Bank,10000.00,0.00,Cheque from Rahul Enterprises against invoice INV-2025-131 deposited,902177,Rahul Enterprises
+V48,2026-06-30,receipt,Rahul Enterprises,0.00,10000.00,Cheque from Rahul Enterprises against invoice INV-2025-131 deposited,902177,Rahul Enterprises
+V49,2026-06-30,payment,Office Expenses,2900.00,0.00,Office expenses paid in cash,,
+V49,2026-06-30,payment,Cash,0.00,2900.00,Office expenses paid in cash,,
