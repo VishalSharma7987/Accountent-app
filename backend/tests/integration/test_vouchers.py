@@ -38,6 +38,9 @@ def make_world(conn, name="ABC Traders") -> World:
         ("Sharma Suppliers", "sundry_creditors"), ("Outstanding Rent", "current_liabilities"),
     ):
         ids[ledger] = client_setup.add_ledger(conn, created.client_id, ledger, group, actor="setup")
+    # Cash-in-hand can never go negative (C-01): the world starts with cash so that its test payments can be posted.
+    for ledger, debit, credit in (("Cash", "1000000", None), ("Ramesh Kumar Capital A/c", None, "1000000")):
+        client_setup.set_opening_balance(conn, created.client_id, created.financial_year_id, ids[ledger], debit, credit, actor="setup")
     return World(created.client_id, created.financial_year_id, ids)
 
 
@@ -414,19 +417,19 @@ def test_V11_only_an_approved_voucher_can_be_posted(svc_conn, w):
 
 
 def test_post_is_blocked_while_the_opening_balances_do_not_balance(svc_conn, w):
-    client_setup.set_opening_balance(svc_conn, w.client_id, w.fy_id, w.ids["Cash"], "100", None, actor="setup")
+    client_setup.set_opening_balance(svc_conn, w.client_id, w.fy_id, w.ids["Cash"], "1000100", None, actor="setup")
     vid = new_approved(svc_conn, w)
     with pytest.raises(ServiceError) as info:
         vouchers.post(svc_conn, vid, actor="partner")
     assert (info.value.code, info.value.message) == (
         "openings_unbalanced",
         (
-            "Opening balances do not balance: Debit 100.00 and Credit 0.00 are not equal (difference 100.00 Dr). "
+            "Opening balances do not balance: Debit 10,00,100.00 and Credit 10,00,000.00 are not equal (difference 100.00 Dr). "
             "Fix them before posting."
         ),
     )
     assert row(svc_conn, vid)[0] == "approved"
-    client_setup.set_opening_balance(svc_conn, w.client_id, w.fy_id, w.ids["Ramesh Kumar Capital A/c"], None, "100", actor="setup")
+    client_setup.set_opening_balance(svc_conn, w.client_id, w.fy_id, w.ids["Ramesh Kumar Capital A/c"], None, "1000100", actor="setup")
     assert vouchers.post(svc_conn, vid, actor="partner") == "PAY/2026-27/0001"
 
 
