@@ -1,6 +1,6 @@
 # Phase 2 API contract (extends docs/API_CONTRACT.md; same conventions: amounts are 2-decimal strings, dates YYYY-MM-DD, `X-User` on writes, ServiceError → `{code, message, details}`, rule failures → `422 {"errors":[{rule_id, message, line_no}]}`)
 
-New error codes → 409 unless named: `ledger_active`, `party_exists`, `not_a_party_group` (422), `statement_duplicate`, `statement_overlap`, `statement_invalid` (422, `details` = row problems), `match_invalid`, `match_not_tied`, `format_exists`, `no_statement`.
+New error codes → 409 unless named: `ledger_active`, `party_exists`, `not_a_party_group` (422), `statement_duplicate`, `statement_overlap`, `statement_invalid` (422, `details` = `[{row, message}]`, row 0 = whole file), `statement_in_use` (409, delete refused: lines matched or drafted), `invalid_bank_ledger` (422: ledger missing, other client's, inactive or not under Bank Accounts), `invalid_mapping` (422), `invalid_format` (422), `match_invalid`, `match_not_tied`, `format_exists`, `no_statement`.
 
 ## Parties (agent A)
 `Party = {ledger_id, ledger_name, nature: "debtor"|"creditor", gstin, pan, state_code, credit_days, msme_category: "none"|"micro"|"small"|"medium", udyam_no, msme_written_agreement, bill_wise}`
@@ -24,7 +24,7 @@ Voucher line gets `allocations: [{kind, amount, bill_ref?, due_date?}]` (kind = 
 ## Bank statements (agent C1)
 `Mapping = {header_row: int (1-based), date_col, date_format ("%d/%m/%Y" …), description_col, reference_col?, debit_col?, credit_col?, amount_col?, drcr_col?, balance_col?, opening_balance_cell?|opening_balance?}` — columns are header names as in the file (case-insensitive) — either debit_col+credit_col or amount_col+drcr_col.
 - `GET/POST /clients/{c}/bank-formats` (`{name, mapping}`) → `[{id,name,mapping}]` / `201 {format_id}`
-- `POST /clients/{c}/bank-statements/preview` multipart(file, format_id | mapping) → `{rows:[first 20 parsed rows], count, opening_balance, closing_balance, problems:[{row, message}]}` (no write)
+- `POST /clients/{c}/bank-statements/preview` multipart(file, format_id | mapping as a JSON string, opening_balance?, closing_balance?) → `{rows:[first 20 parsed rows], count, opening_balance, closing_balance, problems:[{row, message}]}` (no write)
 - `POST /clients/{c}/bank-statements` multipart(file, bank_ledger_id, format_id, opening_balance?, closing_balance?) → `201 {statement_id, lines, opening_balance, closing_balance}`
 - `GET /clients/{c}/bank-statements?bank_ledger_id=` → `[{id, file_name, period_from, period_to, opening_balance, closing_balance, line_count, matched_count}]`
 - `GET /bank-statements/{id}/lines` → `[{id, line_no, txn_date, description, reference, debit, credit, balance, match_id|null}]`

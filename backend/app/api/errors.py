@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 from app.engine.models import ValidationError
 from app.services.errors import ServiceError, VoucherRuleError
 
-UNPROCESSABLE = {"reason_required", "client_mismatch", "no_financial_year"}
+UNPROCESSABLE = {"reason_required", "client_mismatch", "no_financial_year", "statement_invalid"}
 
 
 def status_for(code: str) -> int:
