@@ -16,6 +16,7 @@ from app.api import (
     msme,
     parties,
     periods,
+    reconciliation,
     reports,
     vouchers,
 )
@@ -38,6 +39,7 @@ ROUTERS = [
     msme.router,
     parties.router,
     bills.router,
+    reconciliation.router,
 ]
 for _router in ROUTERS:
     app.include_router(_router)
