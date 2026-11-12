@@ -212,6 +212,28 @@ def test_delete_refused_while_a_line_is_matched_then_allowed(svc_conn, world):
     assert code_of(info) == "not_found"
 
 
+NEWEST_FIRST = (  # opening 100,000.00: +5,000.50 on 06-04 after -10,000.00 on 05-04; newest row first
+    "Date,Narration,Chq/Ref No,Withdrawal,Deposit,Balance\n"
+    "06/04/2026,Sale receipt,UTR998,,5000.50,95000.50 Cr\n"
+    "05/04/2026,Rent paid,000123,10000.00,,90000.00 Cr\n"
+)
+
+
+def test_R01_newest_first_file_is_stored_oldest_first_and_the_user_is_told(svc_conn, world):
+    fmt = new_format(svc_conn, world)
+    result = do_import(svc_conn, world, NEWEST_FIRST, fmt=fmt, opening="100000.00 Cr")
+    assert result.notes == ("file was newest-first; rows reversed",)
+    assert (result.opening_balance, result.closing_balance) == (D("100000.00"), D("95000.50"))
+    rows = svc_conn.execute(text(
+        "SELECT line_no, txn_date, balance FROM bank_statement_lines WHERE statement_id = :s ORDER BY line_no"),
+        {"s": result.statement_id}).all()
+    assert [tuple(r) for r in rows] == [
+        (1, date(2026, 4, 5), D("90000.0000")), (2, date(2026, 4, 6), D("95000.5000"))]
+    preview = bank.preview_statement(svc_conn, world.client_id, NEWEST_FIRST.encode(), format_id=fmt,
+                                     opening_balance="100000")
+    assert preview.problems == [] and preview.notes == ["file was newest-first; rows reversed"]
+
+
 # ===================================================================================================== API
 
 
@@ -249,6 +271,7 @@ def test_api_formats_preview_import_list_lines_delete(api, world):
              "debit": "0.00", "credit": "5000.50", "balance": "95000.50"},
         ],
         "count": 2, "opening_balance": "100000.00", "closing_balance": "95000.50", "problems": [],
+        "notes": [],
     }
     assert api.get(f"/clients/{c}/bank-statements").json() == []
 
@@ -258,7 +281,7 @@ def test_api_formats_preview_import_list_lines_delete(api, world):
     assert r.status_code == 201
     sid = r.json()["statement_id"]
     assert r.json() == {"statement_id": sid, "lines": 2, "opening_balance": "100000.00",
-                        "closing_balance": "95000.50"}
+                        "closing_balance": "95000.50", "notes": []}
     again = api.post(f"/clients/{c}/bank-statements", files=files, data=data, headers=H)
     assert (again.status_code, again.json()["code"]) == (409, "statement_duplicate")
     invalid = api.post(f"/clients/{c}/bank-statements", headers=H, data=data,
@@ -278,3 +301,15 @@ def test_api_formats_preview_import_list_lines_delete(api, world):
     assert api.delete(f"/bank-statements/{sid}", headers=H).status_code == 204
     assert api.get(f"/bank-statements/{sid}/lines").status_code == 404
     assert api.get("/bank-statements/not-a-uuid/lines").status_code == 404
+
+
+def test_api_newest_first_notes_in_preview_and_import(api, world):
+    c = world.client_id
+    fmt = api.post(f"/clients/{c}/bank-formats", json={"name": "HDFC csv", "mapping": MAPPING}, headers=H).json()["format_id"]
+    files = {"file": ("newest.csv", NEWEST_FIRST.encode(), "text/csv")}
+    p = api.post(f"/clients/{c}/bank-statements/preview", files=files, data={"format_id": fmt, "opening_balance": "100000 Cr"})
+    assert p.status_code == 200 and p.json()["notes"] == ["file was newest-first; rows reversed"]
+    assert [x["row"] for x in p.json()["rows"]] == [3, 2] and p.json()["problems"] == []
+    data = {"bank_ledger_id": str(world.ids["HDFC Bank"]), "format_id": fmt, "opening_balance": "100000 Cr"}
+    r = api.post(f"/clients/{c}/bank-statements", files=files, data=data, headers=H)
+    assert r.status_code == 201 and r.json()["notes"] == ["file was newest-first; rows reversed"]

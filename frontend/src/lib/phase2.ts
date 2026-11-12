@@ -6,6 +6,7 @@ import type {
   AllocationIn,
   AllocationKind,
   AllocationOut,
+  BankItem,
   BankMapping,
   Balance,
   BookItem,
@@ -246,6 +247,18 @@ export function tickTotals(bank: BankTick[], book: BankTick[]): TickTotals {
     difference: fromPaise(b - k),
     ties: bank.length > 0 && book.length > 0 && b === k,
   }
+}
+
+/** One-line description of the bank lines of a saved match: "2026-04-11 NEFT RAHUL; 2026-04-15 CASH DEPOSIT". */
+export function bankItemsText(items: Pick<BankItem, 'txn_date' | 'description'>[]): string {
+  return items.map((x) => `${x.txn_date} ${x.description}`.trim()).join('; ')
+}
+
+/** Same for the book items: voucher number (or "Opening item") with the reference when there is one. */
+export function bookItemsText(items: Pick<BookItem, 'date' | 'voucher_number' | 'reference_no'>[]): string {
+  return items
+    .map((x) => `${x.date} ${x.voucher_number ?? 'Opening item'}${x.reference_no ? ` (${x.reference_no})` : ''}`)
+    .join('; ')
 }
 
 export function bookItemId(item: Pick<BookItem, 'voucher_line_id' | 'opening_item_id'>): string {

@@ -184,7 +184,7 @@ function Import({ clientId, formats, banks }: { clientId: string; formats: { id:
     setError(null)
     try {
       const out = await api.importStatement(clientId, file, bankId, formatId)
-      setNotice(`Imported ${out.lines} lines. Opening ${formatInr(out.opening_balance)}, closing ${formatInr(out.closing_balance)}.`)
+      setNotice(`Imported ${out.lines} lines. Opening ${formatInr(out.opening_balance)}, closing ${formatInr(out.closing_balance)}.${(out.notes ?? []).map((n) => ` Note: ${n}.`).join('')}`)
       setPreview(null)
       setFile(null)
     } catch (e) {
@@ -245,6 +245,9 @@ function Import({ clientId, formats, banks }: { clientId: string; formats: { id:
             {preview.count} lines. Opening {preview.opening_balance === null ? '(not found)' : formatInr(preview.opening_balance)}, closing{' '}
             {preview.closing_balance === null ? '(not found)' : formatInr(preview.closing_balance)}. First {preview.rows.length} lines shown.
           </div>
+          {(preview.notes ?? []).map((n, i) => (
+            <Notice key={i}>{n}</Notice>
+          ))}
           {preview.problems.length > 0 ? (
             <div className="rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800">
               <div className="font-semibold">Problems found: fix the file or the format, then preview again.</div>

@@ -1,7 +1,7 @@
 """Request and response models of the reconciliation endpoints (docs/PHASE2_API_CONTRACT.md). Amounts are strings."""
 
 import uuid
-from datetime import date
+from datetime import date, datetime
 
 from pydantic import BaseModel, Field
 
@@ -63,6 +63,22 @@ class UnmatchedOut(BaseModel):
     bank: list[BankLineOut]
     book: list[BookItemOut]
     suggestions: list[SuggestionOut]
+
+
+class MatchOut(BaseModel):
+    match_id: uuid.UUID
+    method: str
+    note: str | None
+    created_by: str
+    created_at: datetime
+    bank_items: list[BankLineOut]
+    book_items: list[BookItemOut]
+    total_bank: str  # net money in: deposits - payments (signed)
+    total_book: str  # net money in: Dr - Cr (signed); equals total_bank
+
+
+class MatchesOut(BaseModel):
+    matches: list[MatchOut]
 
 
 ZERO = "0.00"
@@ -173,3 +189,11 @@ class BankOnlySuggestionOut(BaseModel):
     counter_ledger_id: uuid.UUID | None
     counter_ledger_name: str | None
     reason: str
+
+
+def match_out(g) -> MatchOut:
+    return MatchOut(
+        match_id=g.match_id, method=g.method, note=g.note, created_by=g.created_by, created_at=g.created_at,
+        bank_items=[bank_out(x) for x in g.bank_items], book_items=[book_out(x) for x in g.book_items],
+        total_bank=money(g.total_bank), total_book=money(g.total_book),
+    )

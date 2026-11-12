@@ -52,6 +52,19 @@ class AutoMatchSummary:
 
 
 @dataclass(frozen=True)
+class MatchGroup:
+    match_id: object
+    method: str
+    note: str | None
+    created_by: str
+    created_at: object
+    bank_items: list[BankLine]
+    book_items: list[BookItem]
+    total_bank: Decimal  # net money in (deposits - payments) of the bank lines
+    total_book: Decimal  # net money in (Dr - Cr) of the book items; equals total_bank for every saved match (R-04)
+
+
+@dataclass(frozen=True)
 class DraftsResult:
     created: list[tuple[object, object]]  # (bank_line_id, voucher_id)
     errors: list[tuple[object, list[ValidationError]]]  # (bank_line_id, rule errors); nothing is created when any
@@ -271,6 +284,62 @@ def manual_match(
     _write_matches(conn, client_id, bank_ledger_id, "manual", actor,
                    [(match_id, bank_ids, v_ids, o_ids, (note or "").strip() or None)])
     return match_id
+
+
+def _net_in(items: list) -> Decimal:
+    return sum((x.amount if x.direction == DEPOSIT else -x.amount for x in items), Decimal("0.00"))
+
+
+def list_matches(conn: Connection, client_id: object, bank_ledger_id: object, as_on: date | None = None) -> list[MatchGroup]:
+    """The saved matches of the bank ledger with their bank lines and book items (one query). With `as_on`, only the
+    matches that have at least one bank line or book item dated on or before it. Oldest match first."""
+    _bank_ledger(conn, client_id, bank_ledger_id)
+    rows = conn.execute(
+        text(
+            "SELECT m.id AS match_id, m.method, m.note, m.created_by, m.created_at, mi.id AS item_id, "
+            "bl.id AS bank_id, bl.txn_date, bl.description, bl.reference AS bank_reference, bl.debit AS bank_debit, "
+            "bl.credit AS bank_credit, "
+            "vl.id AS vl_id, v.voucher_date, v.voucher_number, v.narration, v.reference_no, vl.debit AS v_debit, "
+            "vl.credit AS v_credit, "
+            "o.id AS op_id, o.kind AS op_kind, o.reference AS op_reference, o.item_date, o.amount AS op_amount "
+            "FROM recon_matches m JOIN recon_match_items mi ON mi.match_id = m.id "
+            "LEFT JOIN bank_statement_lines bl ON bl.id = mi.bank_line_id "
+            "LEFT JOIN voucher_lines vl ON vl.id = mi.voucher_line_id "
+            "LEFT JOIN vouchers v ON v.id = vl.voucher_id "
+            "LEFT JOIN bank_opening_items o ON o.id = mi.opening_item_id "
+            "WHERE m.client_id = :c AND m.bank_ledger_id = :b ORDER BY m.created_at, m.id, mi.id"
+        ),
+        {"c": client_id, "b": bank_ledger_id},
+    ).all()
+    heads: dict[object, tuple] = {}
+    banks: dict[object, list[BankLine]] = {}
+    books: dict[object, list[BookItem]] = {}
+    for r in rows:
+        heads.setdefault(r.match_id, (r.method, r.note, r.created_by, r.created_at))
+        banks.setdefault(r.match_id, [])
+        books.setdefault(r.match_id, [])
+        if r.bank_id is not None:
+            banks[r.match_id].append(BankLine(
+                r.bank_id, r.txn_date, (r.bank_credit if r.bank_credit > 0 else r.bank_debit).quantize(CENTS),
+                DEPOSIT if r.bank_credit > 0 else PAYMENT, r.bank_reference, r.description or ""))
+        elif r.vl_id is not None:
+            deposit = r.v_debit > 0
+            books[r.match_id].append(BookItem(
+                r.vl_id, r.voucher_date, (r.v_debit if deposit else r.v_credit).quantize(CENTS),
+                DEPOSIT if deposit else PAYMENT, r.reference_no, r.narration or "", "voucher_line", r.voucher_number))
+        else:
+            books[r.match_id].append(BookItem(
+                r.op_id, r.item_date, r.op_amount.quantize(CENTS), OPENING_KINDS[r.op_kind], r.op_reference, "",
+                "opening_item", None))
+    out = []
+    for match_id, (method, note, created_by, created_at) in heads.items():
+        bank_items = sorted(banks[match_id], key=lambda x: (x.date, str(x.id)))
+        book_items = sorted(books[match_id], key=lambda x: (x.date, x.voucher_number or "", str(x.id)))
+        if as_on is not None and not any(x.date <= as_on for x in [*bank_items, *book_items]):
+            continue
+        out.append(MatchGroup(match_id, method, note, created_by, created_at, bank_items, book_items,
+                              _net_in(bank_items), _net_in(book_items)))
+    return out
 
 
 def unmatch(conn: Connection, client_id: object, match_id: object, *, actor: str) -> None:

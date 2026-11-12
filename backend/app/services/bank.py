@@ -51,6 +51,7 @@ class ImportedStatement:
     lines: int
     opening_balance: Decimal
     closing_balance: Decimal
+    notes: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -271,7 +272,8 @@ def import_statement(
             "closing_balance": parsed.closing_balance, "lines": len(parsed.lines), "file_sha256": digest,
         },
     ))
-    return ImportedStatement(statement_id, len(parsed.lines), _d(parsed.opening_balance), _d(parsed.closing_balance))
+    return ImportedStatement(statement_id, len(parsed.lines), _d(parsed.opening_balance), _d(parsed.closing_balance),
+                             tuple(parsed.notes))
 
 
 def _problems_json(problems: list[RowProblem]) -> list[dict]:

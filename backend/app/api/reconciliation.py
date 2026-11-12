@@ -15,6 +15,7 @@ from app.api.schemas_recon import (
     DraftsIn,
     DraftsOut,
     MatchCreated,
+    MatchesOut,
     MatchIn,
     OpeningItemOut,
     OpeningItemsIn,
@@ -23,6 +24,7 @@ from app.api.schemas_recon import (
     bank_out,
     book_out,
     brs_out,
+    match_out,
     suggestion_out,
 )
 from app.services import reconciliation as svc
@@ -57,6 +59,12 @@ def create_match(client_id: str, bank_ledger_id: str, body: MatchIn, conn: Conne
         body.voucher_line_ids, body.opening_item_ids, body.note, actor=actor,
     )
     return MatchCreated(match_id=match_id)
+
+
+@router.get(BASE + "/{bank_ledger_id}/matches", response_model=MatchesOut)
+def list_matches(client_id: str, bank_ledger_id: str, as_on: date | None = None, conn: Connection = Depends(get_conn)):
+    groups = svc.list_matches(conn, parse_id(client_id, "Client"), parse_id(bank_ledger_id, "Ledger"), as_on)
+    return MatchesOut(matches=[match_out(g) for g in groups])
 
 
 @router.delete(BASE + "/matches/{match_id}", status_code=204)

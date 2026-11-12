@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   allocationProgress,
+  bankItemsText,
+  bookItemsText,
   bucketLabel,
   cashBankLedgers,
   cleanMapping,
@@ -226,5 +228,26 @@ describe('cash and bank ledgers', () => {
   })
   it('bank only', () => {
     expect(cashBankLedgers(list, true).map((l) => l.id)).toEqual([1])
+  })
+})
+
+describe('saved match descriptions', () => {
+  it('joins bank lines with date and description', () => {
+    expect(
+      bankItemsText([
+        { txn_date: '2026-04-11', description: 'NEFT RAHUL' },
+        { txn_date: '2026-04-15', description: '' },
+      ]),
+    ).toBe('2026-04-11 NEFT RAHUL; 2026-04-15')
+    expect(bankItemsText([])).toBe('')
+  })
+  it('names a voucher by number and an opening item as such, with the reference', () => {
+    expect(
+      bookItemsText([
+        { date: '2026-04-10', voucher_number: 'REC/2026-27/0001', reference_no: 'UTR1' },
+        { date: '2026-03-30', voucher_number: null, reference_no: 'CH77' },
+        { date: '2026-03-31', voucher_number: null, reference_no: null },
+      ]),
+    ).toBe('2026-04-10 REC/2026-27/0001 (UTR1); 2026-03-30 Opening item (CH77); 2026-03-31 Opening item')
   })
 })
