@@ -19,6 +19,9 @@ One folder per pack, named `<client>-<period>`, e.g. `abc-traders-apr-2026`. Sta
 | `invalid_vouchers.csv` | **Wrong** vouchers on purpose, and the rule each one breaks | Each must be rejected with that rule |
 | `expected_ledger_balances.csv` | Closing balance of every ledger on the pack's end date | Compared with the tool |
 | `expected_trial_balance.csv` | The Trial Balance on the pack's end date, with a TOTAL row | Compared with the tool |
+| `reversals.csv` | *(optional)* Vouchers to reverse, with date and reason | Reversals are done after all vouchers are posted |
+| `locked_periods.csv` | *(optional)* Months to lock before the wrong vouchers are tried | Lets a wrong voucher hit a locked period (V-07) |
+| `WORKING.md` | *(recommended)* Your hand workings (T-accounts) | How the expected files were worked out |
 | `SIGNOFF.md` | Who verified the pack, when, and how | Required before a phase can be accepted |
 
 ## Writing rules (apply to every file)
@@ -42,7 +45,14 @@ business_type: trading          # trading | service | manufacturing
 gst_type: regular               # regular | composition | unregistered
 fy_start: 2026-04-01            # must be 1 April
 pack_end_date: 2026-04-30       # inside the financial year; "closing" files are as on this date
+proprietor_name: Owner          # required for a proprietorship: the Capital account is "Owner Capital A/c"
+# partners: [Anil Shah, Bina Shah]   # required instead for a partnership / LLP (Capital + Current account each)
 ```
+
+The tool creates the client's standard ledgers (Cash, Suspense A/c, Capital, Drawings, Purchases, Sales, ... see
+`backend/app/engine/coa_templates.py`). List **every** ledger of the pack in `ledgers.csv`, including those standard
+ones, using exactly the names the tool creates (the Capital account name comes from `proprietor_name` / `partners`).
+A ledger you list that the tool does not create is added to the client.
 
 ## ledgers.csv
 
@@ -80,6 +90,19 @@ locked period. Make each wrong voucher wrong in **one** way only, so the expecte
 
 `group_name, ledger_name, dr, cr` — one line per ledger (same figures as the balances file) and **one last row**
 `TOTAL,,<total dr>,<total cr>`. The totals must be equal. The ledger's `group_name` must be the group in `ledgers.csv`.
+
+## reversals.csv (optional)
+
+`ref_id, reversal_date, reason` — each `ref_id` is a voucher of `vouchers.csv`. After **all** vouchers are posted, the
+tool reverses it on `reversal_date` (a mirror voucher with every Dr/Cr swapped). The reversed voucher and its mirror
+**both** count, so they cancel out: the expected files simply show no effect from that voucher. A voucher can be
+reversed only once; the date must be inside the pack period.
+
+## locked_periods.csv (optional)
+
+`month` — one `YYYY-MM` per row. The tool locks these months **after** the correct vouchers are posted and
+**before** the wrong vouchers are tried, so a wrong voucher dated in a locked month must be rejected with rule V-07.
+Lock a month that has no correct vouchers.
 
 ## SIGNOFF.md
 

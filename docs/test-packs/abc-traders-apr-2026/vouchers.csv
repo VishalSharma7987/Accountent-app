@@ -1,0 +1,71 @@
+ref_id,date,voucher_type,ledger_name,debit,credit,narration,reference_no,party_ledger
+V01,2026-04-01,receipt,HDFC Bank,100000.00,0.00,Additional capital brought in by the proprietor,,
+V01,2026-04-01,receipt,Amit Verma Capital A/c,0.00,100000.00,Additional capital brought in by the proprietor,,
+V02,2026-04-02,purchase,Purchases,200000.00,0.00,Goods purchased from Sharma Suppliers,SS/0412,Sharma Suppliers
+V02,2026-04-02,purchase,Input GST,36000.00,0.00,Goods purchased from Sharma Suppliers,SS/0412,Sharma Suppliers
+V02,2026-04-02,purchase,Sharma Suppliers,0.00,236000.00,Goods purchased from Sharma Suppliers,SS/0412,Sharma Suppliers
+V03,2026-04-02,payment,Rent,25000.00,0.00,April shop rent paid by bank transfer,NEFT-4411,
+V03,2026-04-02,payment,HDFC Bank,0.00,25000.00,April shop rent paid by bank transfer,NEFT-4411,
+V04,2026-04-03,sales,Rahul Enterprises,118000.00,0.00,Goods sold to Rahul Enterprises,INV-001,Rahul Enterprises
+V04,2026-04-03,sales,Sales,0.00,100000.00,Goods sold to Rahul Enterprises,INV-001,Rahul Enterprises
+V04,2026-04-03,sales,Output GST,0.00,18000.00,Goods sold to Rahul Enterprises,INV-001,Rahul Enterprises
+V05,2026-04-03,sales,Cash,23600.00,0.00,Cash sale,INV-002,
+V05,2026-04-03,sales,Sales,0.00,20000.00,Cash sale,INV-002,
+V05,2026-04-03,sales,Output GST,0.00,3600.00,Cash sale,INV-002,
+V06,2026-04-04,sales,Meena Traders,59000.00,0.00,Goods sold to Meena Traders,INV-003,Meena Traders
+V06,2026-04-04,sales,Sales,0.00,50000.00,Goods sold to Meena Traders,INV-003,Meena Traders
+V06,2026-04-04,sales,Output GST,0.00,9000.00,Goods sold to Meena Traders,INV-003,Meena Traders
+V07,2026-04-05,receipt,HDFC Bank,60000.00,0.00,Received from Rahul Enterprises against opening balance,UTR8801,Rahul Enterprises
+V07,2026-04-05,receipt,Rahul Enterprises,0.00,60000.00,Received from Rahul Enterprises against opening balance,UTR8801,Rahul Enterprises
+V08,2026-04-06,payment,Sharma Suppliers,45000.00,0.00,Paid to Sharma Suppliers against opening balance,CHQ-1201,Sharma Suppliers
+V08,2026-04-06,payment,HDFC Bank,0.00,45000.00,Paid to Sharma Suppliers against opening balance,CHQ-1201,Sharma Suppliers
+V09,2026-04-07,purchase,Purchases,80000.00,0.00,Goods purchased from Gupta Wholesale,GW/221,Gupta Wholesale
+V09,2026-04-07,purchase,Input GST,14400.00,0.00,Goods purchased from Gupta Wholesale,GW/221,Gupta Wholesale
+V09,2026-04-07,purchase,Gupta Wholesale,0.00,94400.00,Goods purchased from Gupta Wholesale,GW/221,Gupta Wholesale
+V10,2026-04-08,payment,Salary,35000.00,0.00,Staff salary paid by bank,,
+V10,2026-04-08,payment,HDFC Bank,0.00,35000.00,Staff salary paid by bank,,
+V11,2026-04-08,payment,Electricity,4200.00,0.00,Electricity bill paid in cash,,
+V11,2026-04-08,payment,Cash,0.00,4200.00,Electricity bill paid in cash,,
+V12,2026-04-09,contra,HDFC Bank,20000.00,0.00,Cash deposited into the bank,,
+V12,2026-04-09,contra,Cash,0.00,20000.00,Cash deposited into the bank,,
+V13,2026-04-10,credit_note,Sales Returns,10000.00,0.00,Sales return from Rahul Enterprises,CN-001,Rahul Enterprises
+V13,2026-04-10,credit_note,Output GST,1800.00,0.00,Sales return from Rahul Enterprises,CN-001,Rahul Enterprises
+V13,2026-04-10,credit_note,Rahul Enterprises,0.00,11800.00,Sales return from Rahul Enterprises,CN-001,Rahul Enterprises
+V14,2026-04-11,debit_note,Sharma Suppliers,11800.00,0.00,Goods returned to Sharma Suppliers,SS/0412,Sharma Suppliers
+V14,2026-04-11,debit_note,Purchase Returns,0.00,10000.00,Goods returned to Sharma Suppliers,SS/0412,Sharma Suppliers
+V14,2026-04-11,debit_note,Input GST,0.00,1800.00,Goods returned to Sharma Suppliers,SS/0412,Sharma Suppliers
+V15,2026-04-12,payment,Telephone & Internet,1500.00,0.00,Telephone and internet bill paid in cash,,
+V15,2026-04-12,payment,Cash,0.00,1500.00,Telephone and internet bill paid in cash,,
+V16,2026-04-12,payment,Printing & Stationery,2300.00,0.00,Printing and stationery bought for cash,,
+V16,2026-04-12,payment,Cash,0.00,2300.00,Printing and stationery bought for cash,,
+V17,2026-04-13,receipt,Cash,30000.00,0.00,Cash received from Meena Traders,RCPT-07,Meena Traders
+V17,2026-04-13,receipt,Meena Traders,0.00,30000.00,Cash received from Meena Traders,RCPT-07,Meena Traders
+V18,2026-04-14,payment,Travelling,3600.00,0.00,Travelling expenses paid in cash,,
+V18,2026-04-14,payment,Cash,0.00,3600.00,Travelling expenses paid in cash,,
+V19,2026-04-15,payment,Drawings A/c,15000.00,0.00,Proprietor personal withdrawal,,
+V19,2026-04-15,payment,HDFC Bank,0.00,15000.00,Proprietor personal withdrawal,,
+V20,2026-04-15,payment,Repairs & Maintenance,5400.00,0.00,Repairs to shop shutter paid by bank,,
+V20,2026-04-15,payment,HDFC Bank,0.00,5400.00,Repairs to shop shutter paid by bank,,
+V21,2026-04-16,purchase,Furniture,22000.00,0.00,Furniture purchased from Gupta Wholesale,GW/229,Gupta Wholesale
+V21,2026-04-16,purchase,Input GST,3960.00,0.00,Furniture purchased from Gupta Wholesale,GW/229,Gupta Wholesale
+V21,2026-04-16,purchase,Gupta Wholesale,0.00,25960.00,Furniture purchased from Gupta Wholesale,GW/229,Gupta Wholesale
+V22,2026-04-17,payment,Gupta Wholesale,50000.00,0.00,Part payment to Gupta Wholesale,NEFT-5530,Gupta Wholesale
+V22,2026-04-17,payment,HDFC Bank,0.00,50000.00,Part payment to Gupta Wholesale,NEFT-5530,Gupta Wholesale
+V23,2026-04-18,sales,Rahul Enterprises,82600.00,0.00,Goods sold to Rahul Enterprises,INV-004,Rahul Enterprises
+V23,2026-04-18,sales,Sales,0.00,70000.00,Goods sold to Rahul Enterprises,INV-004,Rahul Enterprises
+V23,2026-04-18,sales,Output GST,0.00,12600.00,Goods sold to Rahul Enterprises,INV-004,Rahul Enterprises
+V24,2026-04-20,payment,Bank Charges,590.00,0.00,Bank charges debited by the bank,,
+V24,2026-04-20,payment,HDFC Bank,0.00,590.00,Bank charges debited by the bank,,
+V25,2026-04-21,receipt,HDFC Bank,100000.00,0.00,Received from Rahul Enterprises,UTR8920,Rahul Enterprises
+V25,2026-04-21,receipt,Rahul Enterprises,0.00,100000.00,Received from Rahul Enterprises,UTR8920,Rahul Enterprises
+V26,2026-04-22,payment,Office Expenses,2800.00,0.00,Office expenses paid in cash,,
+V26,2026-04-22,payment,Cash,0.00,2800.00,Office expenses paid in cash,,
+V27,2026-04-25,journal,Electricity,3100.00,0.00,Electricity bill for April not yet paid,,
+V27,2026-04-25,journal,Outstanding Expenses,0.00,3100.00,Electricity bill for April not yet paid,,
+V28,2026-04-27,contra,Cash,10000.00,0.00,Cash withdrawn from the bank for petty expenses,,
+V28,2026-04-27,contra,HDFC Bank,0.00,10000.00,Cash withdrawn from the bank for petty expenses,,
+V29,2026-04-28,sales,Meena Traders,35400.00,0.00,Goods sold to Meena Traders,INV-005,Meena Traders
+V29,2026-04-28,sales,Sales,0.00,30000.00,Goods sold to Meena Traders,INV-005,Meena Traders
+V29,2026-04-28,sales,Output GST,0.00,5400.00,Goods sold to Meena Traders,INV-005,Meena Traders
+V30,2026-04-29,payment,Rent,12000.00,0.00,Godown rent paid in cash booked in the wrong month,,
+V30,2026-04-29,payment,Cash,0.00,12000.00,Godown rent paid in cash booked in the wrong month,,

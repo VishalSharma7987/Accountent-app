@@ -312,3 +312,99 @@ def test_old_pack_without_the_party_ledger_column_is_reported(pack_dir):
     edit(pack_dir, "vouchers.csv", "narration,reference_no,party_ledger", "narration,reference_no")
     found = problems(pack_dir)
     assert any("vouchers.csv row 1" in p and "header must be exactly" in p and "party_ledger" in p for p in found), found
+
+
+# ------------------------------------------------------------------ client.yaml: proprietor_name / partners
+
+
+def test_template_client_has_the_proprietor(pack_dir):
+    pack = load_pack(pack_dir)
+    assert (pack.client.proprietor_name, pack.client.partners) == ("Owner", ())
+
+
+def test_proprietorship_needs_the_proprietor_name(pack_dir):
+    edit(pack_dir, "client.yaml", "proprietor_name: Owner", "")
+    assert_one_problem(pack_dir, "client.yaml", "'proprietor_name' is required for a proprietorship")
+
+
+def test_partnership_needs_partners_and_a_list_of_names(pack_dir):
+    edit(pack_dir, "client.yaml", "proprietorship ", "partnership    ")
+    assert_one_problem(pack_dir, "'partners' is required for a partnership or LLP")
+    with (pack_dir / "client.yaml").open("a", encoding="utf-8") as handle:
+        handle.write("partners: [Anil Shah, Bina Shah]\n")
+    pack = load_pack(pack_dir)
+    assert pack.client.partners == ("Anil Shah", "Bina Shah")
+
+
+@pytest.mark.parametrize("bad", ["partners: Anil Shah", "partners: [Anil Shah, 5]", "partners: [Anil Shah, anil shah]"])
+def test_partners_must_be_different_names_in_a_list(pack_dir, bad):
+    edit(pack_dir, "client.yaml", "proprietorship ", "partnership    ")
+    with (pack_dir / "client.yaml").open("a", encoding="utf-8") as handle:
+        handle.write(bad + "\n")
+    found = problems(pack_dir)
+    assert any("'partners'" in p for p in found), found
+
+
+# ------------------------------------------------------------------ reversals.csv
+
+
+def add_file(folder: Path, name: str, text: str) -> None:
+    (folder / name).write_text(text, encoding="utf-8")
+
+
+def test_reversals_are_loaded(pack_dir):
+    add_file(pack_dir, "reversals.csv", "ref_id,reversal_date,reason\nV03,2026-04-20,Booked in the wrong month\n")
+    pack = load_pack(pack_dir)
+    assert [(r.row, r.ref_id, r.reversal_date.isoformat(), r.reason) for r in pack.reversals] == [
+        (2, "V03", "2026-04-20", "Booked in the wrong month")
+    ]
+
+
+def test_pack_without_optional_files_has_no_reversals_or_locked_periods(pack_dir):
+    pack = load_pack(pack_dir)
+    assert pack.reversals == () and pack.locked_periods == ()
+
+
+@pytest.mark.parametrize(
+    ("row", "message"),
+    [
+        ("V99,2026-04-20,why", "'V99' is not a voucher of vouchers.csv"),
+        ("V03,2026-04-31,why", "real date as YYYY-MM-DD"),
+        ("V03,2026-05-02,why", "outside the pack period"),
+        ("V03,2026-04-20,", "reason is empty"),
+    ],
+)
+def test_bad_reversal_rows_are_reported_with_the_row(pack_dir, row, message):
+    add_file(pack_dir, "reversals.csv", f"ref_id,reversal_date,reason\n{row}\n")
+    found = problems(pack_dir)
+    assert any("reversals.csv row 2" in p and message in p for p in found), found
+
+
+def test_a_voucher_cannot_be_reversed_twice(pack_dir):
+    add_file(pack_dir, "reversals.csv", "ref_id,reversal_date,reason\nV03,2026-04-20,a\nV03,2026-04-21,b\n")
+    found = problems(pack_dir)
+    assert any("reversals.csv row 3" in p and "reversed twice" in p for p in found), found
+
+
+# ------------------------------------------------------------------ locked_periods.csv
+
+
+def test_locked_periods_are_loaded(pack_dir):
+    add_file(pack_dir, "locked_periods.csv", "month\n2026-05\n2026-06\n")
+    assert load_pack(pack_dir).locked_periods == ("2026-05", "2026-06")
+
+
+@pytest.mark.parametrize(
+    ("month", "message"),
+    [("2026-13", "month must be YYYY-MM"), ("May 2026", "month must be YYYY-MM"), ("2025-03", "outside the financial year"),
+     ("2027-04", "outside the financial year")],
+)
+def test_bad_locked_months_are_reported(pack_dir, month, message):
+    add_file(pack_dir, "locked_periods.csv", f"month\n{month}\n")
+    found = problems(pack_dir)
+    assert any("locked_periods.csv row 2" in p and message in p for p in found), found
+
+
+def test_a_month_cannot_be_listed_twice(pack_dir):
+    add_file(pack_dir, "locked_periods.csv", "month\n2026-05\n2026-05\n")
+    assert any("listed twice" in p for p in problems(pack_dir))

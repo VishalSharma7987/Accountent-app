@@ -6,10 +6,11 @@ from app.engine.models import ValidationError
 class ServiceError(Exception):
     """A refused operation. `code` is stable (for programs), `message` is for the accountant."""
 
-    def __init__(self, code: str, message: str):
+    def __init__(self, code: str, message: str, details: object = None):
         super().__init__(message)
         self.code = code
         self.message = message
+        self.details = details  # optional structured data for the caller, e.g. the vouchers blocking a period lock
 
 
 class VoucherRuleError(ServiceError):
