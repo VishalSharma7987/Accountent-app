@@ -7,12 +7,14 @@ from app import config
 from app.api import (
     audit,
     bank,
+    bills,
     cashbook,
     clients,
     groups,
     imports,
     ledgers,
     msme,
+    parties,
     periods,
     reports,
     vouchers,
@@ -34,6 +36,8 @@ ROUTERS = [
     bank.router,
     cashbook.router,
     msme.router,
+    parties.router,
+    bills.router,
 ]
 for _router in ROUTERS:
     app.include_router(_router)

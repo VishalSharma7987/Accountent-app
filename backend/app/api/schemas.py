@@ -131,10 +131,27 @@ class OpeningBalancesOut(BaseModel):
 # ---------------------------------------------------------------------------------------------- vouchers
 
 
+class AllocationIn(BaseModel):
+    """Bill-wise allocation of a party line (Phase 2). kind: new_ref | against_ref | advance | on_account."""
+
+    kind: str
+    amount: str | None = None
+    bill_ref: str | None = None
+    due_date: date | None = None
+
+
+class AllocationOut(BaseModel):
+    kind: str
+    amount: str
+    bill_ref: str | None
+    due_date: date | None  # resolved: bill date + credit days when not given (new_ref only)
+
+
 class VoucherLineIn(BaseModel):
     ledger_id: uuid.UUID
     debit: str | None = None
     credit: str | None = None
+    allocations: list[AllocationIn] = Field(default_factory=list)
 
 
 class VoucherIn(BaseModel):
@@ -153,6 +170,7 @@ class VoucherLineOut(BaseModel):
     ledger_name: str
     debit: str
     credit: str
+    allocations: list[AllocationOut] = Field(default_factory=list)
 
 
 class VoucherOut(BaseModel):
