@@ -14,6 +14,7 @@ from sqlalchemy import Connection
 
 from app.db import repositories as repo
 from app.db import repositories_bills as repo_b
+from app.db import repositories_gst_masters as gst_repo
 from app.engine import bills as bill_engine
 from app.engine import parties as engine
 from app.engine.models import ValidationError
@@ -39,6 +40,7 @@ class Party:
     msme_activity: str | None = None
     udyam_registration_date: date | None = None
     msme_agreed_days: int | None = None
+    gst_registration_type: str | None = None  # regular|composition|unregistered|sez|overseas|uin_holder|government
 
 
 def _snapshot(row: repo_b.PartyRow) -> dict:
@@ -100,6 +102,7 @@ def set_party(
     msme_activity: str | None = None,
     udyam_registration_date: date | None = None,
     msme_agreed_days: int | None = None,
+    gst_registration_type: str | None = None,
     actor: str,
 ) -> None:
     """Create or update the party details of a debtor/creditor ledger. On rule errors (P-01 .. P-08) raises
@@ -115,7 +118,7 @@ def set_party(
         ledger, groups, gstin=gstin, pan=pan, state_code=state_code, credit_days=credit_days,
         msme_category=msme_category, udyam_no=udyam_no, msme_activity=msme_activity,
         udyam_registration_date=udyam_registration_date, msme_written_agreement=msme_written_agreement,
-        msme_agreed_days=msme_agreed_days,
+        msme_agreed_days=msme_agreed_days, gst_registration_type=gst_registration_type,
     )
     existing = repo_b.party_rows_for(conn, client_id, [ledger_id]).get(ledger.id)
     if not any(e.rule_id == "P-07" for e in errors):
@@ -127,18 +130,24 @@ def set_party(
         ledger.id, gstin, pan, state_code, _credit_days(credit_days), msme_category, udyam_no,
         bool(msme_written_agreement), bool(bill_wise), msme_activity, udyam_registration_date, msme_agreed_days,
     )
+    old_gst_type = gst_repo.party_gst_types(conn, client_id).get(ledger.id) if existing else None
+    if old_gst_type is not None:  # cleared first: the table's CHECK ties the type to the GSTIN of the same row
+        gst_repo.set_party_gst_type(conn, client_id, ledger.id, None)
     repo_b.upsert_party(conn, client_id, row)
+    if gst_registration_type is not None:
+        gst_repo.set_party_gst_type(conn, client_id, ledger.id, gst_registration_type)
     audit.log(conn, AuditEntry(
         client_id, actor, "update" if existing else "create", "party", ledger.id,
-        old=None if existing is None else _snapshot(existing), new=_snapshot(row),
+        old=None if existing is None else {**_snapshot(existing), "gst_registration_type": old_gst_type},
+        new={**_snapshot(row), "gst_registration_type": gst_registration_type},
     ))
 
 
-def _party(ledger, nature: str, row: repo_b.PartyRow) -> Party:
+def _party(ledger, nature: str, row: repo_b.PartyRow, gst_type: str | None = None) -> Party:
     return Party(
         ledger.id, ledger.name, nature, row.gstin, row.pan, row.state_code, row.credit_days, row.msme_category,
         row.udyam_no, row.msme_written_agreement, row.bill_wise, row.msme_activity, row.udyam_registration_date,
-        row.msme_agreed_days,
+        row.msme_agreed_days, gst_type,
     )
 
 
@@ -148,7 +157,7 @@ def get_party(conn: Connection, client_id: object, ledger_id: object) -> Party:
     if ledger is None or row is None:
         raise ServiceError("not_found", "Party not found for this client.")
     nature = engine.party_nature(ledger, repo.groups_for_client(conn, client_id))
-    return _party(ledger, nature or "", row)
+    return _party(ledger, nature or "", row, gst_repo.party_gst_types(conn, client_id).get(ledger.id))
 
 
 def list_parties(conn: Connection, client_id: object, nature: str | None = None) -> list[Party]:
@@ -161,6 +170,7 @@ def list_parties(conn: Connection, client_id: object, nature: str | None = None)
     if not rows:
         return []
     groups = repo.groups_for_client(conn, client_id)
+    gst_types = gst_repo.party_gst_types(conn, client_id)
     out = []
     for ledger in repo.ledgers_of_client(conn, client_id):
         row = rows.get(ledger.id)
@@ -168,5 +178,5 @@ def list_parties(conn: Connection, client_id: object, nature: str | None = None)
             continue
         kind = engine.party_nature(ledger, groups) or ""
         if nature is None or kind == nature:
-            out.append(_party(ledger, kind, row))
+            out.append(_party(ledger, kind, row, gst_types.get(ledger.id)))
     return out
