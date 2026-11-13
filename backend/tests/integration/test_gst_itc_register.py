@@ -1,8 +1,8 @@
 """Phase 3 package C: ITC register on posting, evidence, claim deadline, 180-day reversal and re-claim drafts.
 
-Dependencies: invoice-mode persistence belongs to package B and masters to package A, so the tests write voucher_gst /
-voucher_item_lines and the registration / ledger roles with plain SQL on a DRAFT purchase, and call `gst_itc.on_post`
-themselves (the voucher service's hook call is B's). One committed world per module; each test is rolled back.
+Purchases are created through B's invoice mode (a `gst` block with the supplier's GSTIN); posting and reversing call the
+ITC hooks by themselves. Registration and ledger roles are written with plain SQL. One committed world per module; each
+test is rolled back.
 
 Hand-calculated numbers (bill SUP/1 dated 03-04-2026: taxable 1,000.00, CGST 90.00, SGST 90.00, bill 1,180.00):
   paid 400.00 -> outstanding 780.00; share 780/1180 -> CGST 90 x 780/1180 = 59.4915 -> 59.49, SGST 59.49 (total 118.98)
@@ -20,6 +20,7 @@ from sqlalchemy import text
 
 from app.api.deps import get_conn
 from app.db import connection, migrate
+from app.engine.gst_types import InvoiceIn, ItemLineIn
 from app.engine.models import Allocation, VoucherDraft, VoucherLine
 from app.main import app
 from app.services import client_setup, gst_itc, parties, vouchers
@@ -29,6 +30,7 @@ pytestmark = pytest.mark.integration
 
 D = Decimal
 GSTIN = "27AAPFU0939F1ZV"
+SUPPLIER_GSTIN = "27ABCDE1234F1Z0"
 
 
 @pytest.fixture(scope="module")
@@ -66,36 +68,17 @@ def world(test_engine, test_conn):
 
 
 def purchase(conn, w, ref="SUP/1", on=date(2026, 4, 3), category=None):
-    """A POSTED purchase with one taxed item line (taxable 1,000.00, CGST 90.00, SGST 90.00) and its ITC entry."""
+    """A POSTED purchase built in B's invoice mode (taxable 1,000.00, CGST 90.00, SGST 90.00); the post hook makes the ITC entry."""
     ids = w.ids
-    lines = (
-        VoucherLine(ids["Purchases"], "1000.00", None), VoucherLine(ids["Input CGST"], "90.00", None),
-        VoucherLine(ids["Input SGST"], "90.00", None),
-        VoucherLine(ids["Sharma Suppliers"], None, "1180.00", (Allocation("new_ref", "1180.00", ref),)),
-    )
+    item = ItemLineIn("Item", "8415", D(1), D("1000.00"), D("0.00"), str(ids["Purchases"]), uqc="NOS", itc_category_key=category)
+    inv = InvoiceIn(str(ids["registration"]), "tax_invoice", "b2b", "27", on, (item,), counterparty_gstin=SUPPLIER_GSTIN)
     result = vouchers.create_draft(
-        conn, VoucherDraft(w.client_id, "purchase", on, "Goods from Sharma", ref, ids["Sharma Suppliers"], lines), actor="clerk"
+        conn, VoucherDraft(w.client_id, "purchase", on, "Goods from Sharma", ref, ids["Sharma Suppliers"], (), gst=inv), actor="clerk"
     )
     assert result.errors == [], result.errors
     vid = result.voucher_id
-    conn.execute(
-        text(
-            "INSERT INTO voucher_gst (voucher_id, client_id, gst_registration_id, document_kind, supply_category, place_of_supply, "
-            "invoice_date, invoice_value, engine_version) VALUES (:v, :c, :r, 'tax_invoice', 'b2b', '27', :d, 1180.00, 't')"
-        ),
-        {"v": vid, "c": w.client_id, "r": ids["registration"], "d": on},
-    )
-    conn.execute(
-        text(
-            "INSERT INTO voucher_item_lines (client_id, voucher_id, item_line_no, description, hsn_sac, uqc, quantity, unit_rate, "
-            "gross_amount, taxable_value, ledger_id, treatment, gst_rate, cgst, sgst, igst, itc_category_key) "
-            "VALUES (:c, :v, 1, 'Item', '3004', 'NOS', 1, 1000.00, 1000.00, 1000.00, :l, 'taxable', 18, 90.00, 90.00, 0, :k)"
-        ),
-        {"c": w.client_id, "v": vid, "l": ids["Purchases"], "k": category},
-    )
     vouchers.approve(conn, vid, actor="partner")
     vouchers.post(conn, vid, actor="partner")
-    gst_itc.on_post(conn, w.client_id, vid, "partner")
     return vid
 
 
@@ -114,7 +97,6 @@ def pay(conn, w, amount, on, ref="SUP/1"):
 def post_journal(conn, w, voucher_id):
     vouchers.approve(conn, voucher_id, actor="partner")
     vouchers.post(conn, voucher_id, actor="partner")
-    gst_itc.on_post(conn, w.client_id, voucher_id, "partner")
 
 
 def entry_of(conn, w, vid):
@@ -182,8 +164,7 @@ def test_G37_reversing_the_purchase_marks_its_entries_reversed(svc_conn, world):
     w, c = world, svc_conn
     vid = purchase(c, w)
     _, e = entry_of(c, w, vid)
-    rid = vouchers.reverse(c, vid, date(2026, 4, 20), "Wrong bill", actor="partner")
-    gst_itc.on_reverse(c, w.client_id, vid, rid, "partner")
+    vouchers.reverse(c, vid, date(2026, 4, 20), "Wrong bill", actor="partner")  # the reverse hook marks the entries
     assert gst_itc.get_entry(c, w.client_id, e["id"])["status"] == "reversed"
     with pytest.raises(ServiceError) as info:
         gst_itc.confirm(c, w.client_id, e["id"], reason="again", actor="clerk")
