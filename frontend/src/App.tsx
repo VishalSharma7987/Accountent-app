@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
-import { BrowserRouter, NavLink, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { API_BASE, getUser, setUser } from './api'
+import Sidebar from './components/Sidebar'
 import { input } from './components/ui'
+import { findNav } from './lib/nav'
 import { ClientProvider, useClient } from './context'
 import Bank from './screens/Bank'
 import Brs from './screens/Brs'
@@ -20,27 +22,8 @@ import TrialBalance from './screens/TrialBalance'
 import VoucherEntry from './screens/VoucherEntry'
 import VoucherList from './screens/VoucherList'
 
-const NAV: [string, string][] = [
-  ['/clients', 'Clients'],
-  ['/ledgers', 'Ledgers'],
-  ['/vouchers/new', 'New voucher'],
-  ['/vouchers', 'Vouchers'],
-  ['/statement', 'Ledger statement'],
-  ['/trial-balance', 'Trial Balance'],
-  ['/periods', 'Periods'],
-  ['/parties', 'Parties'],
-  ['/opening-bills', 'Opening bills'],
-  ['/outstanding', 'Outstanding / ageing'],
-  ['/cash-book', 'Cash / Bank book'],
-  ['/msme', 'MSME dues'],
-  ['/bank', 'Bank statements'],
-  ['/reconciliation', 'Reconciliation'],
-  ['/brs', 'BRS report'],
-  ['/import', 'Excel import'],
-]
-
 function Shell() {
-  const { clients, clientId, setClientId } = useClient()
+  const { clients, clientId, setClientId, latestYear } = useClient()
   const [user, setUserState] = useState(getUser())
   const [health, setHealth] = useState('')
 
@@ -51,51 +34,54 @@ function Shell() {
       .catch(() => setHealth('API not reachable'))
   }, [])
 
+  const { pathname } = useLocation()
+  const found = findNav(pathname)
+  const year = latestYear ? `FY ${latestYear.start_date.slice(0, 4)}-${latestYear.end_date.slice(2, 4)}` : ''
+
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-900">
-      <aside className="w-48 shrink-0 space-y-3 border-r border-slate-300 bg-white p-3">
-        <div className="text-base font-bold">LedgerMind AI</div>
-        <label className="flex flex-col gap-0.5 text-xs text-slate-600">
-          Client
-          <select className={input} value={clientId} onChange={(e) => setClientId(e.target.value)}>
-            {clients.length === 0 && <option value="">(none yet)</option>}
-            {clients.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-0.5 text-xs text-slate-600">
-          Your name (sent as X-User)
-          <input
-            className={input}
-            value={user}
-            placeholder="e.g. Anita"
-            onChange={(e) => {
-              setUserState(e.target.value)
-              setUser(e.target.value)
-            }}
-          />
-        </label>
-        <nav className="flex flex-col gap-0.5 text-sm">
-          {NAV.map(([to, label]) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={to === '/vouchers' || to === '/vouchers/new'}
-              className={({ isActive }) => `rounded px-2 py-1 ${isActive ? 'bg-blue-700 text-white' : 'hover:bg-slate-100'}`}
-            >
-              {label}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="text-xs text-slate-500">{health}</div>
-      </aside>
-      <main className="min-w-0 flex-1 p-4">
+    <div className="flex h-screen bg-slate-50 text-slate-900">
+      <Sidebar />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex h-12 shrink-0 items-center gap-4 border-b border-slate-200 bg-white px-4 text-sm">
+          <div className="min-w-0 flex-1 truncate text-slate-500">
+            {found ? (
+              <>
+                {found.group.label} / <span className="font-medium text-slate-800">{found.item.label}</span>
+              </>
+            ) : (
+              'LedgerMind AI'
+            )}
+          </div>
+          <label className="flex items-center gap-1.5 text-xs text-slate-600">
+            Client
+            <select className={input} value={clientId} onChange={(e) => setClientId(e.target.value)}>
+              {clients.length === 0 && <option value="">(none yet)</option>}
+              {clients.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          {year && <span className="text-xs font-medium text-slate-600">{year}</span>}
+          <label className="flex items-center gap-1.5 text-xs text-slate-600">
+            Your name (X-User)
+            <input
+              className={input}
+              value={user}
+              placeholder="e.g. Anita"
+              onChange={(e) => {
+                setUserState(e.target.value)
+                setUser(e.target.value)
+              }}
+            />
+          </label>
+          <span className="text-xs text-slate-500">{health}</span>
+        </header>
+        <main className="min-w-0 flex-1 overflow-y-auto p-4">
         {!user.trim() && (
           <div className="mb-3 rounded border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-            Enter your name in the box on the left: it is recorded in the audit log with every change.
+            Enter your name in the box at the top: it is recorded in the audit log with every change.
           </div>
         )}
         <Routes>
@@ -118,7 +104,8 @@ function Shell() {
           <Route path="/reconciliation" element={<Reconciliation />} />
           <Route path="/brs" element={<Brs />} />
         </Routes>
-      </main>
+        </main>
+      </div>
     </div>
   )
 }
