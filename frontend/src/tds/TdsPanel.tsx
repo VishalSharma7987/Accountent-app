@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
+import type { GstIn } from '../api/gst'
 import { tdsApi, type Deductee, type TdsItemIn, type TdsPreview, type ThresholdPosition } from '../api/tds'
 import { Amount, btn, input, td, tdR, th, thR } from '../components/ui'
 import { asFailure, useLoad } from '../lib/useLoad'
 import { RuleBadge, Warnings } from './common'
-import { blankTdsItem, itemProblems, previewBody } from './lib'
+import { blankTdsItem, invoicePreviewBody, isPartialCertificate, itemProblems, previewBody } from './lib'
 
 export interface TdsPanelProps {
   clientId: string
@@ -17,6 +18,8 @@ export interface TdsPanelProps {
   /** called with every server preview (null while the entry is incomplete or the call failed) */
   onPreview?: (p: TdsPreview | null) => void
   readOnly?: boolean
+  /** invoice mode: the GST block of the purchase invoice; the TDS base is then the value WITHOUT GST (T-18) */
+  gst?: GstIn
 }
 
 /**
@@ -24,7 +27,7 @@ export interface TdsPanelProps {
  * the tax, rate and the generated "TDS payable" line come from POST /vouchers/tds-preview and are READ-ONLY (T-05).
  * Nothing is calculated in the browser.
  */
-export function TdsPanel({ clientId, base, counterLedgerId, natures, items, onChange, onPreview, readOnly }: TdsPanelProps) {
+export function TdsPanel({ clientId, base, counterLedgerId, natures, items, onChange, onPreview, readOnly, gst }: TdsPanelProps) {
   const deductees = useLoad(() => tdsApi.listDeductees(clientId), `tds-ded:${clientId}:`)
   const [preview, setPreview] = useState<TdsPreview | null>(null)
   const [failure, setFailure] = useState('')
@@ -32,7 +35,7 @@ export function TdsPanel({ clientId, base, counterLedgerId, natures, items, onCh
   const onPreviewRef = useRef(onPreview)
   onPreviewRef.current = onPreview
 
-  const body = previewBody(base, items, counterLedgerId)
+  const body = gst ? invoicePreviewBody(base, items, gst) : previewBody(base, items, counterLedgerId)
   const sig = body ? JSON.stringify(body) : ''
   useEffect(() => {
     if (!sig) {
@@ -82,7 +85,7 @@ export function TdsPanel({ clientId, base, counterLedgerId, natures, items, onCh
         {preview?.rule_status && <RuleBadge status={preview.rule_status} />}
         {loading && <span className="text-xs text-slate-500">Calculating on the server...</span>}
       </div>
-      <p className="text-xs text-slate-600">Enter the amount to which the nature applies (leave out GST shown separately). The tax is worked out by the server from the rule in force on the earlier of the credit and payment dates.</p>
+      <p className="text-xs text-slate-600">Enter the amount to which the nature applies (leave out GST shown separately{gst ? '; on an invoice the amount cannot be more than the invoice value without GST' : ''}). The tax is worked out by the server from the rule in force on the earlier of the credit and payment dates.</p>
       <div className="overflow-x-auto">
         <table className="min-w-full border-collapse">
           <thead>
@@ -198,7 +201,9 @@ export function TdsPanel({ clientId, base, counterLedgerId, natures, items, onCh
                 <th className={thR}>Paid this year before</th>
                 <th className={thR}>After this payment</th>
                 <th className={thR}>Taxable base</th>
-                <th className={thR}>Rate %</th>
+                <th className={thR}>Rate applied %</th>
+                <th className={thR}>Certificate rate %</th>
+                <th className={thR}>Effective rate %</th>
                 <th className={th}>Reason</th>
                 <th className={thR}>Tax already on base</th>
                 <th className={thR}>TDS</th>
@@ -220,6 +225,11 @@ export function TdsPanel({ clientId, base, counterLedgerId, natures, items, onCh
                   </td>
                   <td className={tdR}><Amount value={o.taxable_base} /></td>
                   <td className={tdR}>{o.rate_applied}</td>
+                  <td className={tdR}>{o.certificate_rate ?? '-'}</td>
+                  <td className={`${tdR} ${isPartialCertificate(o) ? 'text-amber-800' : ''}`}>
+                    {o.effective_rate ?? '-'}
+                    {isPartialCertificate(o) && <div className="text-xs">certificate covers part</div>}
+                  </td>
                   <td className={td}>{o.rate_reason.replace(/_/g, ' ')}</td>
                   <td className={tdR}><Amount value={o.tax_already_on_base} /></td>
                   <td className={`${tdR} font-semibold`}><Amount value={o.tds_amount} /></td>

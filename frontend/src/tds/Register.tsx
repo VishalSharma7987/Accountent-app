@@ -29,8 +29,8 @@ export default function Register() {
     exportXlsx(
       `tds-register-${fy ? fyLabel(fy) : ''}.xlsx`,
       'TDS register',
-      ['Voucher', 'Date', 'Deductee', 'PAN', 'Section', 'Event date', 'Paid', 'Base', 'Rate %', 'Reason', 'TDS', 'Deposited', 'Balance', 'Due date', 'Deposited on', 'Days late'],
-      rows.map((r) => [r.voucher_number ?? '', r.voucher_date, r.deductee_name, r.pan ?? '', r.section_ref, r.event_date, formatInr(r.payment_amount), formatInr(r.taxable_base), r.rate_applied, r.rate_reason, formatInr(r.tds_amount), formatInr(r.deposited), formatInr(r.balance), r.due_date, r.deposited_on ?? '', r.days_late === null ? '' : String(r.days_late)]),
+      ['Voucher', 'Date', 'Deductee', 'PAN', 'Section', 'Event date', 'Paid', 'Base', 'Rate %', 'Certificate rate %', 'Effective rate %', 'Reason', 'TDS', 'Deposited', 'Balance', 'Due date', 'Deposited on', 'Days late'],
+      rows.map((r) => [r.voucher_number ?? '', r.voucher_date, r.deductee_name, r.pan ?? '', r.section_ref, r.event_date, formatInr(r.payment_amount), formatInr(r.taxable_base), r.rate_applied, r.certificate_rate ?? '', r.effective_rate ?? '', r.rate_reason, formatInr(r.tds_amount), formatInr(r.deposited), formatInr(r.balance), r.due_date, r.deposited_on ?? '', r.days_late === null ? '' : String(r.days_late)]),
     )
 
   return (
@@ -85,6 +85,8 @@ export default function Register() {
                   <th className={thR}>Paid</th>
                   <th className={thR}>Base</th>
                   <th className={thR}>Rate %</th>
+                  <th className={thR}>Certificate rate %</th>
+                  <th className={thR}>Effective rate %</th>
                   <th className={th}>Reason</th>
                   <th className={thR}>TDS</th>
                   <th className={thR}>Deposited</th>
@@ -105,6 +107,8 @@ export default function Register() {
                     <td className={tdR}><Amount value={r.payment_amount} /></td>
                     <td className={tdR}><Amount value={r.taxable_base} /></td>
                     <td className={tdR}>{r.rate_applied}</td>
+                    <td className={tdR}>{r.certificate_rate ?? '-'}</td>
+                    <td className={tdR}>{r.effective_rate ?? '-'}</td>
                     <td className={td}>{r.rate_reason.replace(/_/g, ' ')}</td>
                     <td className={tdR}><Amount value={r.tds_amount} /></td>
                     <td className={tdR}><Amount value={r.deposited} /></td>
@@ -116,7 +120,7 @@ export default function Register() {
                 ))}
                 {rows.length === 0 && !reg.loading && (
                   <tr>
-                    <td colSpan={15} className={`${td} text-slate-500`}>
+                    <td colSpan={17} className={`${td} text-slate-500`}>
                       No deductions in posted vouchers for this selection.
                     </td>
                   </tr>

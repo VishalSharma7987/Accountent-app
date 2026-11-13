@@ -1,0 +1,12 @@
+ref_id,nature_key,act,section_ref,event_date,payment_amount,cumulative_before,cumulative_after,threshold_crossed,taxable_base,rate_applied,certificate_rate,effective_rate,rate_reason,tax_already_on_base,tds_amount,verification_status
+M1,contractor,it_act_2025,393(1),2026-05-10,20000.00,0.00,20000.00,false,0.00,0,,,below_threshold,0.00,0.00,secondary_verified
+G1,contractor,it_act_2025,393(1),2026-05-12,100000.00,0.00,100000.00,false,100000.00,2,,2,normal,0.00,2000.00,secondary_verified
+R1,rent_194ib,it_act_2025,393(1),2026-06-05,60000.00,0.00,60000.00,true,60000.00,2,,2,normal,0.00,1200.00,secondary_verified
+M2,contractor,it_act_2025,393(1),2026-06-10,25000.00,20000.00,45000.00,false,0.00,0,,,below_threshold,0.00,0.00,secondary_verified
+R2,rent_194ib,it_act_2025,393(1),2026-07-05,50000.00,60000.00,110000.00,false,0.00,0,,,below_threshold,0.00,0.00,secondary_verified
+M3,contractor,it_act_2025,393(1),2026-07-10,40000.00,45000.00,85000.00,false,40000.00,2,,2,normal,0.00,800.00,secondary_verified
+R3,rent_194ib,it_act_2025,393(1),2026-08-05,30000.00,110000.00,140000.00,false,0.00,0,,,below_threshold,0.00,0.00,secondary_verified
+M4,contractor,it_act_2025,393(1),2026-08-10,30000.00,85000.00,115000.00,true,115000.00,2,,5.1304,normal,800.00,5100.00,secondary_verified
+R4,rent_194ib,it_act_2025,393(1),2026-08-20,30000.00,140000.00,170000.00,true,60000.00,2,,2,normal,0.00,1200.00,secondary_verified
+Z1,contractor,it_act_2025,393(1),2026-09-10,120000.00,0.00,120000.00,true,120000.00,0.5,0.5,0.5,lower_certificate,0.00,600.00,secondary_verified
+Z2,contractor,it_act_2025,393(1),2026-10-10,60000.00,120000.00,180000.00,false,60000.00,0.5,0.5,1.25,lower_certificate,0.00,750.00,secondary_verified

@@ -10,7 +10,7 @@ import { asFailure, useLoad } from '../lib/useLoad'
 import { NoClient } from './common'
 import { useNatures } from './hooks'
 import { TdsPanel } from './TdsPanel'
-import { blankTdsItem, previewBody } from './lib'
+import { blankTdsItem, previewBody, selectableNatures } from './lib'
 
 const TYPES = [
   { value: 'payment', label: 'Payment (Dr party / Cr bank)' },
@@ -82,7 +82,7 @@ export default function TdsEntry() {
           <input className={`${input} w-72`} value={narration} onChange={(e) => setNarration(e.target.value)} />
         </Field>
       </div>
-      <TdsPanel clientId={clientId} base={base} counterLedgerId={counter} natures={natures.options} items={items} onChange={setItems} onPreview={setPreview} />
+      <TdsPanel clientId={clientId} base={base} counterLedgerId={counter} natures={selectableNatures(natures.options)} items={items} onChange={setItems} onPreview={setPreview} />
       <ErrorBox error={error} />
       <button className={btnPrimary} disabled={busy || blocked || !preview || !narration.trim()} onClick={save}>
         Save draft

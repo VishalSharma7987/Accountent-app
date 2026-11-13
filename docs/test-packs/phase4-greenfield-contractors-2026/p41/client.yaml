@@ -1,0 +1,17 @@
+# Sunrise Traders - Phase 4.1 addendum client (dummy, synthetic data only): a proprietorship (an individual deductor) with a regular GST registration.
+# It carries the cases added in Phase 4.1: TDS on a GST invoice, a threshold crossing with earlier payments at their own rates,
+# a partial lower-deduction certificate, and rent by an individual not liable to tax audit (ex-194-IB).
+# The main Greenfield client (a partnership, answer "No" for both years) carries rent under ex-194-I (V50..V53 of the main pack).
+name: Sunrise Traders
+entity_type: proprietorship
+business_type: trading
+gst_type: regular
+fy_start: 2025-04-01
+second_fy_start: 2026-04-01
+proprietor_name: Ramesh Kumar
+tan: MUMS12345B
+gstin: 27ABCDE1234F1Z0
+registration_effective_from: 2026-04-01
+# Rent profile answers (T-19): individual / HUF not liable to tax audit in the preceding year. 2025-26 is deliberately NOT answered (wrong case W2).
+individual_huf_not_tax_audited_2026_27: true
+invoice_supplier_gstin: 27AAACC1234A1ZI

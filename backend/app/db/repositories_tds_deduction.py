@@ -12,6 +12,7 @@ from app.engine.tds_types import (
     Deductee,
     LowerDeductionCert,
     Nature,
+    PriorPayment,
     PriorPosition,
     RateRule,
     SectionRef,
@@ -90,24 +91,36 @@ def load_roles(conn: Connection, client_id: object) -> list[tuple[str, str | Non
     return [(r[0], r[1], r[2]) for r in rows]
 
 
+def load_deductor_flags(conn: Connection, client_id: object) -> dict[object, bool]:
+    """fy_id -> 'the client is an individual / HUF not liable to tax audit' (T-19); a year without a row is not answered yet."""
+    rows = conn.execute(
+        text("SELECT financial_year_id, individual_huf_not_tax_audited FROM tds_deductor_fy_profile WHERE client_id = :c"), {"c": client_id}
+    )
+    return {r[0]: r[1] for r in rows}
+
+
 def load_priors(conn: Connection, client_id: object, ledger_ids: list[object], nature_keys: list[str], fy_ids: list[object]) -> dict[tuple, PriorPosition]:
-    """What the books hold per (deductee, nature, financial year): POSTED vouchers only (a reversed voucher drops out)."""
+    """What the books hold per (deductee, nature, financial year): POSTED vouchers only (a reversed voucher drops out).
+    The single payments are kept (oldest first) so a threshold crossing can work each at its own rate (T-07)."""
     rows = conn.execute(
         text(
-            "SELECT i.deductee_ledger_id, i.nature_key, i.financial_year_id, to_char(i.event_date, 'YYYY-MM'), "
-            "sum(i.payment_amount), sum(i.tds_amount) FROM tds_voucher_items i JOIN vouchers v ON v.id = i.voucher_id "
+            "SELECT i.deductee_ledger_id, i.nature_key, i.financial_year_id, i.event_date, i.payment_amount, i.tds_amount, "
+            "i.lower_cert_id, i.pan_status_at_event FROM tds_voucher_items i JOIN vouchers v ON v.id = i.voucher_id "
             "WHERE i.client_id = :c AND v.status = 'posted' AND i.deductee_ledger_id = ANY(:l) AND i.nature_key = ANY(:n) "
-            "AND i.financial_year_id = ANY(:f) GROUP BY 1, 2, 3, 4"
+            "AND i.financial_year_id = ANY(:f) ORDER BY i.event_date, i.created_at, i.item_no"
         ),
         {"c": client_id, "l": ledger_ids, "n": nature_keys, "f": fy_ids},
     )
     acc: dict[tuple, list] = {}
-    for ledger, nature, fy, month, amount, tax in rows:
-        cell = acc.setdefault((ledger, nature, fy), [ZERO, ZERO, {}])
-        cell[0] += amount.quantize(CENTS)
-        cell[1] += tax.quantize(CENTS)
-        cell[2][month] = amount.quantize(CENTS)
-    return {k: PriorPosition(v[0], v[1], v[2]) for k, v in acc.items()}
+    for ledger, nature, fy, event_date, amount, tax, cert_id, pan_status in rows:
+        cell = acc.setdefault((ledger, nature, fy), [ZERO, ZERO, {}, []])
+        amount, tax = amount.quantize(CENTS), tax.quantize(CENTS)
+        month = event_date.strftime("%Y-%m")
+        cell[0] += amount
+        cell[1] += tax
+        cell[2][month] = cell[2].get(month, ZERO) + amount
+        cell[3].append(PriorPayment(amount, event_date, tax, None if cert_id is None else str(cert_id), pan_status))
+    return {k: PriorPosition(v[0], v[1], v[2], tuple(v[3])) for k, v in acc.items()}
 
 
 def ledger_names(conn: Connection, ids: list[object]) -> dict[object, str]:
@@ -128,10 +141,10 @@ def insert_items(conn: Connection, rows: list[dict]) -> None:
             "INSERT INTO tds_voucher_items (client_id, voucher_id, item_no, kind, deductee_ledger_id, nature_key, act, section_ref, "
             "table_ref, rate_rule_id, financial_year_id, event_date, credit_date, payment_date, payment_amount, cumulative_before, "
             "cumulative_after, threshold_crossed, taxable_base, rate_applied, rate_reason, lower_cert_id, tax_already_on_base, "
-            "tds_amount, tds_line_no, engine_version, note) VALUES (:client_id, :voucher_id, :item_no, :kind, :deductee_ledger_id, "
+            "tds_amount, tds_line_no, engine_version, note, pan_status_at_event) VALUES (:client_id, :voucher_id, :item_no, :kind, :deductee_ledger_id, "
             ":nature_key, :act, :section_ref, :table_ref, :rate_rule_id, :financial_year_id, :event_date, :credit_date, :payment_date, "
             ":payment_amount, :cumulative_before, :cumulative_after, :threshold_crossed, :taxable_base, :rate_applied, :rate_reason, "
-            ":lower_cert_id, :tax_already_on_base, :tds_amount, :tds_line_no, :engine_version, :note)"
+            ":lower_cert_id, :tax_already_on_base, :tds_amount, :tds_line_no, :engine_version, :note, :pan_status_at_event)"
         ),
         rows,
     )
@@ -164,7 +177,7 @@ def load_items(conn: Connection, voucher_id: object) -> list[dict]:
 
 _REGISTER_SQL = (
     "SELECT i.id, v.id, v.voucher_number, v.voucher_date, i.deductee_ledger_id, l.name, d.pan, i.nature_key, i.section_ref, "
-    "i.event_date, i.payment_amount, i.taxable_base, i.rate_applied, i.rate_reason, i.tds_amount, "
+    "i.event_date, i.payment_amount, i.taxable_base, i.rate_applied, i.rate_reason, i.tds_amount, i.tax_already_on_base, "
     "coalesce((SELECT sum(a.amount) FROM tds_challan_allocations a WHERE a.item_id = i.id), 0), "
     "(SELECT max(c.deposit_date) FROM tds_challan_allocations a JOIN tds_challans c ON c.id = a.challan_id WHERE a.item_id = i.id), "
     "i.kind, i.act, r.verification_status, r.source_reference "
@@ -182,7 +195,7 @@ _REGISTER_SQL = (
 def register_rows(conn: Connection, client_id: object, *, fy_id: object | None, nature_key: str | None, deductee: object | None,
                   quarter_start: date | None, quarter_end: date | None) -> list[dict]:
     cols = ("item_id", "voucher_id", "voucher_number", "voucher_date", "deductee_ledger_id", "deductee_name", "pan", "nature_key",
-            "section_ref", "event_date", "payment_amount", "taxable_base", "rate_applied", "rate_reason", "tds_amount", "deposited",
+            "section_ref", "event_date", "payment_amount", "taxable_base", "rate_applied", "rate_reason", "tds_amount", "tax_already", "deposited",
             "deposited_on", "kind", "act", "rule_status", "rule_source")
     rows = conn.execute(
         text(_REGISTER_SQL),

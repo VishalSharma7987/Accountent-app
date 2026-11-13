@@ -1,0 +1,12 @@
+ref_id,date,voucher_type,reference_no,narration,party_ledger,counter_ledger,amount,nature_key,credit_date,payment_date,cert_ref,set_pan,gst_invoice_value
+M1,2026-05-10,purchase,RF/1,Fabrication bill May (PAN not given yet),Rajesh Fabricators Pvt Ltd,Contract Expenses,20000.00,contractor,2026-05-10,,,,
+G1,2026-05-12,purchase,MW/101,Contract bill with GST (tax on the value without GST),Mumbai Works Pvt Ltd,Contract Expenses,100000.00,contractor,2026-05-12,,,,100000.00
+R1,2026-06-05,payment,,Rent for June (60000),Mrs Sharma,HDFC Bank,60000.00,rent_land_building,,2026-06-05,,,
+M2,2026-06-10,purchase,RF/2,Fabrication bill June (PAN received),Rajesh Fabricators Pvt Ltd,Contract Expenses,25000.00,contractor,2026-06-10,,,AAACR1234A,
+M3,2026-07-10,purchase,RF/3,Fabrication bill July,Rajesh Fabricators Pvt Ltd,Contract Expenses,40000.00,contractor,2026-07-10,,,,
+R2,2026-07-05,payment,,Rent for July (exactly 50000),Mrs Sharma,HDFC Bank,50000.00,rent_land_building,,2026-07-05,,,
+M4,2026-08-10,purchase,RF/4,Fabrication bill August crosses 1 lakh,Rajesh Fabricators Pvt Ltd,Contract Expenses,30000.00,contractor,2026-08-10,,,,
+R3,2026-08-05,payment,,Rent first part of August,Mrs Sharma,HDFC Bank,30000.00,rent_land_building,,2026-08-05,,,
+R4,2026-08-20,payment,,Rent second part of August,Mrs Sharma,HDFC Bank,30000.00,rent_land_building,,2026-08-20,,,
+Z1,2026-09-10,purchase,ZE/1,Engineering bill September under certificate,Zenith Engineers Pvt Ltd,Contract Expenses,120000.00,contractor,2026-09-10,,ZEN-LDC,,
+Z2,2026-10-10,purchase,ZE/2,Engineering bill October certificate limit partly left,Zenith Engineers Pvt Ltd,Contract Expenses,60000.00,contractor,2026-10-10,,ZEN-LDC,,

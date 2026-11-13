@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { gstApi, type GstIn, type GstPreview } from '../api/gst'
 import { ErrorBox, Field, LedgerPicker, Notice, Page, btnPrimary, input } from '../components/ui'
+import type { TdsItemIn } from '../api/tds'
 import { useClient } from '../context'
 import { today } from '../lib/dates'
 import type { ApiFailure } from '../lib/apiError'
@@ -10,6 +11,9 @@ import { asFailure, useLoad } from '../lib/useLoad'
 import { InvoiceGstPanel } from './InvoiceGstPanel'
 import { useRegistrations } from './common'
 import { blankGstItem } from './lib'
+import { TdsPanel } from '../tds/TdsPanel'
+import { useNatures } from '../tds/hooks'
+import { blankTdsItem, selectableNatures } from '../tds/lib'
 
 const TYPES = [
   { value: 'sales', label: 'Sales' },
@@ -42,6 +46,8 @@ export default function InvoiceEntry() {
   const [error, setError] = useState<ApiFailure | null>(null)
   const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
+  const [tdsItems, setTdsItems] = useState<TdsItemIn[]>([blankTdsItem()])
+  const natures = useNatures(date)
 
   if (!clientId) return <Page title="GST invoice">Select a client first.</Page>
 
@@ -55,7 +61,8 @@ export default function InvoiceEntry() {
     setError(null)
     setNotice('')
     try {
-      const out = await gstApi.createGstVoucher(clientId, { ...base, gst: effective })
+      const typedTds = tdsItems.filter((i) => i.deductee_ledger_id || i.nature_key || i.amount)
+      const out = await gstApi.createGstVoucher(clientId, { ...base, gst: effective, ...(type === 'purchase' && typedTds.length > 0 ? { tds: { items: typedTds.map((i) => ({ ...i, manual_tax: i.manual_tax || null })) } } : {}) })
       navigate(`/vouchers/${out.voucher_id}`)
     } catch (e) {
       setError(asFailure(e))
@@ -94,6 +101,9 @@ export default function InvoiceEntry() {
         </Field>
       </div>
       <InvoiceGstPanel clientId={clientId} registrations={active} ledgers={ledgers.data ?? []} base={base} value={effective} onChange={setGst} onPreview={setPreview} />
+      {type === 'purchase' && (
+        <TdsPanel clientId={clientId} base={base} counterLedgerId="" natures={selectableNatures(natures.options)} items={tdsItems} onChange={setTdsItems} gst={effective} />
+      )}
       <ErrorBox error={error} />
       {notice && <Notice>{notice}</Notice>}
       <button className={btnPrimary} disabled={busy || blocked || !preview} onClick={save}>

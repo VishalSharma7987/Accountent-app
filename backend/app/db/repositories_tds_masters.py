@@ -105,6 +105,26 @@ def upsert_fy_flag(conn: Connection, client_id: object, fy_id: object, over: boo
         {"c": client_id, "f": fy_id, "o": over, "n": note, "a": actor})
 
 
+def deductor_profile_rows(conn: Connection, client_id: object) -> list[tuple]:
+    return _rows(conn, "SELECT financial_year_id, individual_huf_not_tax_audited, note FROM tds_deductor_fy_profile "
+                       "WHERE client_id = :c ORDER BY financial_year_id", {"c": client_id})
+
+
+def deductor_profile(conn: Connection, client_id: object, fy_id: object) -> tuple[bool, str | None] | None:
+    row = conn.execute(text("SELECT individual_huf_not_tax_audited, note FROM tds_deductor_fy_profile "
+                            "WHERE client_id = :c AND financial_year_id = :f"), {"c": client_id, "f": fy_id}).first()
+    return (row[0], row[1]) if row else None
+
+
+def upsert_deductor_profile(conn: Connection, client_id: object, fy_id: object, not_audited: bool, note: str | None, actor: str) -> None:
+    conn.execute(text(
+        "INSERT INTO tds_deductor_fy_profile (client_id, financial_year_id, individual_huf_not_tax_audited, note, entered_by) "
+        "VALUES (:c, :f, :o, :n, :a) ON CONFLICT (client_id, financial_year_id) DO UPDATE SET "
+        "individual_huf_not_tax_audited = EXCLUDED.individual_huf_not_tax_audited, note = EXCLUDED.note, "
+        "entered_by = EXCLUDED.entered_by, entered_at = now()"),
+        {"c": client_id, "f": fy_id, "o": not_audited, "n": note, "a": actor})
+
+
 # ============================================================================================ deductees
 
 

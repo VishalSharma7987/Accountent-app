@@ -1,0 +1,5 @@
+ledger_name,pan,pan_status,deductee_type
+Mumbai Works Pvt Ltd,AAACC1234A,valid,company
+Rajesh Fabricators Pvt Ltd,,missing,company
+Zenith Engineers Pvt Ltd,AAACZ1234A,valid,company
+Mrs Sharma,ABCPS1234B,valid,individual

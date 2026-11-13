@@ -54,3 +54,9 @@ Nothing in the rule tables is `verified`: the official Act text and CBDT notific
 - [ ] Rejected
 
 Signature: ______________________   Date: ____________
+
+## Phase 4.1 items for the CA (2026-11-13)
+- ex-194-IB (rent by an individual / HUF not liable to tax audit): 2% and Rs 50,000 a month are owner-supplied (`secondary_verified`); the reading "the WHOLE month's rent once the month is above Rs 50,000" (case R4 of `p41`) is **pending**.
+- Tax on a GST invoice is on the value without GST: owner-supplied position (`secondary_verified`); the CBDT circular number is not recorded and must be confirmed.
+- A certificate chosen on a payment below the threshold is not applied to it, also not at the later catch-up: confirm.
+- Interest 1% / 1.5% per month or part of a month and rounding to the rupee: owner-supplied (`secondary_verified`).

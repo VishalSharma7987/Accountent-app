@@ -18,6 +18,8 @@ from app.api.schemas_tds_masters import (
     DeducteeIn,
     DeducteeOut,
     DeducteeSaved,
+    DeductorProfileIn,
+    DeductorProfileOut,
     FyFlagIn,
     FyFlagOut,
     LedgerRolesIn,
@@ -53,7 +55,8 @@ def set_profile(client_id: str, body: TanIn, conn: Connection = Depends(get_conn
 @router.get("/clients/{client_id}/tds/profile", response_model=ProfileOut)
 def get_profile(client_id: str, conn: Connection = Depends(get_conn)):
     p = tds_masters.get_profile(conn, parse_id(client_id, "Client"))
-    return ProfileOut(tan=p["tan"], fy_flags=[FyFlagOut(**f) for f in p["fy_flags"]])
+    return ProfileOut(tan=p["tan"], fy_flags=[FyFlagOut(**f) for f in p["fy_flags"]],
+                      deductor_profile=[DeductorProfileOut(**f) for f in p["deductor_profile"]])
 
 
 @router.put("/clients/{client_id}/tds/fy-flags/{fy_id}", response_model=OkOut)
@@ -61,6 +64,15 @@ def set_fy_flag(client_id: str, fy_id: str, body: FyFlagIn, conn: Connection = D
                 actor: str = Depends(get_actor)):
     tds_masters.set_fy_flag(conn, parse_id(client_id, "Client"), parse_id(fy_id, "Financial year"),
                             body.prev_year_turnover_over_threshold, body.note, actor=actor)
+    return OkOut()
+
+
+@router.put("/clients/{client_id}/tds/deductor-profile/{fy_id}", response_model=OkOut)
+def set_deductor_profile(client_id: str, fy_id: str, body: DeductorProfileIn, conn: Connection = Depends(get_conn),
+                         actor: str = Depends(get_actor)):
+    """T-19: 'the client is an individual / HUF not liable to tax audit in the preceding year' for a financial year (rent section)."""
+    tds_masters.set_deductor_profile(conn, parse_id(client_id, "Client"), parse_id(fy_id, "Financial year"),
+                                     body.individual_huf_not_tax_audited, body.note, actor=actor)
     return OkOut()
 
 

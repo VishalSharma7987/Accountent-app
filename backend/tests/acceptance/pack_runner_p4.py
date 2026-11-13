@@ -5,7 +5,10 @@ It never modifies a pack file and never bends the tool to fit them: every differ
 (expected vs tool) for the owner and the accountants to decide. One run builds the whole world inside the caller's transaction:
 client with two financial years (2025-26 under the Income-tax Act 1961, 2026-27 under the Act of 2025), deductee master,
 certificates, 28 vouchers with TDS / TCS, challans and allocations, interest, quarterly workings, certificate data, a 26AS
-statement with its reconciliation, and the refusals of the wrong cases.
+statement with its reconciliation, and the refusals of the wrong cases. Phase 4.1 adds the addendum in the pack's p41 folder (a
+second small client): TDS on a GST invoice, a threshold crossing with earlier payments at their own rates, a partial certificate
+with both rates, and rent by an individual not liable to tax audit (ex-194-IB). The main client (a partnership) answers "No" for
+both years, so its rent stays under ex-194-I.
 """
 
 import uuid
@@ -15,14 +18,17 @@ from datetime import date
 from decimal import Decimal
 
 from pack_loader_p4 import PackP4, VoucherRec
+from pack_loader_p41 import PackP41, VoucherRec41, load_pack_p41
 from pack_runner_p2 import diff_keyed, explain_errors, judge_wrong, money
 from pack_runner_p3 import _post, _refusal_text, _setup_ledgers, amt, guard, iso, narrow
 from sqlalchemy import Connection, text
 
+from app.engine.gst_types import InvoiceIn, ItemLineIn
 from app.engine.models import VoucherDraft, VoucherLine
 from app.engine.tds_types import TdsLineIn
 from app.services import (
     client_setup,
+    gst_registrations,
     reports,
     tds_challans,
     tds_deduction,
@@ -39,7 +45,7 @@ ACTOR = "pack-runner-p4"
 
 SECTIONS = (
     "setup", "vouchers", "items", "ledger_balances", "challans", "register", "by_deductee", "position", "interest",
-    "return_working", "certificates", "recon", "rule_status", "wrong_cases",
+    "return_working", "certificates", "recon", "rule_status", "wrong_cases", "p41",
 )
 
 
@@ -149,6 +155,8 @@ def run_pack_p4(conn: Connection, pack: PackP4) -> RunReport:
         tds_masters.set_fy_flag(conn, cid, fy_of_name["second"], True,
                                 "Prior-year turnover above the limit (pack assumption; the limit itself is pending)", actor=ACTOR)
         tds_masters.set_ledger_roles(conn, cid, [(r["role"], r["nature_key"] or None, ids[r["ledger_name"]]) for r in pack.roles], actor=ACTOR)
+        for fy in fy_of_name.values():  # T-19: a partnership is not an individual / HUF: rent stays under ex-194-I (entered, not guessed)
+            tds_masters.set_deductor_profile(conn, cid, fy, False, "Partnership firm: not an individual / HUF", actor=ACTOR)
     for d in pack.deductees:
         try:
             tds_masters.set_deductee(conn, cid, ids[d["ledger_name"]], pan=d["pan"] or None, pan_status=d["pan_status"],
@@ -258,6 +266,8 @@ def run_pack_p4(conn: Connection, pack: PackP4) -> RunReport:
 
     with guard(report, "wrong_cases"):
         _wrong_cases(conn, cid, ids, fy_of_name, cert_ids, item_id, challan_of, posted, pack, report)
+    with guard(report, "p41"):
+        _run_p41(conn, report, load_pack_p41(pack.folder / "p41"))
     return report
 
 
@@ -481,6 +491,109 @@ def _wrong_cases(conn, cid, ids, fy_of_name, cert_ids, item_id, challan_of, post
             report.add("wrong_cases", problem)
         else:
             report.counts["wrong_cases_refused"] += 1
+        if warning:
+            report.warnings.append(warning)
+
+
+# ============================================================================================ Phase 4.1 addendum
+
+
+def _p41_draft(cid, v: VoucherRec41, ids, reg_id, supplier_gstin: str, cert_id=None, reference_no=None) -> VoucherDraft:
+    """A TDS voucher; with `gst_invoice_value` a GST purchase invoice (one item, HSN 8415, supplier in the same state) carrying the TDS item."""
+    if v.gst_invoice_value is None:
+        return tds_draft(cid, v.voucher_type, v.date, v.narration, reference_no or v.reference_no, ids[v.party_ledger], ids[v.counter_ledger],
+                         v.amount, v.nature_key, v.credit_date, v.payment_date, cert_id)
+    item = ItemLineIn("Contract work", "8415", Decimal(1), v.gst_invoice_value, Decimal("0.00"), ids[v.counter_ledger], uqc="NOS")
+    inv = InvoiceIn(str(reg_id), "tax_invoice", "b2b", "27", v.date, (item,), counterparty_gstin=supplier_gstin)
+    tds = TdsLineIn(ids[v.party_ledger], v.nature_key, v.amount, v.credit_date, v.payment_date, cert_id)
+    return VoucherDraft(cid, v.voucher_type, v.date, v.narration, reference_no or v.reference_no, ids[v.party_ledger], (), gst=inv, tds=(tds,))
+
+
+def _run_p41(conn: Connection, report: RunReport, pack: PackP41) -> None:
+    c, exp = pack.client, pack.expected
+    created = client_setup.create_client(
+        conn, ClientProfile(c["name"], c["entity_type"], c["business_type"], c["gst_type"]),
+        fy_start=c["fy_start"], actor=ACTOR, proprietor_name=c.get("proprietor_name"))
+    cid = created.client_id
+    fy_second = _second_year(conn, cid, c["second_fy_start"])
+    zero = Decimal("0.00")
+    ids = _setup_ledgers(conn, report, cid, created.financial_year_id, created, [{**r, "opening_dr": zero, "opening_cr": zero} for r in pack.ledgers])
+    reg_id = gst_registrations.create_registration(conn, cid, gstin=c["gstin"], registration_type="regular",
+                                                   effective_from=c["registration_effective_from"], actor=ACTOR)
+    gst_registrations.set_ledger_roles(conn, cid, reg_id, {r["role"]: ids[r["ledger_name"]] for r in pack.gst_roles}, actor=ACTOR)
+    tds_masters.set_tan(conn, cid, c["tan"], actor=ACTOR)
+    tds_masters.set_ledger_roles(conn, cid, [(r["role"], r["nature_key"] or None, ids[r["ledger_name"]]) for r in pack.roles], actor=ACTOR)
+    tds_masters.set_deductor_profile(conn, cid, fy_second, bool(c["individual_huf_not_tax_audited_2026_27"]),
+                                     "Individual not liable to tax audit in the preceding year (pack assumption)", actor=ACTOR)
+    for d in pack.deductees:
+        tds_masters.set_deductee(conn, cid, ids[d["ledger_name"]], pan=d["pan"] or None, pan_status=d["pan_status"],
+                                 deductee_type=d["deductee_type"], actor=ACTOR)
+    cert_ids = {k["cert_ref"]: tds_masters.add_certificate(
+        conn, cid, ids[k["ledger_name"]], certificate_no=k["certificate_no"], nature_key=k["nature_key"], rate=k["rate"],
+        max_amount=k["max_amount"], valid_from=k["valid_from"], valid_to=k["valid_to"], actor=ACTOR) for k in pack.certificates}
+
+    posted: dict[str, object] = {}
+    number: dict[str, str] = {}
+    item_of: dict[str, dict] = {}
+    for v in pack.vouchers:
+        if v.set_pan:  # the PAN is confirmed on the portal between two payments: the earlier ones keep the status they had
+            deductee = next(d for d in pack.deductees if d["ledger_name"] == v.party_ledger)
+            tds_masters.set_deductee(conn, cid, ids[v.party_ledger], pan=v.set_pan, pan_status="valid", deductee_type=deductee["deductee_type"], actor=ACTOR)
+        vid, problem = _post(conn, _p41_draft(cid, v, ids, reg_id, c["invoice_supplier_gstin"], cert_ids.get(v.cert_ref) if v.cert_ref else None))
+        if problem:
+            report.add("p41", f"correct voucher {v.ref_id} was refused: {problem}")
+            continue
+        posted[v.ref_id] = vid
+        number[v.ref_id] = vouchers.get_voucher(conn, vid).voucher_number
+        item_of[v.ref_id] = (tds_hooks.load_tds(conn, cid, vid) or {"items": [{}]})["items"][0]
+        report.counts["p41_vouchers_posted"] += 1
+
+    fields = ("nature_key", "act", "section_ref", "event_date", "payment_amount", "cumulative_before", "cumulative_after",
+              "threshold_crossed", "taxable_base", "rate_applied", "certificate_rate", "effective_rate", "rate_reason",
+              "tax_already_on_base", "tds_amount", "verification_status")
+    want = {(r["ref_id"],): {f: r[f] for f in fields} for r in exp["expected_items"]}
+    got = {(ref,): {**{f: str(i.get(f) or "") for f in fields}, "threshold_crossed": boolean(i.get("threshold_crossed")),
+                    "rate_applied": plain(i.get("rate_applied")), "certificate_rate": plain(i.get("certificate_rate")),
+                    "effective_rate": plain(i.get("effective_rate"))} for ref, i in item_of.items()}
+    for line in diff_keyed(want, got, fields, label=lambda k: f"p41 item of {k[0]}"):
+        report.add("p41", line)
+
+    # the register shows the same two rates
+    ref_of_number = {n: r for r, n in number.items()}
+    reg = tds_deduction.register(conn, cid, financial_year_id=fy_second, quarter=None, nature_key=None, deductee_ledger_id=None)
+    rate_fields = ("certificate_rate", "effective_rate")
+    got_reg = {(ref_of_number.get(r["voucher_number"], r["voucher_number"]),): {f: plain(r[f]) for f in rate_fields} for r in reg["rows"]}
+    want_reg = {(r["ref_id"],): {f: r[f] for f in rate_fields} for r in exp["expected_items"]}
+    for line in diff_keyed(want_reg, got_reg, rate_fields, label=lambda k: f"p41 register row of {k[0]}"):
+        report.add("p41", line)
+
+    # the voucher lines: GST lines unchanged, party credit reduced by the tax, the tax payable line added
+    name_of = {lid: name for name, lid in ids.items()}
+    got_lines = {}
+    for ref in {r["ref_id"] for r in exp["expected_lines"]}:
+        if ref in posted:
+            for ln in vouchers.get_voucher(conn, posted[ref]).lines:
+                got_lines[(ref, str(ln.line_no))] = {"ledger_name": name_of.get(ln.ledger_id, str(ln.ledger_id)), "debit": amt(ln.debit), "credit": amt(ln.credit)}
+    line_fields = ("ledger_name", "debit", "credit")
+    want_lines = {(r["ref_id"], r["line_no"]): {f: r[f] for f in line_fields} for r in exp["expected_lines"]}
+    for line in diff_keyed(want_lines, got_lines, line_fields, label=lambda k: f"p41 voucher {k[0]} line {k[1]}"):
+        report.add("p41", line)
+
+    for w in pack.wrong_cases:
+        label = f"p41 {w['case_id']} ({w['description']})"
+        rec = VoucherRec41(w["case_id"], date.fromisoformat(w["date"]), w["voucher_type"], None, "Wrong case", w["party_ledger"],
+                           w["counter_ledger"], Decimal(w["amount"]), w["nature_key"], None, date.fromisoformat(w["payment_date"]), None, None,
+                           Decimal(w["gst_invoice_value"]) if w["gst_invoice_value"] else None)
+        errors = _try_draft(conn, _p41_draft(cid, rec, ids, reg_id, c["invoice_supplier_gstin"],
+                                             reference_no="WRONG/1" if w["voucher_type"] == "purchase" else None))
+        if not errors:
+            report.add("p41", f"{label}: the tool accepted it, expected {w['expected_rule_id']}")
+            continue
+        problem, warning = judge_wrong(label, w["expected_rule_id"], w["expected_message_contains"] or None, errors)
+        if problem:
+            report.add("p41", problem)
+        else:
+            report.counts["p41_wrong_cases_refused"] += 1
         if warning:
             report.warnings.append(warning)
 

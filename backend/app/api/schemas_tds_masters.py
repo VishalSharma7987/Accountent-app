@@ -32,9 +32,21 @@ class FyFlagOut(BaseModel):
     note: str | None
 
 
+class DeductorProfileIn(BaseModel):
+    individual_huf_not_tax_audited: bool
+    note: str | None = None
+
+
+class DeductorProfileOut(BaseModel):
+    financial_year_id: uuid.UUID
+    individual_huf_not_tax_audited: bool
+    note: str | None
+
+
 class ProfileOut(BaseModel):
     tan: str | None
     fy_flags: list[FyFlagOut]
+    deductor_profile: list[DeductorProfileOut] = []
 
 
 class CertIn(BaseModel):

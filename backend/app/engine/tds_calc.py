@@ -8,9 +8,14 @@ Conventions
 - Amounts are Decimal with 2 places; rates are percentages (2 means 2%).
 - Thresholds are "exceeds" thresholds: an amount equal to the threshold is not taxed.
 - whole_amount mode: from the payment that crosses a threshold the base is the cumulative amount (catch-up of the earlier
-  untaxed payments) and the tax already deducted on the year is set off. excess_only mode: only the part above the threshold.
+  untaxed payments). The catch-up is worked PER EARLIER PAYMENT at the rate that applied to it on its own date (the rule in force
+  on that date, the PAN status when it was entered), less the tax already deducted on that payment (T-07).
+  excess_only mode: only the part above the threshold.
 - A lower / nil deduction certificate covers at most its remaining limit (payments); the rest is taxed at the normal rate.
   A certificate is applied only when the PAN is valid (T-08).
+- Rent of land / building: the section follows the DEDUCTOR (the client), by financial year. A client that is an individual / HUF
+  not liable to tax audit in the preceding year deducts under ex-194-IB (nature `rent_194ib`), every other client under the
+  ordinary rent rule. The answer is entered by the accountant; a missing answer is refused, never defaulted (T-19).
 - Tax is rounded to the nearest rupee, halves up, in `round_tax` (the single shared helper, T-06).
 """
 
@@ -26,6 +31,7 @@ from app.engine.tds_types import (
     LowerDeductionCert,
     Nature,
     PanStatus,
+    PriorPayment,
     PriorPosition,
     RateReason,
     RateRule,
@@ -38,6 +44,8 @@ from app.engine.tds_types import (
 ZERO = Decimal("0.00")
 HUNDRED = Decimal(100)
 PURCHASE_OF_GOODS = "purchase_of_goods"  # the nature that depends on the buyer-turnover flag of the client (T-15)
+RENT_LAND_BUILDING = "rent_land_building"  # the nature the accountant picks for rent; the client flag may turn it into RENT_194IB (T-19)
+RENT_194IB = "rent_194ib"  # chosen by the system only
 _ORDER = {VerificationStatus.VERIFIED.value: 0, VerificationStatus.SECONDARY_VERIFIED.value: 1, VerificationStatus.PENDING.value: 2}
 INDIVIDUAL_HUF = ("individual", "huf")
 
@@ -100,6 +108,7 @@ class TdsContext:
     priors: Mapping[tuple, PriorPosition]  # key (deductee_ledger_id, nature_key, fy_key); missing = nothing yet
     fy_of: Callable[[date], object | None]  # the financial year key of a date, None when the client has no year for it
     buyer_flags: Mapping[object, bool] = field(default_factory=dict)  # fy_key -> 194Q buyer condition entered by the accountant
+    deductor_flags: Mapping[object, bool] = field(default_factory=dict)  # fy_key -> client is an individual / HUF not liable to tax audit (T-19)
 
 
 @dataclass(frozen=True)
@@ -115,6 +124,7 @@ class _Running:
     cumulative: Decimal = ZERO
     tax: Decimal = ZERO
     months: dict = field(default_factory=dict)
+    payments: list = field(default_factory=list)  # PriorPayment, oldest first
 
 
 def _err(rule_id: str, n: int, message: str) -> ValidationError:
@@ -122,31 +132,58 @@ def _err(rule_id: str, n: int, message: str) -> ValidationError:
 
 
 def _base_by_thresholds(rule: RateRule, amount: Decimal, cum_before: Decimal, month_before: Decimal, tax_prior: Decimal):
-    """T-07: (taxable base, threshold crossed by this item, tax already deducted that is set off)."""
+    """T-07: (taxable base, threshold crossed by this item, tax already deducted that is set off, catch_up).
+
+    catch_up is True only for an annual crossing in whole_amount mode: the earlier payments of the year are then taxed now, each at its
+    own rate (`_catch_up`); the tax already deducted on them is set off payment by payment."""
     single, monthly, annual = rule.single_payment_threshold, rule.monthly_threshold, rule.annual_threshold
     if single is None and monthly is None and annual is None:
-        return amount, False, ZERO
+        return amount, False, ZERO, False
     cum_after, month_after = cum_before + amount, month_before + amount
     if rule.threshold_mode == "excess_only":
         if annual is not None:
-            return max(ZERO, cum_after - annual) - max(ZERO, cum_before - annual), cum_before <= annual < cum_after, ZERO
+            return max(ZERO, cum_after - annual) - max(ZERO, cum_before - annual), cum_before <= annual < cum_after, ZERO, False
         if monthly is not None:
-            return max(ZERO, month_after - monthly) - max(ZERO, month_before - monthly), month_before <= monthly < month_after, ZERO
-        return max(ZERO, amount - single), False, ZERO
-    candidates = []  # (base, crossed, tax set off)
+            return max(ZERO, month_after - monthly) - max(ZERO, month_before - monthly), month_before <= monthly < month_after, ZERO, False
+        return max(ZERO, amount - single), False, ZERO, False
+    candidates = []  # (base, crossed, tax set off, catch_up)
     if annual is not None:
         if cum_before > annual:
-            candidates.append((amount, False, ZERO))
+            candidates.append((amount, False, ZERO, False))
         elif cum_after > annual:
-            candidates.append((cum_after, True, tax_prior))
+            candidates.append((cum_after, True, tax_prior, True))
     if monthly is not None:
         if month_before > monthly:
-            candidates.append((amount, False, ZERO))
+            candidates.append((amount, False, ZERO, False))
         elif month_after > monthly:
-            candidates.append((month_after, True, ZERO))
+            candidates.append((month_after, True, ZERO, False))
     if single is not None and amount > single:
-        candidates.append((amount, False, ZERO))
-    return max(candidates, key=lambda c: c[0]) if candidates else (ZERO, False, ZERO)
+        candidates.append((amount, False, ZERO, False))
+    return max(candidates, key=lambda c: c[0]) if candidates else (ZERO, False, ZERO, False)
+
+
+def _catch_up(run: _Running, ctx: TdsContext, nature_key: str, group: str, deductee: Deductee, n: int):
+    """T-07: the tax due now on the earlier payments of the year, each at the rate that applied to it on its own date.
+
+    Per earlier payment: the rate row in force on ITS date; the no-PAN rate when its PAN status then was not valid, else the normal
+    rate; tax = round_tax(amount x rate) less the tax already deducted on it, never below zero. A payment on which a certificate was
+    applied was settled when it was entered (limit and rate worked then): nothing more is due on it.
+    Returns (tax due, error | None, [(amount, rate, tax due)] of the payments that owe something)."""
+    due, details = ZERO, []
+    for p in run.payments:
+        if p.lower_cert_id is not None:
+            continue
+        rule = pick_rate_rule(ctx.rates, nature_key, group, p.event_date)
+        if rule is None:
+            return ZERO, _err("T-02", n, f"no rule for {nature_key} on {_fmt(p.event_date)}, the date of an earlier payment of this year; "
+                                          "the catch-up cannot be worked."), []
+        valid = (p.pan_status or deductee.pan_status) == PanStatus.VALID.value
+        rate = rule.rate if valid else rule.no_pan_rate
+        owed = max(ZERO, round_tax(p.amount * rate / HUNDRED) - p.tax_deducted)
+        due += owed
+        if owed > 0:
+            details.append((p.amount, rate, owed))
+    return due, None, details
 
 
 def _item(n: int, it: TdsLineIn, ctx: TdsContext, state: dict[tuple, _Running], cert_used: dict, used: list):
@@ -159,7 +196,10 @@ def _item(n: int, it: TdsLineIn, ctx: TdsContext, state: dict[tuple, _Running], 
     if not isinstance(amount, Decimal) or amount <= 0 or amount != amount.quantize(TWO_PLACES):
         errors.append(_err("T-16", n, "the amount must be more than zero with at most 2 decimal places."))
     nature = ctx.natures.get(it.nature_key)
-    if nature is None:
+    if it.nature_key == RENT_194IB:
+        errors.append(_err("T-03", n, "ex-194-IB rent cannot be chosen: choose 'Rent of land, building, furniture or fittings'; the system picks "
+                                      "the section from the client's answer 'individual / HUF not liable to tax audit' for the year."))
+    elif nature is None:
         errors.append(_err("T-03", n, f"the nature '{it.nature_key}' is not known."))
     elif nature.kind != ctx.kind:
         errors.append(_err("T-03" if ctx.kind == "tds" else "T-17", n,
@@ -182,35 +222,50 @@ def _item(n: int, it: TdsLineIn, ctx: TdsContext, state: dict[tuple, _Running], 
     if errors:
         return None, errors, fy_key
 
-    key = (it.deductee_ledger_id, it.nature_key, fy_key)
+    nature_key = it.nature_key
+    if nature_key == RENT_LAND_BUILDING:  # T-19: the deductor (client), not the landlord, decides ex-194-I or ex-194-IB
+        answer = ctx.deductor_flags.get(fy_key)
+        if answer is None:
+            return None, [_err("T-19", n, "rent: the client's answer 'individual / HUF not liable to tax audit in the preceding year' is not entered "
+                                          "for this financial year; enter it in the client's TDS profile first (no guess).")], fy_key
+        if answer:
+            nature_key = RENT_194IB
+            nature = ctx.natures.get(RENT_194IB)
+            if nature is None:
+                return None, [_err("T-03", n, "the nature 'rent_194ib' is not known; the rule data is incomplete.")], fy_key
+
+    key = (it.deductee_ledger_id, nature_key, fy_key)
     prior = ctx.priors.get(key, PriorPosition())
-    run = state.setdefault(key, _Running(prior.cumulative_amount, prior.tax_deducted, dict(prior.monthly_amounts)))
+    # rows without the single payments (old data): the year so far is taken as ONE payment at the present PAN status, taxed as the totals say
+    history = list(prior.payments) or ([PriorPayment(prior.cumulative_amount, ev, prior.tax_deducted)] if prior.cumulative_amount > 0 else [])
+    run = state.setdefault(key, _Running(prior.cumulative_amount, prior.tax_deducted, dict(prior.monthly_amounts), history))
     month = ev.strftime("%Y-%m")
     cum_before, month_before = run.cumulative, run.months.get(month, ZERO)
     warnings: list[str] = []
 
     if nature.rate_mode == "slab_manual":
-        sect = pick_section(ctx.section_refs, it.nature_key, ev)
+        sect = pick_section(ctx.section_refs, nature_key, ev)
         if sect is None:
             return None, [_err("T-02", n, f"no rule for {nature.description} on {_fmt(ev)}.")], fy_key
         status = worst_status([nature.verification_status, sect.verification_status])
         used.append(("section", sect.verification_status, sect.source_reference))
         tax = round_tax(it.manual_tax)
         result = TdsItemResult(
-            n, it.deductee_ledger_id, it.nature_key, sect.act, sect.section_ref, sect.table_ref, None, ev, amount,
+            n, it.deductee_ledger_id, nature_key, sect.act, sect.section_ref, sect.table_ref, None, ev, amount,
             cum_before, cum_before + amount, False, amount, Decimal(0), RateReason.MANUAL_SALARY.value, None, ZERO, tax, status,
             ("T-02: the section reference is pending verification.",) if sect.verification_status == "pending" else (),
+            deductee.pan_status,
         )
-        _advance(run, month, amount, tax)
+        _advance(run, month, amount, tax, ev, None, deductee.pan_status)
         return result, [], fy_key
 
     group = deductee_group(deductee.deductee_type)
-    rule = pick_rate_rule(ctx.rates, it.nature_key, group, ev)
+    rule = pick_rate_rule(ctx.rates, nature_key, group, ev)
     if rule is None:
-        near = sorted((s for s in ctx.section_refs if s.nature_key == it.nature_key), key=lambda s: abs((s.effective_from - ev).days))
+        near = sorted((s for s in ctx.section_refs if s.nature_key == nature_key), key=lambda s: abs((s.effective_from - ev).days))
         label = near[0].section_ref if near else nature.description
         return None, [_err("T-02", n, f"no rule for {label} on {_fmt(ev)} ({nature.description}); the rule table has no row in force for this date.")], fy_key
-    sect = pick_section(ctx.section_refs, it.nature_key, ev, rule.act)
+    sect = pick_section(ctx.section_refs, nature_key, ev, rule.act)
     if sect is None:
         return None, [_err("T-02", n, f"no section reference for {nature.description} under {rule.act} on {_fmt(ev)}.")], fy_key
     used.append(("rate", rule.verification_status, rule.source_reference))
@@ -221,13 +276,14 @@ def _item(n: int, it: TdsLineIn, ctx: TdsContext, state: dict[tuple, _Running], 
 
     def make(base, rate, reason, cert_id, already, tax, crossed):
         result = TdsItemResult(
-            n, it.deductee_ledger_id, it.nature_key, rule.act, sect.section_ref, sect.table_ref, rule.id, ev, amount,
+            n, it.deductee_ledger_id, nature_key, rule.act, sect.section_ref, sect.table_ref, rule.id, ev, amount,
             cum_before, cum_before + amount, crossed, base, rate, reason, cert_id, already, tax, status, tuple(warnings),
+            deductee.pan_status,
         )
-        _advance(run, month, amount, tax)
+        _advance(run, month, amount, tax, ev, cert_id, deductee.pan_status)
         return result, [], fy_key
 
-    if it.nature_key == PURCHASE_OF_GOODS:  # T-15
+    if nature_key == PURCHASE_OF_GOODS:  # T-15
         flag = ctx.buyer_flags.get(fy_key)
         if flag is None:
             return None, [_err("T-15", n, f"{sect.section_ref}: the buyer-turnover condition is not entered for this financial year; enter it first (no guess).")], fy_key
@@ -235,7 +291,7 @@ def _item(n: int, it: TdsLineIn, ctx: TdsContext, state: dict[tuple, _Running], 
             warnings.append(f"T-15: {sect.section_ref} does not apply because the buyer-turnover condition is 'No' for this year; no tax deducted.")
             return make(ZERO, Decimal(0), RateReason.BELOW_THRESHOLD.value, None, ZERO, ZERO, False)
 
-    base, crossed, already = _base_by_thresholds(rule, amount, cum_before, month_before, run.tax)
+    base, crossed, already, catch_up = _base_by_thresholds(rule, amount, cum_before, month_before, run.tax)
     if base <= 0:
         return make(ZERO, Decimal(0), RateReason.BELOW_THRESHOLD.value, None, ZERO, ZERO, False)
 
@@ -267,19 +323,28 @@ def _item(n: int, it: TdsLineIn, ctx: TdsContext, state: dict[tuple, _Running], 
                 warnings.append(
                     f"T-12: certificate {cert.certificate_no} covers {format_inr(covered)} at {cert.rate}%; the rest is taxed at {normal}%."
                 )
+    this_base = amount if catch_up else base  # at a catch-up crossing the earlier payments are worked separately, at their own rates
     if cert is not None:
-        gross = covered * cert.rate / HUNDRED + (base - covered) * normal / HUNDRED
+        gross = covered * cert.rate / HUNDRED + (this_base - covered) * normal / HUNDRED
         reason, rate_applied, cert_id = (RateReason.NIL_CERTIFICATE.value if cert.rate == 0 else RateReason.LOWER_CERTIFICATE.value), cert.rate, cert.id
     else:
-        gross, rate_applied, cert_id = base * normal / HUNDRED, normal, None
-    tax = max(ZERO, round_tax(gross) - already)
-    return make(base, rate_applied, reason, cert_id, already, tax, crossed)
+        gross, rate_applied, cert_id = this_base * normal / HUNDRED, normal, None
+    if not catch_up:
+        return make(base, rate_applied, reason, cert_id, already, max(ZERO, round_tax(gross) - already), crossed)
+    earlier_due, problem, details = _catch_up(run, ctx, nature_key, group, deductee, n)
+    if problem is not None:
+        return None, [problem], fy_key
+    if details:
+        parts = "; ".join(f"{format_inr(a)} at {r}% = {format_inr(t)}" for a, r, t in details)
+        warnings.append(f"T-07: the threshold was crossed; the earlier payments are taxed now, each at the rate that applied to it on its own date: {parts}.")
+    return make(base, rate_applied, reason, cert_id, already, round_tax(gross) + earlier_due, crossed)
 
 
-def _advance(run: _Running, month: str, amount: Decimal, tax: Decimal) -> None:
+def _advance(run: _Running, month: str, amount: Decimal, tax: Decimal, ev: date, cert_id: str | None, pan_status: str | None) -> None:
     run.cumulative += amount
     run.tax += tax
     run.months[month] = run.months.get(month, ZERO) + amount
+    run.payments.append(PriorPayment(amount, ev, tax, cert_id, pan_status))
 
 
 def _cert_problem(cert, it: TdsLineIn, deductee: Deductee, ev: date, rule: RateRule) -> str | None:
@@ -384,3 +449,71 @@ def expand_lines(
         out.append([payable, ZERO, tax])
         tax_line_of[r.item_no] = len(out)
     return [tuple(x) for x in out], tax_line_of, errors
+
+
+# ---- rates shown to the accountant (T-12) ----------------------------------------------------------------------------------
+
+RATE_PLACES = Decimal("0.0001")
+
+
+def rate_of_certificate(rate_reason: str, rate_applied: Decimal) -> Decimal | None:
+    """The rate of the lower / nil certificate applied to an item (None when no certificate was applied)."""
+    if rate_reason in (RateReason.LOWER_CERTIFICATE.value, RateReason.NIL_CERTIFICATE.value):
+        return rate_applied
+    return None
+
+
+def rate_effective(taxable_base: Decimal, tax: Decimal, tax_already_on_base: Decimal) -> Decimal | None:
+    """Tax / taxable base in percent, 4 places halves up: (tax of the item + tax already deducted on the base) / base.
+    With a certificate that covers only part of the amount this differs from the certificate rate. None when there is no base."""
+    if taxable_base <= 0:
+        return None
+    return round_half_up((tax + tax_already_on_base) * HUNDRED / taxable_base, 4).quantize(RATE_PLACES)
+
+
+def certificate_rate(result: TdsItemResult) -> Decimal | None:
+    return rate_of_certificate(result.rate_reason, result.rate_applied)
+
+
+def effective_rate(result: TdsItemResult) -> Decimal | None:
+    return rate_effective(result.taxable_base, result.tds_amount, result.tax_already_on_base)
+
+
+# ---- TDS on a GST invoice (T-18) and the invoice lines without the tax line (G-26) -------------------------------------------
+
+
+def check_gst_base(items: Sequence[TdsLineIn], taxable_value: Decimal) -> list[ValidationError]:
+    """T-18: on an invoice that shows GST separately, tax is deducted on the value WITHOUT GST. The amounts of the items together
+    cannot be more than the invoice's taxable value (owner-supplied position, see the provision `gst_excluded_from_base`)."""
+    errors: list[ValidationError] = []
+    running = ZERO
+    for n, it in enumerate(items, start=1):
+        running += it.amount
+        if running > taxable_value:
+            errors.append(_err(
+                "T-18", n,
+                f"the amount for tax {format_inr(running)} is more than the invoice value without GST {format_inr(taxable_value)}; "
+                "GST shown separately on the invoice is not part of the amount on which tax is deducted."))
+    return errors
+
+
+def strip_tax_lines(voucher_type: str, lines: Sequence[tuple[object, Decimal, Decimal]],
+                    taxes: Sequence[tuple[object, Decimal]]) -> list[tuple[object, Decimal, Decimal]]:
+    """Undo `expand_lines` on an invoice-mode voucher so G-26 can compare it with what the GST engine built.
+
+    `taxes` = (deductee ledger id, tax) of every item with tax, in item order: the tax lines are the last lines. A Sales invoice
+    carries TCS (the party's Debit line was increased), every other invoice carries TDS (the party's Credit line was reduced)."""
+    out = [list(x) for x in lines]
+    if not taxes:
+        return [tuple(x) for x in out]
+    del out[len(out) - len(taxes):]
+    for ledger, tax in taxes:
+        if voucher_type == "sales":
+            hit = next((x for x in out if str(x[0]) == str(ledger) and x[1] >= tax), None)
+            if hit is not None:
+                hit[1] -= tax
+        else:
+            hit = next((x for x in out if str(x[0]) == str(ledger) and x[2] > 0), None)
+            if hit is not None:
+                hit[2] += tax
+    return [tuple(x) for x in out]

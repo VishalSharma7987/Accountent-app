@@ -13,6 +13,7 @@ from decimal import Decimal
 from sqlalchemy import Connection
 
 from app.db import repositories_gst_invoice as repo
+from app.db import repositories_tds_deduction as tdb
 from app.engine.gst_invoice import (
     BuildOutcome,
     InvoiceContext,
@@ -22,6 +23,7 @@ from app.engine.gst_invoice import (
 )
 from app.engine.gst_types import InvoiceIn, ItemLineIn
 from app.engine.models import Allocation, ValidationError, VoucherDraft, VoucherLine
+from app.engine.tds_calc import strip_tax_lines
 from app.services.errors import ServiceError, VoucherRuleError
 
 STATUS_ORDER = {"verified": 0, "secondary_verified": 1, "pending": 2}
@@ -146,7 +148,9 @@ def revalidate(conn: Connection, record) -> list[ValidationError]:
     if outcome.result is None:
         return outcome.errors
     # the stored item rows themselves must equal the engine's figures
-    errors = check_lines_match(outcome.result, [(x.ledger_id, x.debit, x.credit) for x in record.lines])
+    taxes = [(r["deductee_ledger_id"], r["tds_amount"]) for r in tdb.load_items(conn, record.id) if r["tds_amount"] > 0]
+    booked = strip_tax_lines(record.voucher_type, [(x.ledger_id, x.debit, x.credit) for x in record.lines], taxes)  # TDS / TCS line is not an invoice line
+    errors = check_lines_match(outcome.result, booked)
     for tax, row in zip(outcome.result.items, stored.items, strict=False):
         keys = ("taxable_value", "cgst", "sgst", "igst", "cess")
         if any(Decimal(row[k]) != getattr(tax, k) for k in keys):

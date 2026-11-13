@@ -1,4 +1,5 @@
 // Pure helpers for the TDS screens. Nothing here computes tax: the server does (T-05).
+import type { GstIn } from '../api/gst'
 import type { DueEvent, MatchRow, TdsItemIn, TdsVoucherBody } from '../api/tds'
 import { sumAmounts, toPaise } from '../lib/money'
 import type { FinancialYear, VoucherLineIn } from '../types'
@@ -76,6 +77,30 @@ export function itemProblems(i: TdsItemIn): string[] {
   return out
 }
 
+/** Natures the system picks itself: the accountant chooses "Rent of land, building..." and the server picks ex-194-IB from the client profile (T-19). */
+export const SYSTEM_PICKED_NATURES = ['rent_194ib']
+export function selectableNatures<T extends { key: string }>(options: T[]): T[] {
+  return options.filter((n) => !SYSTEM_PICKED_NATURES.includes(n.key))
+}
+
+/** The two rates side by side, as sent by the server: the certificate rate (blank when none was applied) and the effective rate (tax / base). */
+export function rateCells(row: { certificate_rate?: string | null; effective_rate?: string | null }): { certificate: string; effective: string } {
+  return { certificate: row.certificate_rate ?? '', effective: row.effective_rate ?? '' }
+}
+
+/** True when a certificate covered only part of the amount, so the effective rate is not the certificate rate. */
+export function isPartialCertificate(row: { certificate_rate?: string | null; effective_rate?: string | null }): boolean {
+  const { certificate, effective } = rateCells(row)
+  return certificate !== '' && effective !== '' && Number(certificate) !== Number(effective)
+}
+
+/** The client's answer for rent (T-19) in words; 'Not recorded' blocks rent deduction for that year. */
+export function deductorAnswerLabel(profile: { financial_year_id: string; individual_huf_not_tax_audited: boolean }[] | undefined, fyId: string): string {
+  const row = profile?.find((p) => p.financial_year_id === fyId)
+  if (!row) return 'Not recorded'
+  return row.individual_huf_not_tax_audited ? 'Yes: ex-194-IB (2%, Rs 50,000 a month)' : 'No: ex-194-I (2% machinery, 10% land / building)'
+}
+
 /** Gross voucher lines the caller types; the tax line is added by the server (read-only). */
 export function buildLines(type: string, items: TdsItemIn[], counterLedgerId: string): VoucherLineIn[] {
   const total = sumAmounts(items.map((i) => i.amount)).total
@@ -94,6 +119,18 @@ export function previewBody(
   if (typed.some((i) => itemProblems(i).length > 0)) return null
   const clean = typed.map((i) => ({ ...i, manual_tax: i.manual_tax || null }))
   return { ...base, lines: buildLines(base.voucher_type, clean, counterLedgerId), tds: { items: clean } }
+}
+
+/** Invoice mode (purchase invoice with GST): the TDS items travel with the GST block; the server builds every line. */
+export function invoicePreviewBody(
+  base: { voucher_type: string; voucher_date: string; narration: string; reference_no: string | null; party_ledger_id: string | null },
+  items: TdsItemIn[],
+  gst: GstIn,
+): TdsVoucherBody | null {
+  const typed = items.filter(hasInput)
+  if (typed.length === 0 || !base.voucher_date) return null
+  if (typed.some((i) => itemProblems(i).length > 0)) return null
+  return { ...base, lines: [], tds: { items: typed.map((i) => ({ ...i, manual_tax: i.manual_tax || null })) }, gst }
 }
 
 /** Add the proposed amounts of one challan to what it already allocates, exactly (integer paise). */

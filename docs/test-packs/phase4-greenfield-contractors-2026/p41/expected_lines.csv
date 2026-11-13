@@ -1,0 +1,9 @@
+ref_id,line_no,ledger_name,debit,credit
+G1,1,Mumbai Works Pvt Ltd,0.00,116000.00
+G1,2,Contract Expenses,100000.00,0.00
+G1,3,Input CGST,9000.00,0.00
+G1,4,Input SGST,9000.00,0.00
+G1,5,TDS Payable,0.00,2000.00
+R1,1,Mrs Sharma,60000.00,0.00
+R1,2,HDFC Bank,0.00,58800.00
+R1,3,TDS Payable,0.00,1200.00

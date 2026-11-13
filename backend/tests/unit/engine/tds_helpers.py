@@ -8,6 +8,7 @@ from app.engine.tds_types import (
     Deductee,
     LowerDeductionCert,
     Nature,
+    PriorPayment,
     PriorPosition,
     RateRule,
     SectionRef,
@@ -20,6 +21,7 @@ NATURES = {
     "contractor": Nature("contractor", "tds", "Payment to contractor", "flat", "secondary_verified"),
     "technical_fees": Nature("technical_fees", "tds", "Technical fees", "flat", "secondary_verified"),
     "rent_land_building": Nature("rent_land_building", "tds", "Rent of land or building", "flat", "pending"),
+    "rent_194ib": Nature("rent_194ib", "tds", "Rent by an individual / HUF not liable to tax audit", "flat", "secondary_verified"),
     "purchase_of_goods": Nature("purchase_of_goods", "tds", "Purchase of goods", "flat", "secondary_verified"),
     "salary": Nature("salary", "tds", "Salary", "slab_manual", "secondary_verified"),
     "tcs_motor_vehicle": Nature("tcs_motor_vehicle", "tcs", "TCS motor vehicle", "flat", "pending"),
@@ -39,6 +41,8 @@ SECTIONS = [
     sect("technical_fees", A25, "393(1)", START25, table="Sl.6(iii)(a)"),
     sect("rent_land_building", A61, "194I(b)", date(2025, 4, 1), END61, status="pending"),
     sect("rent_land_building", A25, "393(1)", START25, table="Sl.2(ii)(b)", status="pending"),
+    sect("rent_194ib", A61, "194-IB", date(2025, 4, 1), END61, status="pending"),
+    sect("rent_194ib", A25, "393(1)", START25, table="rent entry (ex-194-IB)"),
     sect("purchase_of_goods", A61, "194Q", date(2025, 4, 1), END61, status="pending"),
     sect("purchase_of_goods", A25, "393(1)", START25, table="Sl.8(ii)"),
     sect("salary", A61, "192", date(2025, 4, 1), END61),
@@ -61,6 +65,7 @@ RATES = [
     rate("c25-ot", "contractor", A25, "others", "2.5", "20", "30000", None, "100000", "whole_amount", START25, None),
     rate("tf25", "technical_fees", A25, "any", "2", "20", None, None, "50000", "whole_amount", START25, None),
     rate("rent25", "rent_land_building", A25, "any", "10", "20", None, "50000", None, "whole_amount", START25, None, "pending"),
+    rate("rent-ib25", "rent_194ib", A25, "any", "2", "20", None, "50000", None, "whole_amount", START25, None),
     rate("q25", "purchase_of_goods", A25, "any", "0.1", "5", None, None, "5000000", "excess_only", START25, None),
     rate("mv25", "tcs_motor_vehicle", A25, "any", "1", "5", None, None, "1000000", "excess_only", START25, None, "pending"),
 ]
@@ -72,16 +77,23 @@ BAD_PAN = Deductee("badpan", "ABCDE1234F", "invalid", "company")
 DEDUCTEES = {d.ledger_id: d for d in (COMPANY, PERSON, NO_PAN, BAD_PAN)}
 
 
-def ctx(*, priors=None, certs=(), flags=None, kind="tds", fy=lambda d: FY, rates=RATES, deductees=DEDUCTEES):
-    return TdsContext(kind, NATURES, deductees, rates, SECTIONS, {c.id: c for c in certs}, priors or {}, fy, flags or {})
+def ctx(*, priors=None, certs=(), flags=None, kind="tds", fy=lambda d: FY, rates=RATES, deductees=DEDUCTEES, deductor=None):
+    """`deductor` = the client's 'individual / HUF not liable to tax audit' answer by year (T-19); the default is 'No' for FY."""
+    return TdsContext(kind, NATURES, deductees, rates, SECTIONS, {c.id: c for c in certs}, priors or {}, fy, flags or {},
+                      {FY: False} if deductor is None else deductor)
 
 
 def line(who, nature, amount, pay=None, credit=None, cert=None, manual=None):
     return TdsLineIn(who, nature, D(amount), credit, pay, cert, None if manual is None else D(manual))
 
 
-def prior(who, nature, cumulative, tax="0", months=None):
-    return {(who, nature, FY): PriorPosition(D(cumulative), D(tax), months or {})}
+def prior(who, nature, cumulative, tax="0", months=None, payments=()):
+    return {(who, nature, FY): PriorPosition(D(cumulative), D(tax), months or {}, tuple(payments))}
+
+
+def paid(amount, on, tax="0", cert=None, pan=None):
+    """One earlier payment from the books (see PriorPayment)."""
+    return PriorPayment(D(amount), on, D(tax), cert, pan)
 
 
 def cert(cid, who, rate_, max_amount, frm, to, nature=None, used="0", no="CERT-1"):

@@ -56,3 +56,11 @@ tds = {
 
 ## Frontend screens (package F)
 Deductee master (PAN status, certificates), ledger-role map, rule viewer (status badge, amber when `pending`; old <-> new section map), voucher entry with the TDS block and read-only tax preview (`tds-preview` on every change, threshold headroom), TDS register, challan entry and matching (auto-propose), interest and due-calendar, return working and certificate preview, 26AS import + reconciliation with manual link.
+
+
+## Phase 4.1 additions (2026-11-13)
+- `GET /clients/{c}/tds/profile` now also returns `deductor_profile:[{financial_year_id, individual_huf_not_tax_audited, note}]`; `PUT /clients/{c}/tds/deductor-profile/{fy_id}` body `{individual_huf_not_tax_audited, note?}` -> `{"ok":true}` (the client is an individual / HUF NOT liable to tax audit in the preceding year; audit-logged as `tds_deductor_profile`). Rent by the client uses ex-194-IB when true, ex-194-I when false; no answer for the year -> `422 T-19`.
+- Rent: the accountant sends nature `rent_land_building`; the item output carries the nature actually used (`rent_194ib` or `rent_land_building`). Sending `rent_194ib` is refused (`T-03`).
+- Every TDS item (preview `tds.items[]`, voucher `tds.items[]`) and every register row has `certificate_rate` (string, null when no certificate was applied) and `effective_rate` (string, null when the base is 0): effective = (tax + tax already deducted on the base) / taxable base in percent, 4 places halves up.
+- A voucher body with a `gst` block (purchase invoice) may carry a `tds` block (`lines` stays empty). The base (`amount`) is the value WITHOUT GST: more than the invoice's taxable value -> `422 T-18`. `POST .../vouchers/tds-preview` with both blocks returns the generated lines (party Credit reduced by the tax, `TDS payable` added, GST lines unchanged) and the tax working.
+- Threshold crossing: `tax_already_on_base` is the tax already deducted on the earlier payments; `tds_amount` is what is due on this voucher, i.e. the earlier payments at THEIR OWN rates (T-07) plus this payment.

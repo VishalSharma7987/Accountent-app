@@ -79,3 +79,14 @@ Not seeded (owner / CA to add rows, no code change): 194D, 194G, 194B, 194BB, 19
 3. TCS rates from 1-4-2026 (liquor, scrap, minerals, tendu, timber) and the LRS / overseas-tour limits; table serials of section 393 / 394.
 4. Section numbers of the 2025 Act for no-PAN, lower deduction, interest, certificates; the 30 April rule for March; certificate due dates.
 5. Treatment of GST in the TDS base and the threshold-crossing catch-up (CBDT circulars) - the engine implements the rule as written in `tds_provisions` and tests it with hand-worked cases; the CA signs the cases in the test pack.
+
+
+## Phase 4.1 additions (owner-supplied 2026-11-13, seed 0011)
+| Item | Value | Status |
+| --- | --- | --- |
+| Rent by an individual / HUF not liable to tax audit (ex-194-IB), s.393 entry | 2%, Rs 50,000 per month; nature `rent_194ib`; 1961 rows `pending` | `secondary_verified` (2025 Act) |
+| Rent classification follows the DEDUCTOR (individual / HUF not liable to tax audit = ex-194-IB, everyone else ex-194-I) | provision `rent_deductor_classification` | `secondary_verified` |
+| ex-194-IB: the WHOLE month's rent once the month is above Rs 50,000 (not only the excess) | provision `rent_194ib_whole_month_reading` | **`pending` for the CA** |
+| Tax on a GST invoice is on the value without GST shown separately | provision `gst_excluded_from_base`; the circular number is NOT recorded | `secondary_verified` (owner-supplied position; circular number to be confirmed by the CA) |
+| Interest on late deduction 1% and on late deposit 1.5% per month or part of a month | `tds_interest_rules` | `secondary_verified` |
+| Tax rounded to the nearest rupee (old s.288B; 2025-Act section number not verified) | provision `rounding_nearest_rupee` | `secondary_verified` |

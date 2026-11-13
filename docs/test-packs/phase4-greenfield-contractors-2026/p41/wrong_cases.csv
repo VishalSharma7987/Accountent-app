@@ -1,0 +1,4 @@
+case_id,description,voucher_type,party_ledger,counter_ledger,amount,nature_key,date,payment_date,gst_invoice_value,expected_rule_id,expected_message_contains
+W1,"Tax base typed with the GST included on a GST invoice (1,18,000.00 on an invoice of 1,00,000.00 plus GST)",purchase,Mumbai Works Pvt Ltd,Contract Expenses,118000.00,contractor,2026-05-13,2026-05-13,100000.00,T-18,without GST
+W2,Rent in 2025-26 when the client's answer for that year is not entered,payment,Mrs Sharma,HDFC Bank,60000.00,rent_land_building,2026-01-15,2026-01-15,,T-19,not liable to tax audit
+W3,Rent typed as ex-194-IB (the system picks it from the client profile),payment,Mrs Sharma,HDFC Bank,60000.00,rent_194ib,2026-09-15,2026-09-15,,T-03,client

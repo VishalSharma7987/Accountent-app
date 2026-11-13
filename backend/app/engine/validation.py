@@ -11,6 +11,7 @@ from decimal import Decimal
 from app.engine.gst_invoice import check_lines_match
 from app.engine.models import Group, Ledger, PeriodInfo, ValidationError, VoucherDraft
 from app.engine.money import MoneyError, format_inr, parse_amount
+from app.engine.tds_calc import strip_tax_lines
 
 VOUCHER_TYPES = (
     "contra", "payment", "receipt", "sales", "purchase", "credit_note", "debit_note", "journal",
@@ -208,7 +209,9 @@ def validate_voucher(
 
     # ---- G-26: an invoice-mode voucher's lines must be exactly what the GST engine built --------------
     if draft.gst_result is not None and not is_reversal and amounts_ok:
-        errors.extend(check_lines_match(draft.gst_result, [(ln.ledger_id, *amounts[n]) for n, ln in enumerate(lines, start=1) if n in amounts]))
+        booked = [(ln.ledger_id, *amounts[n]) for n, ln in enumerate(lines, start=1) if n in amounts]
+        taxes = [(r.deductee_ledger_id, r.tds_amount) for r in draft.tds_results if r.tds_amount > 0]
+        errors.extend(check_lines_match(draft.gst_result, strip_tax_lines(draft.voucher_type, booked, taxes)))  # the TDS / TCS line is not an invoice line
 
     errors.sort(key=lambda e: (e.rule_id, e.line_no is None, e.line_no or 0))
     return errors

@@ -188,12 +188,25 @@ class TdsLineIn:
 
 
 @dataclass(frozen=True)
+class PriorPayment:
+    """One earlier payment of the year from the books (posted, not reversed). Needed to work the threshold catch-up at the rate
+    that applied to each payment on its own date (T-07)."""
+
+    amount: Decimal
+    event_date: date
+    tax_deducted: Decimal = Decimal(0)
+    lower_cert_id: str | None = None  # set when a certificate was applied to this payment (it was settled at that time)
+    pan_status: str | None = None  # PAN status when it was entered; None (old rows) = the deductee's present status
+
+
+@dataclass(frozen=True)
 class PriorPosition:
     """What the books already hold for one deductee + nature + financial year (posted, not reversed vouchers)."""
 
     cumulative_amount: Decimal = Decimal(0)
     tax_deducted: Decimal = Decimal(0)
     monthly_amounts: dict[str, Decimal] = field(default_factory=dict)  # 'YYYY-MM' -> amount (rent)
+    payments: tuple[PriorPayment, ...] = ()  # the single payments behind the totals, oldest first; empty = not known
 
 
 @dataclass(frozen=True)
@@ -218,3 +231,4 @@ class TdsItemResult:
     tds_amount: Decimal
     verification_status: str
     warnings: tuple[str, ...] = ()
+    pan_status_at_event: str | None = None  # the deductee's PAN status when this item was worked (kept for later catch-up)

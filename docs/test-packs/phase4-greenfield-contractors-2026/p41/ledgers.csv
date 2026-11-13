@@ -1,0 +1,18 @@
+ledger_name,group_name
+HDFC Bank,Bank Accounts
+Contract Expenses,Indirect Expenses
+Rent Paid,Indirect Expenses
+TDS Payable,Duties & Taxes
+Mumbai Works Pvt Ltd,Sundry Creditors
+Rajesh Fabricators Pvt Ltd,Sundry Creditors
+Zenith Engineers Pvt Ltd,Sundry Creditors
+Mrs Sharma,Sundry Creditors
+Output CGST,Duties & Taxes
+Output SGST,Duties & Taxes
+Output IGST,Duties & Taxes
+Input CGST,Duties & Taxes
+Input SGST,Duties & Taxes
+Input IGST,Duties & Taxes
+RCM CGST Payable,Duties & Taxes
+RCM SGST Payable,Duties & Taxes
+RCM IGST Payable,Duties & Taxes

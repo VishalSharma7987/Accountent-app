@@ -69,7 +69,9 @@ def get_profile(conn: Connection, client_id: object) -> dict:
         raise ServiceError("not_found", "Client not found.")
     flags = [{"financial_year_id": fy, "prev_year_turnover_over_threshold": over, "note": note}
              for fy, over, note in tds_repo.fy_flag_rows(conn, client_id)]
-    return {"tan": row[0], "fy_flags": flags}
+    deductor = [{"financial_year_id": fy, "individual_huf_not_tax_audited": flag, "note": note}
+                for fy, flag, note in tds_repo.deductor_profile_rows(conn, client_id)]
+    return {"tan": row[0], "fy_flags": flags, "deductor_profile": deductor}
 
 
 def set_tan(conn: Connection, client_id: object, tan: str, *, actor: str) -> None:
@@ -98,6 +100,21 @@ def set_fy_flag(conn: Connection, client_id: object, fy_id: object, over: bool, 
         client_id, actor, "update" if old else "create", "tds_fy_flag", fy_id,
         old=None if old is None else {"prev_year_turnover_over_threshold": old[0], "note": old[1]},
         new={"prev_year_turnover_over_threshold": over, "note": _clean(note)}))
+
+
+def set_deductor_profile(conn: Connection, client_id: object, fy_id: object, not_audited: bool, note: str | None, *, actor: str) -> None:
+    """T-19: is the client (the deductor) an individual / HUF NOT liable to tax audit in the preceding year? Decides ex-194-IB or
+    ex-194-I for rent. Entered by the accountant per financial year, never guessed."""
+    actor = require_actor(actor)
+    _require_client(conn, client_id)
+    if not tds_repo.fy_exists(conn, client_id, fy_id):
+        raise ServiceError("not_found", "Financial year not found for this client.")
+    old = tds_repo.deductor_profile(conn, client_id, fy_id)
+    tds_repo.upsert_deductor_profile(conn, client_id, fy_id, not_audited, _clean(note), actor)
+    audit.log(conn, AuditEntry(
+        client_id, actor, "update" if old else "create", "tds_deductor_profile", fy_id,
+        old=None if old is None else {"individual_huf_not_tax_audited": old[0], "note": old[1]},
+        new={"individual_huf_not_tax_audited": not_audited, "note": _clean(note)}))
 
 
 def fy_flag(conn: Connection, client_id: object, fy_id: object) -> bool | None:

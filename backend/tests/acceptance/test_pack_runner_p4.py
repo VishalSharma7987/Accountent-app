@@ -44,3 +44,5 @@ def test_counts(p4_run):
     assert p4_run.counts["vouchers_posted"] == 28
     assert p4_run.counts["challans"] == 5
     assert p4_run.counts["wrong_cases_refused"] == 11
+    assert p4_run.counts["p41_vouchers_posted"] == 11
+    assert p4_run.counts["p41_wrong_cases_refused"] == 3

@@ -58,7 +58,7 @@ def _compute(conn: Connection, client_id: object, items: list[TdsLineIn], extra_
     natures = tdb.load_natures(conn)
     first = natures.get(items[0].nature_key)
     kind = first.kind if first else "tds"
-    keys = sorted({i.nature_key for i in items})
+    keys = sorted({i.nature_key for i in items} | ({tds_calc.RENT_194IB} if any(i.nature_key == tds_calc.RENT_LAND_BUILDING for i in items) else set()))
     ledgers = sorted({i.deductee_ledger_id for i in items}, key=str)
     deductees, inactive, names = tdb.load_deductees(conn, client_id, ledgers)
     roles = tdb.load_roles(conn, client_id)
@@ -84,7 +84,7 @@ def _compute(conn: Connection, client_id: object, items: list[TdsLineIn], extra_
     ctx = tds_calc.TdsContext(
         kind, natures, deductees, tdb.load_rates(conn, keys), tdb.load_section_refs(conn, keys),
         tdb.load_certs(conn, client_id, cert_ids), tdb.load_priors(conn, client_id, ledgers, keys, fy_ids), fy_of,
-        tdb.load_buyer_flags(conn, client_id),
+        tdb.load_buyer_flags(conn, client_id), tdb.load_deductor_flags(conn, client_id),
     )
     if pre:
         return _Computed(tds_calc.TdsComputation((), tuple(pre), tds_calc.rule_status_of([])), kind, vctx, roles, names, pre)
@@ -139,8 +139,8 @@ def expand(conn: Connection, draft: VoucherDraft) -> tuple[VoucherDraft, list[Va
     """Run the engine on the draft's `tds` block and add the tax line(s). A draft without a block (or already expanded) is unchanged."""
     if not draft.tds or draft.tds_results:
         return draft, []
-    if draft.gst is not None:
-        return draft, [ValidationError("T-16", "TDS on a voucher entered in GST invoice mode is not supported yet; enter it as a plain voucher.")]
+    if draft.gst is not None and draft.gst_result is None:
+        return draft, []  # the invoice failed its own rules (G-xx); those errors are reported first
     try:
         old = [(x.ledger_id, _amount(x.debit), _amount(x.credit)) for x in draft.lines]
     except MoneyError:
@@ -148,6 +148,10 @@ def expand(conn: Connection, draft: VoucherDraft) -> tuple[VoucherDraft, list[Va
     done = _compute(conn, draft.client_id, list(draft.tds), [x.ledger_id for x in draft.lines])
     if done.errors:
         return draft, done.errors
+    if draft.gst_result is not None and done.kind == "tds":  # T-18: GST shown separately is not part of the base
+        errors = tds_calc.check_gst_base(draft.tds, sum((x.taxable_value for x in draft.gst_result.items), ZERO))
+        if errors:
+            return draft, errors
     payable_of, errors = _payable_of(done)
     if errors:
         return draft, errors
@@ -193,7 +197,7 @@ def persist(conn: Connection, client_id: object, voucher_id: object, draft: Vouc
             "cumulative_after": r.cumulative_after, "threshold_crossed": r.threshold_crossed, "taxable_base": r.taxable_base,
             "rate_applied": r.rate_applied, "rate_reason": r.rate_reason, "lower_cert_id": r.lower_cert_id,
             "tax_already_on_base": r.tax_already_on_base, "tds_amount": r.tds_amount, "tds_line_no": line_of.get(r.item_no),
-            "engine_version": ENGINE_VERSION, "note": " | ".join(r.warnings) or None,
+            "engine_version": ENGINE_VERSION, "note": " | ".join(r.warnings) or None, "pan_status_at_event": r.pan_status_at_event,
         })
     tdb.insert_items(conn, rows)
 
@@ -210,12 +214,16 @@ def _warnings(note: str | None) -> list[dict]:
 def _item_out(*, item_no, ledger_id, name, nature_key, act, section_ref, table_ref, event_date, payment_amount, cumulative_before,
               cumulative_after, threshold_crossed, taxable_base, rate_applied, rate_reason, lower_cert_id, tax_already, tds_amount,
               line_no, status, warnings) -> dict:
+    effective = tds_calc.rate_effective(taxable_base, tds_amount, tax_already)
+    certificate = tds_calc.rate_of_certificate(rate_reason, rate_applied)
     return {
         "item_no": item_no, "deductee_ledger_id": str(ledger_id), "deductee_name": name, "nature_key": nature_key, "act": act,
         "section_ref": section_ref, "table_ref": table_ref, "event_date": event_date.isoformat(),
         "payment_amount": f"{payment_amount:.2f}", "cumulative_before": f"{cumulative_before:.2f}",
         "cumulative_after": f"{cumulative_after:.2f}", "threshold_crossed": threshold_crossed, "taxable_base": f"{taxable_base:.2f}",
         "rate_applied": _rate_text(rate_applied), "rate_reason": rate_reason,
+        "certificate_rate": None if certificate is None else _rate_text(certificate),
+        "effective_rate": None if effective is None else _rate_text(effective),
         "lower_cert_id": None if lower_cert_id is None else str(lower_cert_id), "tax_already_on_base": f"{tax_already:.2f}",
         "tds_amount": f"{tds_amount:.2f}", "tds_line_no": line_no, "verification_status": status, "warnings": warnings,
     }
@@ -283,7 +291,7 @@ def snapshot(draft: VoucherDraft) -> dict | None:
 # ===================================================================================== T-13 at approve / post
 
 _COMPARED = (
-    ("act", "Act"), ("section_ref", "section"), ("table_ref", "table entry"), ("event_date", "event date"),
+    ("nature_key", "nature"), ("act", "Act"), ("section_ref", "section"), ("table_ref", "table entry"), ("event_date", "event date"),
     ("cumulative_before", "amount before this voucher"), ("taxable_base", "taxable amount"), ("rate_applied", "rate"),
     ("rate_reason", "reason for the rate"), ("lower_cert_id", "certificate"), ("tax_already_on_base", "tax already deducted"),
     ("tds_amount", "tax"), ("threshold_crossed", "threshold crossed"),
@@ -304,7 +312,8 @@ def revalidate(conn: Connection, record: Any) -> list[ValidationError]:
     if not rows:
         return []
     inputs = [
-        TdsLineIn(r["deductee_ledger_id"], r["nature_key"], r["payment_amount"].quantize(Decimal("0.01")), r["credit_date"], r["payment_date"], r["lower_cert_id"],
+        TdsLineIn(r["deductee_ledger_id"], tds_calc.RENT_LAND_BUILDING if r["nature_key"] == tds_calc.RENT_194IB else r["nature_key"],
+                  r["payment_amount"].quantize(Decimal("0.01")), r["credit_date"], r["payment_date"], r["lower_cert_id"],
                   r["tds_amount"] if r["rate_reason"] == "manual_salary" else None)
         for r in rows
     ]
@@ -379,12 +388,16 @@ def register(conn: Connection, client_id: object, *, financial_year_id: object |
             continue
         if r["rule_status"] is not None:
             used.append(("rate", r["rule_status"], r["rule_source"]))
+        certificate = tds_calc.rate_of_certificate(r["rate_reason"], r["rate_applied"])
+        effective = tds_calc.rate_effective(r["taxable_base"], r["tds_amount"], r["tax_already"])
         out.append({
             "item_id": str(r["item_id"]), "voucher_id": str(r["voucher_id"]), "voucher_number": r["voucher_number"],
             "voucher_date": r["voucher_date"].isoformat(), "deductee_ledger_id": str(r["deductee_ledger_id"]),
             "deductee_name": r["deductee_name"], "pan": r["pan"], "nature_key": r["nature_key"], "section_ref": r["section_ref"],
             "event_date": r["event_date"].isoformat(), "payment_amount": f"{r['payment_amount']:.2f}",
             "taxable_base": f"{r['taxable_base']:.2f}", "rate_applied": _rate_text(r["rate_applied"]), "rate_reason": r["rate_reason"],
+            "certificate_rate": None if certificate is None else _rate_text(certificate),
+            "effective_rate": None if effective is None else _rate_text(effective),
             "tds_amount": f"{tax:.2f}", "deposited": f"{dep:.2f}", "balance": f"{tax - dep:.2f}",
             "due_date": None, "deposited_on": None if r["deposited_on"] is None else r["deposited_on"].isoformat(), "days_late": None,
             "kind": r["kind"], "act": r["act"],
@@ -421,6 +434,12 @@ def threshold_position(conn: Connection, client_id: object, deductee_ledger_id: 
     natures = tdb.load_natures(conn)
     if nature_key not in natures:
         raise ServiceError("not_found", f"Nature '{nature_key}' not found.")
+    if nature_key == tds_calc.RENT_LAND_BUILDING:  # T-19: the client's answer for the year decides ex-194-I or ex-194-IB
+        answer = tdb.load_deductor_flags(conn, client_id).get(fy[0])
+        if answer is None:
+            return [ValidationError("T-19", "Rent: the client's answer 'individual / HUF not liable to tax audit in the preceding year' is not entered for this financial year.")]
+        if answer:
+            nature_key = tds_calc.RENT_194IB
     rule = tds_calc.pick_rate_rule(tdb.load_rates(conn, [nature_key]), nature_key, tds_calc.deductee_group(deductee.deductee_type), on)
     if rule is None:
         return [ValidationError("T-02", f"No rule for {natures[nature_key].description} on {_fmt(on)}.")]

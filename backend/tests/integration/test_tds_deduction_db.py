@@ -21,7 +21,7 @@ from app.db import connection, migrate
 from app.engine.models import VoucherDraft, VoucherLine
 from app.engine.tds_types import TdsLineIn
 from app.main import app
-from app.services import client_setup, tds_deduction, tds_hooks, vouchers
+from app.services import client_setup, tds_deduction, tds_hooks, tds_masters, vouchers
 from app.services.client_setup import ClientProfile
 from app.services.errors import VoucherRuleError
 
@@ -269,6 +269,7 @@ def test_T05_preview_and_typed_tax_through_the_api(svc_conn, world):
             ("Contract Expense", "40000.00", "0.00"), ("Ind Contractor", "0.00", "39600.00"), ("TDS Payable", "0.00", "400.00")]
         item = out["tds"]["items"][0]
         assert (item["tds_amount"], item["rate_applied"], item["tds_line_no"], item["section_ref"], item["deductee_name"]) == ("400.00", "1", 3, "393(1)", "Ind Contractor")
+        assert (item["certificate_rate"], item["effective_rate"]) == (None, "1")  # no certificate: tax 400 / base 40,000 = 1%
         assert svc_conn.execute(text("SELECT count(*) FROM vouchers")).scalar_one() == before  # nothing written
 
         body["tds"]["items"][0]["tds_amount"] = "999.00"
@@ -289,3 +290,68 @@ def test_T05_preview_and_typed_tax_through_the_api(svc_conn, world):
         assert pos.json()["annual_threshold"] == "100000.00" and pos.json()["headroom"] == "100000.00"
     finally:
         app.dependency_overrides.clear()
+
+
+# ---- Phase 4.1: effective rate on the API item, rent by the deductor's profile, catch-up at each payment's own rate ---------------
+def test_T12_item_output_shows_certificate_rate_and_effective_rate(svc_conn, world):
+    cert = uuid.UUID(int=77)
+    v1 = saved(svc_conn, purchase(world, "Contractor Co", "120000", date(2026, 6, 10), ref="E-1", cert=cert))
+    post_it(svc_conn, v1)
+    # limit 1,50,000, 1,20,000 used: 30,000 at 1% = 300 + 30,000 at 2% = 600 on 60,000 = 900 = 1.5%
+    draft = tds_hooks.expand_tds(svc_conn, purchase(world, "Contractor Co", "60000", date(2026, 6, 20), ref="E-2", cert=cert))[0]
+    shown = tds_deduction.preview_block(svc_conn, draft)["items"][0]
+    assert (shown["rate_applied"], shown["certificate_rate"], shown["effective_rate"], shown["tds_amount"]) == ("1", "1", "1.5", "900.00")
+    v2 = saved(svc_conn, purchase(world, "Contractor Co", "60000", date(2026, 6, 20), ref="E-2", cert=cert))
+    post_it(svc_conn, v2)
+    rows = tds_deduction.register(svc_conn, world.client_id, financial_year_id=world.fy26, quarter=None, nature_key=None, deductee_ledger_id=None)["rows"]
+    assert [(r["certificate_rate"], r["effective_rate"]) for r in rows] == [("1", "1"), ("1", "1.5")]
+
+
+def rent_payment(w, amount, on):
+    lines = (VoucherLine(w.ids["Contractor Co"], amount, None), VoucherLine(w.ids["HDFC Bank"], None, amount))
+    item = TdsLineIn(w.ids["Contractor Co"], "rent_land_building", D(amount), None, on)
+    return VoucherDraft(w.client_id, "payment", on, "Rent", None, w.ids["Contractor Co"], lines, tds=(item,))
+
+
+def test_T19_rent_is_refused_until_the_client_answers_for_the_year(svc_conn, world):
+    result = vouchers.create_draft(svc_conn, rent_payment(world, "60000", date(2026, 6, 15)), actor="tester")
+    assert [e.rule_id for e in result.errors] == ["T-19"]
+
+
+def test_T19_rent_by_a_client_that_is_not_an_individual_huf_is_taxed_at_10_percent(svc_conn, world):
+    tds_masters.set_deductor_profile(svc_conn, world.client_id, world.fy26, False, None, actor="tester")
+    vid = saved(svc_conn, rent_payment(world, "60000", date(2026, 6, 15)))
+    row = svc_conn.execute(text("SELECT nature_key, rate_applied, tds_amount FROM tds_voucher_items WHERE voucher_id = :v"), {"v": vid}).one()
+    assert (row.nature_key, row.rate_applied, row.tds_amount) == ("rent_land_building", D("10"), D("6000.00"))  # 10% of 60,000
+
+
+def test_T19_rent_by_an_individual_huf_not_tax_audited_is_taxed_under_194_IB_at_2_percent(svc_conn, world):
+    tds_masters.set_deductor_profile(svc_conn, world.client_id, world.fy26, True, "not audited last year", actor="tester")
+    vid = saved(svc_conn, rent_payment(world, "60000", date(2026, 6, 15)))
+    row = svc_conn.execute(text("SELECT nature_key, rate_applied, tds_amount, section_ref FROM tds_voucher_items WHERE voucher_id = :v"), {"v": vid}).one()
+    assert (row.nature_key, row.rate_applied, row.tds_amount, row.section_ref) == ("rent_194ib", D("2"), D("1200.00"), "393(1)")  # 2% of 60,000
+    assert lines_of(svc_conn, vid) == [("Contractor Co", D("60000.00"), D("0.00")), ("HDFC Bank", D("0.00"), D("58800.00")), ("TDS Payable", D("0.00"), D("1200.00"))]
+    vouchers.approve(svc_conn, vid, actor="approver")  # T-13 recomputes the same way from the stored item (rent_194ib maps back to rent)
+    profile = tds_masters.get_profile(svc_conn, world.client_id)
+    assert [(str(p["financial_year_id"]), p["individual_huf_not_tax_audited"], p["note"]) for p in profile["deductor_profile"]] == [(str(world.fy26), True, "not audited last year")]
+    # the answer changing after the draft was saved blocks approval (T-13): the stored nature no longer matches
+    tds_masters.set_deductor_profile(svc_conn, world.client_id, world.fy26, False, None, actor="tester")
+    vouchers.return_to_draft(svc_conn, vid, actor="approver")
+    with pytest.raises(VoucherRuleError) as e:
+        vouchers.approve(svc_conn, vid, actor="approver")
+    assert "T-13" in {x.rule_id for x in e.value.errors}
+
+
+def test_T07_catch_up_works_the_earlier_payment_at_the_rate_of_its_own_day(svc_conn, world):
+    who = "No PAN Co"
+    v1 = saved(svc_conn, purchase(world, who, "20000", date(2026, 5, 10), ref="N-1"))  # no PAN on that day, below every threshold
+    post_it(svc_conn, v1)
+    assert svc_conn.execute(text("SELECT pan_status_at_event FROM tds_voucher_items WHERE voucher_id = :v"), {"v": v1}).scalar_one() == "missing"
+    svc_conn.execute(text("UPDATE tds_deductees SET pan = 'AAACN1234A', pan_status = 'valid' WHERE ledger_id = :l"), {"l": world.ids[who]})
+    v2 = saved(svc_conn, purchase(world, who, "85000", date(2026, 6, 10), ref="N-2"))
+    row = items_of(svc_conn, v2)[0]
+    # total 1,05,000 crosses 1,00,000: 20,000 at the no-PAN rate 20% = 4,000, plus 85,000 at 2% = 1,700 -> 5,700 (not 2% of 1,05,000 = 2,100)
+    assert (row.taxable_base, row.rate_applied, row.rate_reason, row.tax_already_on_base, row.tds_amount, row.threshold_crossed) == (
+        D("105000.00"), D("2"), "normal", D("0.00"), D("5700.00"), True)
+    assert lines_of(svc_conn, v2)[1:] == [(who, D("0.00"), D("79300.00")), ("TDS Payable", D("0.00"), D("5700.00"))]
+    post_it(svc_conn, v2)  # T-13 recalculates the same figure at approve and post

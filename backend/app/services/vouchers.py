@@ -191,15 +191,19 @@ def _validate_all(
     return _order(errors + _check_duplicates(conn, draft, draft_id) + cash_checks.duplicate_payment_errors(conn, draft, draft_id)), ctx
 
 
-def validate_draft(conn: Connection, draft: VoucherDraft, draft_id: object | None = None) -> list[ValidationError]:
+def validate_draft(
+    conn: Connection, draft: VoucherDraft, draft_id: object | None = None, *, expanded: bool = False
+) -> list[ValidationError]:
     """The errors create_draft/update_draft would return for this draft, WITHOUT saving or logging anything.
-    draft_id is the voucher being edited (it does not clash with itself under V-10). Used by the Excel dry run."""
-    draft, gst_errors = gst_hooks.expand_invoice(conn, draft)  # Phase 3: invoice mode builds the lines
-    if gst_errors:
-        return _order(gst_errors)
-    draft, tds_errors = tds_hooks.expand_tds(conn, draft)  # Phase 4: the generated tax line
-    if tds_errors:
-        return _order(tds_errors)
+    draft_id is the voucher being edited (it does not clash with itself under V-10). Used by the Excel dry run.
+    expanded=True: the draft already went through the GST and TDS hooks (the TDS preview), so they are not run again."""
+    if not expanded:
+        draft, gst_errors = gst_hooks.expand_invoice(conn, draft)  # Phase 3: invoice mode builds the lines
+        if gst_errors:
+            return _order(gst_errors)
+        draft, tds_errors = tds_hooks.expand_tds(conn, draft)  # Phase 4: the generated tax line
+        if tds_errors:
+            return _order(tds_errors)
     return _validate_all(conn, draft, draft_id)[0]
 
 

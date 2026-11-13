@@ -3,10 +3,17 @@
 from datetime import date
 from decimal import Decimal as D
 
-from tds_helpers import FY, ctx, line, prior
+from tds_helpers import FY, ctx, line, paid, prior
 from tds_helpers import cert as make_cert
 
-from app.engine.tds_calc import compute_items, round_tax
+from app.engine.tds_calc import (
+    certificate_rate,
+    check_gst_base,
+    compute_items,
+    effective_rate,
+    round_tax,
+    strip_tax_lines,
+)
 
 Z = D("0.00")
 
@@ -207,9 +214,10 @@ def test_T12_two_items_of_one_voucher_share_the_certificate_limit():
     out = compute_items([line("co", "contractor", "60000", pay=date(2026, 6, 5), cert="c1"),
                          line("co", "contractor", "60000", pay=date(2026, 6, 6), cert="c1")], ctx(certs=[cert]))
     assert out.errors == ()
-    # item 1: 60,000 at 0.5% = 300; item 2: total 1,20,000 crosses 1,00,000 -> base 1,20,000, covered 40,000:
-    # 40,000 at 0.5% = 200 and 80,000 at 2.5% = 2,000 -> 2,200 less 300 already = 1,900
-    assert [r.tds_amount for r in out.items] == [D("300.00"), D("1900.00")]
+    # item 1: 60,000 at 0.5% = 300 (its own certificate rate, settled). Item 2 crosses 1,00,000: the earlier payment is settled
+    # (nothing more due); this 60,000: certificate left 40,000 at 0.5% = 200 and 20,000 at 2.5% = 500 -> 700
+    assert [r.tds_amount for r in out.items] == [D("300.00"), D("700.00")]
+    assert out.items[1].taxable_base == D("120000.00") and out.items[1].tax_already_on_base == D("300.00")
 
 
 def test_T12_nil_certificate_gives_zero_tax_and_the_reason():
@@ -416,3 +424,138 @@ def test_T17_tcs_on_sales_adds_the_tax_to_the_party_debit_line():
     assert errs == []
     assert new == [("buyer", D("1505000.00"), Z), ("sales", Z, D("1500000.00")), ("tcsp", Z, D("5000.00"))]
     assert line_of == {1: 3}
+
+
+# ---- T-07: the catch-up at the crossing works every earlier payment at the rate that applied to it ----------------------
+def test_T07_catch_up_works_each_earlier_payment_at_its_own_rate():
+    # company 'co' (valid PAN now): contractor 2.5%, no PAN 20%. Earlier: 20,000 when the PAN was missing, 25,000 with PAN,
+    # 40,000 with PAN (above the single limit 30,000, taxed 1,000 at the time). Now 30,000: total 1,15,000 crosses 1,00,000.
+    earlier = [paid("20000", date(2026, 5, 10), pan="missing"), paid("25000", date(2026, 6, 10), pan="valid"),
+               paid("40000", date(2026, 7, 10), tax="1000", pan="valid")]
+    r = one(line("co", "contractor", "30000", pay=date(2026, 8, 10)), ctx(priors=prior("co", "contractor", "85000", "1000", payments=earlier)))
+    assert (r.cumulative_before, r.cumulative_after, r.taxable_base, r.threshold_crossed) == (D("85000.00"), D("115000.00"), D("115000.00"), True)
+    # 20,000 x 20% = 4,000 + 25,000 x 2.5% = 625 + (40,000 x 2.5% = 1,000 less 1,000 = 0) + this 30,000 x 2.5% = 750
+    assert (r.rate_applied, r.rate_reason, r.tax_already_on_base, r.tds_amount) == (D("2.5"), "normal", D("1000.00"), D("5375.00"))
+    assert effective_rate(r) == D("5.5435")  # (5,375 + 1,000) / 1,15,000 = 5.54347...%
+    assert any(w.startswith("T-07") for w in r.warnings)
+
+
+def test_T07_catch_up_current_payment_without_pan_does_not_change_the_rate_of_the_earlier_ones():
+    # 'nopan' (company, PAN missing now): 20,000 and 30,000 were entered with a valid PAN (2.5%); now 60,000 without PAN.
+    earlier = [paid("20000", date(2026, 5, 10), pan="valid"), paid("30000", date(2026, 6, 10), pan="valid")]
+    r = one(line("nopan", "contractor", "60000", pay=date(2026, 8, 10)), ctx(priors=prior("nopan", "contractor", "50000", "0", payments=earlier)))
+    assert (r.taxable_base, r.rate_applied, r.rate_reason, r.tax_already_on_base) == (D("110000.00"), D(20), "no_pan", Z)
+    # 20,000 x 2.5% = 500 + 30,000 x 2.5% = 750 + 60,000 x 20% = 12,000
+    assert r.tds_amount == D("13250.00")
+    assert effective_rate(r) == D("12.0455")
+
+
+def test_T07_each_earlier_payment_uses_the_rule_in_force_on_its_own_date():
+    # same year key on purpose: 20,000 on 15-03-2026 is under the 1961 rule (others 2%), the crossing payment on 20-04-2026 under 2.5%
+    earlier = [paid("20000", date(2026, 3, 15), pan="valid")]
+    r = one(line("co", "contractor", "90000", pay=date(2026, 4, 20)), ctx(priors=prior("co", "contractor", "20000", "0", payments=earlier)))
+    assert (r.taxable_base, r.threshold_crossed) == (D("110000.00"), True)
+    assert r.tds_amount == D("2650.00")  # 20,000 x 2% = 400 + 90,000 x 2.5% = 2,250
+
+
+def test_T07_earlier_payments_without_history_are_taken_as_one_payment_at_the_present_status():
+    r = one(line("co", "contractor", "40000", pay=date(2025, 6, 10)), ctx(priors=prior("co", "contractor", "70000", "0")))
+    assert (r.taxable_base, r.tax_already_on_base, r.tds_amount) == (D("110000.00"), Z, D("2200.00"))  # 1,10,000 x 2%
+
+
+def test_T07_a_payment_taxed_at_the_time_leaves_nothing_more_due_at_the_crossing():
+    earlier = [paid("20000", date(2026, 5, 10)), paid("40000", date(2026, 6, 10), tax="1000")]
+    r = one(line("co", "contractor", "50000", pay=date(2026, 8, 10)), ctx(priors=prior("co", "contractor", "60000", "1000", payments=earlier)))
+    # 20,000 x 2.5% = 500; 40,000 x 2.5% = 1,000 less 1,000 = 0; 50,000 x 2.5% = 1,250
+    assert (r.taxable_base, r.tds_amount) == (D("110000.00"), D("1750.00"))
+
+
+# ---- T-12: partial certificate shows both rates ----------------------------------------------------------------------------
+def test_T12_partial_certificate_shows_the_certificate_rate_and_the_effective_rate():
+    cert = make_cert("c1", "co", "0.5", "200000", date(2026, 4, 1), date(2027, 3, 31), used="150000")
+    r = one(line("co", "contractor", "100000", pay=date(2026, 6, 5), cert="c1"),
+            ctx(certs=[cert], priors=prior("co", "contractor", "150000", "750")))
+    assert (r.tds_amount, certificate_rate(r), effective_rate(r)) == (D("1500.00"), D("0.5"), D("1.5"))  # 250 + 1,250 on 1,00,000
+
+
+def test_T12_certificate_rate_and_effective_rate_when_no_certificate_nil_certificate_or_no_tax():
+    plain = one(line("co", "contractor", "100000", pay=date(2026, 5, 5)))
+    assert (certificate_rate(plain), effective_rate(plain)) == (None, D("2.5"))
+    nil = one(line("co", "contractor", "100000", pay=date(2026, 5, 5), cert="c1"),
+              ctx(certs=[make_cert("c1", "co", "0", "500000", date(2026, 4, 1), date(2027, 3, 31))]))
+    assert (certificate_rate(nil), effective_rate(nil)) == (D(0), D(0))
+    below = one(line("co", "contractor", "20000", pay=date(2026, 5, 5)))
+    assert (certificate_rate(below), effective_rate(below)) == (None, None)
+
+
+# ---- T-19: rent: the section follows the DEDUCTOR (client), never the landlord ---------------------------------------------
+def test_T19_rent_needs_the_client_answer_for_the_financial_year():
+    e = errors_of([line("co", "rent_land_building", "60000", pay=date(2026, 6, 15))], ctx(deductor={}))
+    assert [x[:2] for x in e] == [("T-19", 1)]
+    assert "not liable to tax audit" in e[0][2] and "not entered" in e[0][2]
+
+
+def test_T19_deductor_not_individual_huf_pays_rent_under_the_normal_land_building_rule():
+    r = one(line("co", "rent_land_building", "60000", pay=date(2026, 6, 15)), ctx(deductor={FY: False}))
+    assert (r.nature_key, r.rate_applied, r.taxable_base, r.tds_amount) == ("rent_land_building", D(10), D("60000.00"), D("6000.00"))
+
+
+def test_T19_individual_huf_deductor_not_tax_audited_uses_194_IB_at_2_percent():
+    r = one(line("co", "rent_land_building", "60000", pay=date(2026, 6, 15)), ctx(deductor={FY: True}))
+    assert (r.nature_key, r.section_ref, r.table_ref) == ("rent_194ib", "393(1)", "rent entry (ex-194-IB)")
+    assert (r.rate_applied, r.taxable_base, r.tds_amount, r.threshold_crossed) == (D(2), D("60000.00"), D("1200.00"), True)
+
+
+def test_T19_194_IB_monthly_limit_is_50000_a_month():
+    c = ctx(deductor={FY: True})
+    exact = one(line("co", "rent_land_building", "50000", pay=date(2026, 6, 15)), c)
+    assert (exact.tds_amount, exact.rate_reason) == (Z, "below_threshold")
+    out = compute_items([line("co", "rent_land_building", "30000", pay=date(2026, 6, 5)),
+                         line("co", "rent_land_building", "30000", pay=date(2026, 6, 25))], c)
+    assert [(r.nature_key, r.taxable_base, r.tds_amount) for r in out.items] == [
+        ("rent_194ib", Z, Z), ("rent_194ib", D("60000.00"), D("1200.00"))]  # June total 60,000 x 2%
+
+
+def test_T19_the_year_of_the_event_decides_the_answer():
+    c = ctx(deductor={"FY-A": True, "FY-B": False}, fy=lambda d: "FY-A" if d < date(2026, 7, 1) else "FY-B")
+    out = compute_items([line("co", "rent_land_building", "60000", pay=date(2026, 6, 15)),
+                         line("co", "rent_land_building", "60000", pay=date(2026, 7, 15))], c)
+    assert [(r.nature_key, r.tds_amount) for r in out.items] == [("rent_194ib", D("1200.00")), ("rent_land_building", D("6000.00"))]
+
+
+def test_T19_the_system_picks_194_IB_the_accountant_cannot_choose_it():
+    e = errors_of([line("co", "rent_194ib", "60000", pay=date(2026, 6, 15))], ctx(deductor={FY: True}))
+    assert [x[:2] for x in e] == [("T-03", 1)]
+    assert "client" in e[0][2]
+
+
+# ---- T-18: TDS on a GST invoice is on the value without GST ----------------------------------------------------------------
+def test_T18_the_tds_base_cannot_be_more_than_the_invoice_value_without_gst():
+    items = [line("co", "contractor", "118000", pay=date(2026, 6, 15))]  # invoice 1,00,000 + 18% GST = 1,18,000
+    errs = check_gst_base(items, D("100000.00"))
+    assert [(e.rule_id, e.line_no) for e in errs] == [("T-18", 1)]
+    assert "1,18,000.00" in errs[0].message and "1,00,000.00" in errs[0].message and "GST" in errs[0].message
+
+
+def test_T18_a_base_equal_to_or_below_the_value_without_gst_is_accepted():
+    assert check_gst_base([line("co", "contractor", "100000", pay=date(2026, 6, 15))], D("100000.00")) == []
+    two = [line("co", "contractor", "60000", pay=date(2026, 6, 15)), line("co", "contractor", "50000", pay=date(2026, 6, 15))]
+    assert [(e.rule_id, e.line_no) for e in check_gst_base(two, D("100000.00"))] == [("T-18", 2)]  # together 1,10,000
+
+
+# ---- G-26 / T-16: the invoice lines are checked without the tax line of the TDS block -------------------------------------
+def test_T16_strip_tax_lines_gives_back_the_purchase_invoice_lines():
+    booked = [("exp", D("100000.00"), Z), ("cgst", D("9000.00"), Z), ("sgst", D("9000.00"), Z), ("co", Z, D("116000.00")), ("tdsp", Z, D("2000.00"))]
+    assert strip_tax_lines("purchase", booked, [("co", D("2000.00"))]) == [
+        ("exp", D("100000.00"), Z), ("cgst", D("9000.00"), Z), ("sgst", D("9000.00"), Z), ("co", Z, D("118000.00"))]
+
+
+def test_T17_strip_tax_lines_gives_back_the_sales_invoice_lines():
+    booked = [("buyer", D("1181000.00"), Z), ("sales", Z, D("1000000.00")), ("cgst", Z, D("90000.00")), ("sgst", Z, D("90000.00")), ("tcsp", Z, D("1000.00"))]
+    assert strip_tax_lines("sales", booked, [("buyer", D("1000.00"))]) == [
+        ("buyer", D("1180000.00"), Z), ("sales", Z, D("1000000.00")), ("cgst", Z, D("90000.00")), ("sgst", Z, D("90000.00"))]
+
+
+def test_T16_strip_tax_lines_without_tax_changes_nothing():
+    booked = [("exp", D("100.00"), Z), ("co", Z, D("100.00"))]
+    assert strip_tax_lines("purchase", booked, []) == booked

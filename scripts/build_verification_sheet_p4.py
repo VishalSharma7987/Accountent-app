@@ -143,6 +143,31 @@ def build(pack: Path) -> Path:
     table_sheet(wb, "12 Rule status", "Worst verification status shown with each working", name, read(pack, "expected_rule_status.csv"),
                 ["working", "worst"], [30, 20])
 
+    # Phase 4.1 addendum: a second small client (p41 folder)
+    p41 = pack / "p41"
+    exp41 = {r["ref_id"]: r for r in read(p41, "expected_items.csv")}
+    rows41 = []
+    for r in read(p41, "vouchers.csv"):
+        e = exp41[r["ref_id"]]
+        rows41.append({
+            "ref": r["ref_id"], "date": r["date"], "party": r["party_ledger"], "nature_typed": r["nature_key"], "nature_used": e["nature_key"],
+            "amount": r["amount"], "gst_invoice_value": r["gst_invoice_value"], "certificate": r["cert_ref"], "pan_confirmed": r["set_pan"],
+            "cumulative_before": e["cumulative_before"], "cumulative_after": e["cumulative_after"], "taxable_base": e["taxable_base"],
+            "rate_applied": e["rate_applied"], "certificate_rate": e["certificate_rate"], "effective_rate": e["effective_rate"],
+            "rate_reason": e["rate_reason"], "tax_already_on_base": e["tax_already_on_base"], "tds_amount": e["tds_amount"],
+        })
+    table_sheet(wb, "12b P41 Deductions", "Phase 4.1 client Sunrise Traders (proprietor): hand-worked tax of each item", name, rows41,
+                ["ref", "date", "party", "nature_typed", "nature_used", "amount", "gst_invoice_value", "certificate", "pan_confirmed",
+                 "cumulative_before", "cumulative_after", "taxable_base", "rate_applied", "certificate_rate", "effective_rate",
+                 "rate_reason", "tax_already_on_base", "tds_amount"],
+                [6, 11, 26, 18, 14, 14, 14, 11, 13, 14, 14, 14, 8, 10, 10, 17, 12, 12],
+                "Effective rate = (tax + tax already deducted on the base) / taxable base. G1 is a GST invoice: tax on the value WITHOUT GST. "
+                "R1..R4 are rent by an individual not liable to tax audit (ex-194-IB); the whole-month reading in R4 is PENDING for the CA.")
+    table_sheet(wb, "12c P41 Lines", "Phase 4.1: voucher lines of the GST invoice (G1) and of the rent payment (R1)", name,
+                read(p41, "expected_lines.csv"), ["ref_id", "line_no", "ledger_name", "debit", "credit"], [8, 8, 30, 14, 14])
+    table_sheet(wb, "12d P41 Wrong", "Phase 4.1: deliberately wrong items, each refused with the rule named", name,
+                read(p41, "wrong_cases.csv"), ["case_id", "description", "expected_rule_id", "expected_message_contains"], [8, 80, 14, 24])
+
     ws = wb.create_sheet("13 Sign-off")
     title(ws, "Sign-off", name, 2)
     items = [
@@ -159,6 +184,10 @@ def build(pack: Path) -> Path:
         ("[   ] Certificate data and the refusal for undeposited tax (sheet 8)", ""),
         ("[   ] 26AS classes and the manual link (sheet 9)", ""),
         ("[   ] Every wrong item really is wrong, with the right rule (sheet 10)", ""),
+        ("[   ] Phase 4.1: tax on a GST invoice is on the value without GST (G1, sheets 12b, 12c)", ""),
+        ("[   ] Phase 4.1: crossing of the annual limit works each earlier payment at its own rate (M1..M4, sheet 12b)", ""),
+        ("[   ] Phase 4.1: partial certificate shows the certificate rate and the effective rate (Z1, Z2, sheet 12b)", ""),
+        ("[   ] Phase 4.1: rent by an individual not liable to tax audit is ex-194-IB; the partnership's rent stays ex-194-I (R1..R4, V50..V53)", ""),
         ("[   ] Pending legal values (SIGNOFF.md) are listed for the CA", ""),
         ("[   ] Data is dummy / synthetic (no real PAN, TAN, names)", ""), ("", ""),
         ("Result:  [   ] Approved    [   ] Approved with changes    [   ] Rejected", ""),

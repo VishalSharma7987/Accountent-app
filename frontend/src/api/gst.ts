@@ -115,6 +115,16 @@ export interface GstIn {
   note_reason?: string | null
   items: GstItemIn[]
 }
+/** Same shape as TdsItemIn of ./tds (kept here so this file does not import that one). */
+export interface TdsItemBody {
+  deductee_ledger_id: string
+  nature_key: string
+  amount: string
+  credit_date: string | null
+  payment_date: string | null
+  lower_cert_id: string | null
+  manual_tax: string | null
+}
 export interface GstVoucherBody {
   voucher_type: string
   voucher_date: string
@@ -122,6 +132,8 @@ export interface GstVoucherBody {
   reference_no?: string | null
   party_ledger_id?: string | null
   gst: GstIn
+  /** purchase invoice with TDS: the items on which tax is deducted (the base is the value without GST, T-18) */
+  tds?: { items: TdsItemBody[] }
 }
 export interface GstItemOut {
   item_line_no: number

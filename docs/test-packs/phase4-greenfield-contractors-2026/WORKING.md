@@ -81,3 +81,24 @@ Hand-made file (layout not verified against a real file; a Deductee PAN column i
 
 ## 8. Wrong cases (wrong_cases.csv): refused with the rule named
 W01 T-09 no deductee row; W02 T-03 tax typed by the caller; W03 T-12 certificate before its validity; W04 T-15 no buyer flag for 2025-26; W05 T-01 no date; W06 T-16 TDS on a Receipt; W07 T-10 PAN of 6 characters; W08 reversal of V10 refused (challan allocation exists); W09 T-24 allocation 300.00 against item tax 200.00; W10 same challan number twice; W11 T-20 BSR code of 5 digits.
+
+
+## 9. Phase 4.1 addendum (folder `p41`: second client Sunrise Traders, a proprietor; files `p41/*.csv`)
+Order of the owner, 2026-11-13. All items are Act 2025 (2026-27), `S` = secondary_verified. Rent on this client is ex-194-IB because the answer "individual not liable to tax audit in the preceding year" is Yes for 2026-27 (not entered for 2025-26: wrong case W2). The main Greenfield client is a partnership: its answer is No for both years, so V50..V53 above are ex-194-I (10%), unchanged.
+
+**G1 TDS on a GST invoice (purchase, Mumbai Works Pvt Ltd, company, contractor 2%).** Invoice 1,00,000.00 + CGST 9,000.00 + SGST 9,000.00 = 1,18,000.00. The base is the value WITHOUT GST: 100,000.00 is above the single limit 30,000.00 -> 100,000.00 x 2% = **2,000.00** (not 2% of 1,18,000.00 = 2,360.00). Lines: Mumbai Works Cr 1,18,000.00 less 2,000.00 = **1,16,000.00**; Contract Expenses Dr 1,00,000.00; Input CGST Dr 9,000.00; Input SGST Dr 9,000.00; TDS Payable Cr 2,000.00 (Dr 1,18,000.00 = Cr 1,18,000.00). W1: typing 1,18,000.00 as the base is refused (T-18).
+
+**M1..M4 crossing with earlier payments at their own rates (Rajesh Fabricators Pvt Ltd, company, contractor: 2%, no PAN 20%, single 30,000.00, annual 1,00,000.00).**
+| Ref | Date | Payment | PAN that day | Cumulative | Working | Tax |
+| --- | --- | --- | --- | --- | --- | --- |
+| M1 | 10-05 | 20,000.00 | missing | 0 -> 20,000.00 | not above 30,000.00, below 1,00,000.00 | 0.00 |
+| M2 | 10-06 | 25,000.00 | valid (confirmed before this voucher) | 20,000 -> 45,000.00 | below | 0.00 |
+| M3 | 10-07 | 40,000.00 | valid | 45,000 -> 85,000.00 | above the single limit: 40,000.00 x 2% | 800.00 |
+| M4 | 10-08 | 30,000.00 | valid | 85,000 -> 115,000.00 | annual limit crossed. M1: 20,000.00 x **20%** (its own no-PAN rate) = 4,000.00; M2: 25,000.00 x 2% = 500.00; M3: 2% x 40,000.00 = 800.00 less 800.00 already = 0.00; M4: 30,000.00 x 2% = 600.00 | **5,100.00** |
+Check: base 1,15,000.00; tax already deducted 800.00; effective rate = (5,100.00 + 800.00) / 1,15,000.00 = 5.1304%. (A whole-year rate of 2% would give 2,300.00 less 800.00 = 1,500.00: wrong, M1 had no PAN.)
+
+**Z1, Z2 partial certificate (Zenith Engineers Pvt Ltd, certificate LDC/2026/0101: 0.5%, limit 1,50,000.00, valid 01-04-2026 to 31-03-2027).** Z1 10-09 120,000.00: crossing, certificate covers all: 120,000.00 x 0.5% = **600.00**; certificate rate 0.5%, effective 0.5%. Z2 10-10 60,000.00: limit left 1,50,000.00 - 1,20,000.00 = 30,000.00: 30,000.00 x 0.5% = 150.00 + 30,000.00 x 2% = 600.00 = **750.00**; the tool shows certificate rate **0.5%** and effective rate 750.00 / 60,000.00 = **1.25%**.
+
+**R1..R4 rent by an individual not liable to tax audit (Mrs Sharma, individual, ex-194-IB: 2%, Rs 50,000.00 per month; nature shown as rent_194ib, section 393(1)).** R1 05-06 60,000.00: June 60,000.00 is above 50,000.00 -> 60,000.00 x 2% = **1,200.00**; Payment voucher: Mrs Sharma Dr 60,000.00, HDFC Bank Cr 60,000.00 - 1,200.00 = 58,800.00, TDS Payable Cr 1,200.00. R2 05-07 50,000.00: exactly the limit -> 0.00. R3 05-08 30,000.00: 0.00. R4 20-08 30,000.00: August 60,000.00 is above the limit -> base 60,000.00 (whole month, `P`: the reading is pending for the CA) x 2% = **1,200.00**. For comparison the partnership (Greenfield V50): 60,000.00 x 10% = 6,000.00.
+
+**Wrong cases (p41/wrong_cases.csv).** W1 T-18 base with GST; W2 T-19 rent dated 15-01-2026 when the client's answer for 2025-26 is not entered; W3 T-03 rent typed as `rent_194ib`.

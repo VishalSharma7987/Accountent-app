@@ -16,7 +16,7 @@ from app.api.vouchers import draft_from_body
 from app.db import repositories_tds_deduction as tdb
 from app.engine.models import VoucherDraft
 from app.engine.money import MoneyError, parse_amount
-from app.services import tds_deduction, tds_hooks, vouchers
+from app.services import gst_hooks, tds_deduction, tds_hooks, vouchers
 
 router = APIRouter(tags=["tds"])
 
@@ -39,9 +39,12 @@ def tds_preview(client_id: str, body: VoucherIn, conn: Connection = Depends(get_
     draft, bad = draft_from_body(parse_id(client_id, "Client"), body)
     if bad:
         return {"lines": [], "tds": None, **rule_errors_body(bad)}
-    expanded, errors = tds_hooks.expand_tds(conn, draft)
+    draft, errors = gst_hooks.expand_invoice(conn, draft)  # invoice mode (GST block): the invoice lines first, then the tax line
+    expanded = draft
     if not errors:
-        errors = vouchers.validate_draft(conn, expanded)  # an expanded draft is not expanded twice
+        expanded, errors = tds_hooks.expand_tds(conn, draft)
+    if not errors:
+        errors = vouchers.validate_draft(conn, expanded, expanded=True)  # an expanded draft is not expanded twice
     return {
         "lines": _lines_out(conn, expanded), "tds": tds_deduction.preview_block(conn, expanded), **rule_errors_body(errors),
     }

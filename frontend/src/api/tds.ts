@@ -4,7 +4,7 @@
 import { API_BASE, getUser } from '../api'
 import { mapApiError } from '../lib/apiError'
 import type { VoucherLineIn } from '../types'
-import type { Amount, Query, RuleStatus } from './gst'
+import type { Amount, GstIn, Query, RuleStatus } from './gst'
 
 export type { Amount, Query, RuleStatus }
 
@@ -54,6 +54,8 @@ export interface DeducteeBody {
 export interface TdsProfile {
   tan: string | null
   fy_flags: { financial_year_id: string; prev_year_turnover_over_threshold: boolean; note: string | null }[]
+  /** T-19: the client (deductor) is an individual / HUF NOT liable to tax audit in the preceding year, by financial year (rent section) */
+  deductor_profile: { financial_year_id: string; individual_huf_not_tax_audited: boolean; note: string | null }[]
 }
 export interface LedgerRole {
   role: string
@@ -99,6 +101,8 @@ export interface TdsVoucherBody {
   party_ledger_id?: string | null
   lines: VoucherLineIn[]
   tds: TdsBlock
+  /** invoice mode (purchase invoice with GST): the lines are built by the server, so `lines` is empty */
+  gst?: GstIn
 }
 export interface TdsWarning {
   rule_id: string
@@ -120,6 +124,10 @@ export interface TdsItemOut {
   taxable_base: Amount
   rate_applied: string
   rate_reason: string
+  /** rate of the lower / nil certificate when one was applied, else null */
+  certificate_rate: string | null
+  /** (tax + tax already deducted on the base) / taxable base, in percent; null when there is no base */
+  effective_rate: string | null
   lower_cert_id: string | null
   tax_already_on_base: Amount
   tds_amount: Amount
@@ -160,6 +168,8 @@ export interface RegisterRow {
   taxable_base: Amount
   rate_applied: string
   rate_reason: string
+  certificate_rate: string | null
+  effective_rate: string | null
   tds_amount: Amount
   deposited: Amount
   balance: Amount
@@ -413,6 +423,8 @@ export const tdsApi = {
   putProfile: (cl: string, tan: string) => put<{ ok: boolean }>(`${c(cl)}/profile`, { tan }),
   putFyFlag: (cl: string, fy: string, b: { prev_year_turnover_over_threshold: boolean; note?: string }) =>
     put<{ ok: boolean }>(`${c(cl)}/fy-flags/${fy}`, b),
+  putDeductorProfile: (cl: string, fy: string, b: { individual_huf_not_tax_audited: boolean; note?: string }) =>
+    put<{ ok: boolean }>(`${c(cl)}/deductor-profile/${fy}`, b),
   listDeductees: (cl: string, q?: string) => get<Deductee[]>(`${c(cl)}/deductees`, { q }),
   putDeductee: (cl: string, ledgerId: string, b: DeducteeBody) => put<{ ok: boolean }>(`${c(cl)}/deductees/${ledgerId}`, b),
   listCerts: (cl: string, ledgerId: string) => get<Cert[]>(`${c(cl)}/deductees/${ledgerId}/certificates`),

@@ -186,3 +186,9 @@ Tests: unit tests, `ruff check .`, and the schema / guard / grant integration te
 Commit: on branch p4-plan (not merged). Migrations applied to the TEST schema only; dev is applied after merge.
 Decisions added: see docs/decisions_parts/P4.md. Legal values: none verified, see docs/PHASE4_LEGAL_VALUES.md section 5.
 
+
+Step 4.1 (owner orders 2026-11-13, branch p41): TDS on GST invoices (T-18), per-payment catch-up at the crossing, certificate rate + effective rate, rent by the deductor's profile (T-19, ex-194-IB), interest / rounding / GST-base provisions as secondary_verified.
+Done: engine (`tds_calc.py`, `tds_types.py`), G-26 made TDS-aware, migration 0015 (`tds_deductor_fy_profile`, `pan_status_at_event`), seed 0011, API + services + frontend (profile flag, both rates, TDS block on the GST purchase invoice), pack addendum `p41/` + WORKING.md + verification sheet.
+Tests: unit tests + ruff + frontend build / vitest in the worktree; DB tests NOT run by the author (database busy): the main agent applies 0015 + seed 0011 and runs the integration tests.
+Commit: branch p41 (not merged).
+Decisions added: see DECISIONS.md rows of 2026-11-13 step 4.1. Pending for the CA: whole-month reading of ex-194-IB, circular number for the GST-excluded base, certificate on an untaxed earlier payment.

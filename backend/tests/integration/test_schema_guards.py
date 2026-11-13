@@ -101,6 +101,7 @@ def test_every_table_has_row_level_security_and_no_policies(f):
         ("tds_challans", True),
         ("tds_client_fy_flags", True),
         ("tds_deductees", True),
+        ("tds_deductor_fy_profile", True),
         ("tds_due_dates", True),
         ("tds_filed_returns", True),
         ("tds_forms", True),

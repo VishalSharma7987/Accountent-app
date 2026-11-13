@@ -7,7 +7,7 @@ import type { ApiFailure } from '../lib/apiError'
 import { asFailure, useLoad } from '../lib/useLoad'
 import { NoClient, Row, Tabs, useFy } from './common'
 import { useNatures } from './hooks'
-import { DEDUCTEE_TYPES, LEDGER_ROLES, PAN_STATUSES, fyLabel, panBadge } from './lib'
+import { DEDUCTEE_TYPES, LEDGER_ROLES, PAN_STATUSES, deductorAnswerLabel, fyLabel, panBadge } from './lib'
 
 type Tab = 'deductees' | 'roles' | 'profile'
 
@@ -22,7 +22,7 @@ export default function Deductees() {
         tabs={[
           { key: 'deductees', label: 'Deductees and certificates' },
           { key: 'roles', label: 'Ledger roles' },
-          { key: 'profile', label: 'TAN and 194Q flag' },
+          { key: 'profile', label: 'TAN, 194Q flag and rent profile' },
         ]}
         value={tab}
         onChange={setTab}
@@ -414,6 +414,35 @@ function ProfileTab({ clientId }: { clientId: string }) {
               </tr>
             )
           })}
+        </tbody>
+      </table>
+      <div className="text-sm font-semibold">Rent: is this client an individual / HUF NOT liable to tax audit in the preceding year? (by financial year)</div>
+      <p className="text-xs text-slate-600">
+        Rent is taxed according to the person who PAYS it, not the landlord. Yes: ex-194-IB (2%, Rs 50,000 a month). No: ex-194-I (2% plant / machinery, 10% land / building / furniture). The answer can change every year. A year with no entry blocks rent deduction; nothing is assumed.
+      </p>
+      <table className="border-collapse bg-white">
+        <thead>
+          <tr>
+            <th className={th}>Financial year</th>
+            <th className={th}>Answer</th>
+            <th className={th}>Set</th>
+          </tr>
+        </thead>
+        <tbody>
+          {years.map((y) => (
+            <tr key={y.id}>
+              <td className={td}>{fyLabel(y)}</td>
+              <td className={td}>{deductorAnswerLabel(profile.data?.deductor_profile, y.id)}</td>
+              <td className={td}>
+                <button className={btn} onClick={() => run(() => tdsApi.putDeductorProfile(clientId, y.id, { individual_huf_not_tax_audited: true }), 'Rent profile saved.')}>
+                  Yes
+                </button>{' '}
+                <button className={btn} onClick={() => run(() => tdsApi.putDeductorProfile(clientId, y.id, { individual_huf_not_tax_audited: false }), 'Rent profile saved.')}>
+                  No
+                </button>
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
       <ErrorBox error={error ?? profile.error} />
