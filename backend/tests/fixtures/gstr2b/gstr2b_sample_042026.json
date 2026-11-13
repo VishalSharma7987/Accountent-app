@@ -1,0 +1,36 @@
+{
+  "data": {
+    "gstin": "27AAPFU0939F1ZV",
+    "rtnprd": "042026",
+    "gendt": "14-05-2026",
+    "version": "1.0",
+    "docdata": {
+      "b2b": [
+        {
+          "ctin": "29AAACB1234C1Z5",
+          "trdnm": "Bharat Traders",
+          "supprd": "042026",
+          "supfildt": "11-05-2026",
+          "inv": [
+            {"inum": "INV-001", "typ": "R", "dt": "10-04-2026", "val": 1180.00, "pos": "27", "rev": "N", "itcavl": "Y",
+             "txval": 1000.00, "igst": 180.00, "cgst": 0, "sgst": 0, "cess": 0},
+            {"inum": "INV-002", "typ": "R", "dt": "12-04-2026", "val": 2360.00, "pos": "27", "rev": "N", "itcavl": "N",
+             "rsn": "POS", "txval": 2000.00, "igst": 360.00}
+          ]
+        }
+      ],
+      "cdnr": [
+        {
+          "ctin": "29AAACB1234C1Z5",
+          "trdnm": "Bharat Traders",
+          "supprd": "042026",
+          "supfildt": "11-05-2026",
+          "nt": [
+            {"ntnum": "CN-01", "typ": "C", "dt": "20-04-2026", "val": 118.00, "pos": "27", "rev": "N", "itcavl": "Y",
+             "txval": 100.00, "igst": 18.00}
+          ]
+        }
+      ]
+    }
+  }
+}
