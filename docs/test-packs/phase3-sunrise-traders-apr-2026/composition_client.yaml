@@ -1,0 +1,23 @@
+# Second, small client of the pack: a composition dealer (trader). Dummy data. Rate and turnover limit are PENDING in the rule table.
+name: Sai Bakers
+entity_type: proprietorship
+business_type: trading
+gst_type: composition
+fy_start: 2026-04-01
+proprietor_name: Sai
+registration:
+  gstin: 27CCCPM2468E1ZN
+  registration_type: composition
+  composition_category: trader
+  effective_from: 2026-04-01
+ledgers:
+  - {name: Walk-in Retail, group: Sundry Debtors}
+  - {name: Composition Tax, group: Indirect Expenses}
+  - {name: Composition Tax Payable, group: Duties & Taxes}
+roles:
+  composition_tax_expense: Composition Tax
+  composition_tax_payable: Composition Tax Payable
+quarter_start: 2026-04-01
+vouchers:
+  - {ref_id: C1, date: 2026-04-10, party: Walk-in Retail, narration: Sugar retail sale, hsn_sac: "1701", uqc: KGS, quantity: "1000", unit_rate: "45.00", item_description: Sugar}
+  - {ref_id: C2, date: 2026-05-15, party: Walk-in Retail, narration: Sugar retail sale, hsn_sac: "1701", uqc: KGS, quantity: "2000", unit_rate: "50.00", item_description: Sugar}

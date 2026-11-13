@@ -1,0 +1,11 @@
+role,ledger_name
+output_cgst,Output CGST
+output_sgst,Output SGST
+output_igst,Output IGST
+input_cgst,Input CGST
+input_sgst,Input SGST
+input_igst,Input IGST
+input_cess,Input Cess
+rcm_cgst,RCM CGST Payable
+rcm_sgst,RCM SGST Payable
+itc_reversal,ITC Reversal

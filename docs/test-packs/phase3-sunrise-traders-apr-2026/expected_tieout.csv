@@ -1,0 +1,11 @@
+section,head,books,gstr1,gstr3b,register_eligible,register_pending,d_books_gstr1,d_gstr1_gstr3b,d_register_gstr3b
+output,taxable_value,400660.00,400660.00,400660.00,,,0.00,0.00,
+output,igst,59220.00,59220.00,59220.00,,,0.00,0.00,
+output,cgst,5116.50,5116.50,5116.50,,,0.00,0.00,
+output,sgst,5116.50,5116.50,5116.50,,,0.00,0.00,
+output,cess,0.00,0.00,0.00,,,0.00,0.00,
+itc,igst,12080.00,,0.00,0.00,12080.00,,,0.00
+itc,cgst,11000.00,,10800.00,10800.00,200.00,,,0.00
+itc,sgst,11000.00,,10800.00,10800.00,200.00,,,0.00
+itc,cess,0.00,,0.00,0.00,0.00,,,0.00
+ties,all,true,,,,,,,

@@ -1,0 +1,19 @@
+{
+  "data": {
+    "gstin": "27AAPFU0939F1ZV",
+    "rtnprd": "052026",
+    "gendt": "14-06-2026",
+    "version": "1.0",
+    "docdata": {
+      "b2b": [
+        {
+          "ctin": "29ABCDE1234F1ZW", "trdnm": "Karnataka Components", "supprd": "052026", "supfildt": "09-06-2026",
+          "inv": [
+            {"inum": "KC/9", "typ": "R", "dt": "14-04-2026", "val": 42480.00, "pos": "27", "rev": "N", "itcavl": "Y",
+             "txval": 36000.00, "igst": 6480.00}
+          ]
+        }
+      ]
+    }
+  }
+}

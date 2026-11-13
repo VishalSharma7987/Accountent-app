@@ -1,0 +1,8 @@
+ref_id,source,status,pending_reason,blocked_category_key,supplier_tax_paid,claimed_in_period,claim_deadline,cgst,sgst,igst,cess
+P1,regular,eligible,,,in_2b,2026-04-01,2027-11-30,9900.00,9900.00,0.00,0.00
+P2,regular,pending,not_in_2b,,unknown,,2027-11-30,0.00,0.00,2000.00,0.00
+P3,regular,pending,not_in_2b,,unknown,,2027-11-30,0.00,0.00,6480.00,0.00
+P4,regular,pending,not_in_2b,,unknown,,2027-11-30,0.00,0.00,3600.00,0.00
+P5,regular,blocked,,club_fitness_membership_17_5_b,unknown,,,900.00,900.00,0.00,0.00
+P6,rcm,eligible,,,unknown,2026-04-01,2027-11-30,900.00,900.00,0.00,0.00
+P7,regular,pending,not_in_2b,,not_in_2b,,2027-11-30,200.00,200.00,0.00,0.00

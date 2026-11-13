@@ -1,0 +1,12 @@
+field,value
+category,trader
+rate_status,pending
+turnover_basis,taxable_turnover
+quarter_turnover,145000.00
+ytd_turnover,145000.00
+limit,15000000.00
+limit_crossed,false
+tax_cgst,725.00
+tax_sgst,725.00
+tax_total,1450.00
+invoices_with_tax,0

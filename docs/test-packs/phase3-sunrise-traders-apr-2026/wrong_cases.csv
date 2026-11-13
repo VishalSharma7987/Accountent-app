@@ -1,0 +1,9 @@
+case_id,kind,description,field_1,field_2,field_3,expected_rule_id,expected_message_contains
+W01,registration,GSTIN has only 14 characters,27AAPFU0939F1Z,,,G-01,15
+W02,registration,GSTIN check character is wrong (X instead of V),27AAPFU0939F1ZX,,,G-02,check
+W03,party,Party state code 27 but GSTIN starts with 24 (Patel Agencies),24ABCPA1234B1ZT,27,regular,G-04,24
+W04,typed_lines,Invoice mode with IGST typed on an intra-state sale (wrong head typed),Rahul Enterprises,Output IGST,5400.00,G-14,
+W05,unknown_hsn,Goods item with HSN 7777 that has no rate rule,7777,,,G-10,7777
+W06,claim_blocked,Claiming the blocked gym-membership credit (P5) in GSTR-3B,P5,,,itc_invalid_transition,blocked
+W07,composition_tax_invoice,Composition dealer raises a TAX invoice instead of a bill of supply,Sai Bakers,tax_invoice,,G-18,Bill of Supply
+W08,reversal_twice,Second creation of the 180-day reversal for the same amount (P1),P1,,,reversal_exists,

@@ -1,0 +1,8 @@
+row_type,class,supplier_gstin,doc_no,books_ref,taxable_diff,igst_diff,cgst_diff,sgst_diff
+row,matched,27BBBPS5678D1ZD,SUP/101,P1,0.00,0.00,0.00,0.00
+row,matched,27BBBPS5678D1ZD,SUP/102,P5,0.00,0.00,0.00,0.00
+row,value_mismatch,07AAAAA0000A1Z4,VT/55,P2,500.00,25.00,0.00,0.00
+row,gstin_mismatch,33AAAAA0000A1Z9,MM-204,P4,0.00,0.00,0.00,0.00
+row,period_mismatch,29ABCDE1234F1ZW,KC/9,P3,0.00,0.00,0.00,0.00
+row,only_in_books,27BBBPS5678D1ZD,SUP/103,P7,,,,
+row,only_in_2b,27EEEPS9999H1ZD,MF/77,,,,,

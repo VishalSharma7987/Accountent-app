@@ -1,0 +1,30 @@
+ledger_name,group_name,opening_dr,opening_cr
+Cash,Cash-in-hand,200000.00,0.00
+HDFC Bank,Bank Accounts,500000.00,0.00
+Owner Capital A/c,Capital Account,0.00,700000.00
+Opening Stock,Stock-in-hand,0.00,0.00
+Rahul Enterprises,Sundry Debtors,0.00,0.00
+Patel Agencies,Sundry Debtors,0.00,0.00
+Walk-in Customers,Sundry Debtors,0.00,0.00
+Walk-in Outstation,Sundry Debtors,0.00,0.00
+Sharma Suppliers,Sundry Creditors,0.00,0.00
+Verma Traders,Sundry Creditors,0.00,0.00
+Karnataka Components,Sundry Creditors,0.00,0.00
+Madras Metals,Sundry Creditors,0.00,0.00
+Fast Roadways,Sundry Creditors,0.00,0.00
+Purchases,Purchase Accounts,0.00,0.00
+Sales,Sales Accounts,0.00,0.00
+Sales Returns,Sales Accounts,0.00,0.00
+Service Income,Sales Accounts,0.00,0.00
+Freight Inward,Direct Expenses,0.00,0.00
+Staff Welfare,Indirect Expenses,0.00,0.00
+ITC Reversal,Indirect Expenses,0.00,0.00
+Output CGST,Duties & Taxes,0.00,0.00
+Output SGST,Duties & Taxes,0.00,0.00
+Output IGST,Duties & Taxes,0.00,0.00
+Input CGST,Duties & Taxes,0.00,0.00
+Input SGST,Duties & Taxes,0.00,0.00
+Input IGST,Duties & Taxes,0.00,0.00
+Input Cess,Duties & Taxes,0.00,0.00
+RCM CGST Payable,Duties & Taxes,0.00,0.00
+RCM SGST Payable,Duties & Taxes,0.00,0.00

@@ -1,0 +1,15 @@
+# Sunrise Traders - Phase 3 (GST) pack, April 2026 returns (dummy, synthetic data only)
+# All GSTINs below are SYNTHETIC: they pass the check-digit algorithm of docs/PHASE3_LEGAL_VALUES.md section 2 but are not real registrations.
+name: Sunrise Traders
+entity_type: proprietorship
+business_type: trading
+gst_type: regular
+fy_start: 2026-04-01
+pack_end_date: 2026-04-30
+proprietor_name: Owner
+return_period: 2026-04-01          # GSTR-1 / GSTR-3B month (monthly filer)
+exposure_as_on: 2026-10-01         # 180-day check date: 181 days after the invoice of 03-04-2026
+claim_period: 2026-04-01           # month in which eligible credits are claimed in GSTR-3B
+registration_gstin: 27AAPFU0939F1ZV
+# Legal values this pack depends on that are still PENDING (see SIGNOFF.md): HSN rates (example rows), default services 18%,
+# GTA / RCM category, Section 17(5) clause, 180-day rule, B2C-large limit, composition rate and limit, return table numbers.

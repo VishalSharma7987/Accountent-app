@@ -1,0 +1,10 @@
+ledger_name,gstin,state_code,gst_registration_type,bill_wise
+Rahul Enterprises,27ABCDE1234F1Z0,27,regular,false
+Patel Agencies,24ABCPA1234B1ZT,24,regular,false
+Walk-in Customers,,27,unregistered,false
+Walk-in Outstation,,29,unregistered,false
+Sharma Suppliers,27BBBPS5678D1ZD,27,regular,true
+Verma Traders,07AAAAA0000A1Z4,07,regular,true
+Karnataka Components,29ABCDE1234F1ZW,29,regular,true
+Madras Metals,33AAAAA0000A1Z9,33,regular,true
+Fast Roadways,,27,unregistered,true

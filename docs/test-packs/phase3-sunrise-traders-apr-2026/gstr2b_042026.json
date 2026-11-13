@@ -1,0 +1,42 @@
+{
+  "data": {
+    "gstin": "27AAPFU0939F1ZV",
+    "rtnprd": "042026",
+    "gendt": "14-05-2026",
+    "version": "1.0",
+    "docdata": {
+      "b2b": [
+        {
+          "ctin": "27BBBPS5678D1ZD", "trdnm": "Sharma Suppliers", "supprd": "042026", "supfildt": "11-05-2026",
+          "inv": [
+            {"inum": "SUP/101", "typ": "R", "dt": "03-04-2026", "val": 129800.00, "pos": "27", "rev": "N", "itcavl": "Y",
+             "txval": 110000.00, "cgst": 9900.00, "sgst": 9900.00},
+            {"inum": "SUP/102", "typ": "R", "dt": "20-04-2026", "val": 11800.00, "pos": "27", "rev": "N", "itcavl": "Y",
+             "txval": 10000.00, "cgst": 900.00, "sgst": 900.00}
+          ]
+        },
+        {
+          "ctin": "07AAAAA0000A1Z4", "trdnm": "Verma Traders", "supprd": "042026", "supfildt": "11-05-2026",
+          "inv": [
+            {"inum": "VT/55", "typ": "R", "dt": "10-04-2026", "val": 42525.00, "pos": "27", "rev": "N", "itcavl": "Y",
+             "txval": 40500.00, "igst": 2025.00}
+          ]
+        },
+        {
+          "ctin": "33AAAAA0000A2Z8", "trdnm": "Madras Metals", "supprd": "042026", "supfildt": "11-05-2026",
+          "inv": [
+            {"inum": "MM-204", "typ": "R", "dt": "16-04-2026", "val": 23600.00, "pos": "27", "rev": "N", "itcavl": "Y",
+             "txval": 20000.00, "igst": 3600.00}
+          ]
+        },
+        {
+          "ctin": "27EEEPS9999H1ZD", "trdnm": "Mumbai Fasteners", "supprd": "042026", "supfildt": "11-05-2026",
+          "inv": [
+            {"inum": "MF/77", "typ": "R", "dt": "18-04-2026", "val": 5900.00, "pos": "27", "rev": "N", "itcavl": "Y",
+             "txval": 5000.00, "cgst": 450.00, "sgst": 450.00}
+          ]
+        }
+      ]
+    }
+  }
+}

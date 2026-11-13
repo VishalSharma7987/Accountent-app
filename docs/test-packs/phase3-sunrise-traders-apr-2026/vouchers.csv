@@ -1,0 +1,17 @@
+ref_id,date,voucher_type,narration,reference_no,party_ledger,document_kind,supply_category,place_of_supply,invoice_date,original_invoice_no,original_invoice_date,note_reason,item_name,hsn_sac,uqc,quantity,unit_rate,discount,item_ledger,rcm_category,itc_category
+P1,2026-04-03,purchase,AC units from Sharma,SUP/101,Sharma Suppliers,tax_invoice,b2b,27,2026-04-03,,,,Split AC 1.5 ton,8415,NOS,5,22000.00,0.00,Purchases,,
+S1,2026-04-05,sales,AC and sugar to Rahul,,Rahul Enterprises,tax_invoice,b2b,27,2026-04-05,,,,Split AC 1.5 ton,8415,NOS,2,30000.00,0.00,Sales,,
+S1,2026-04-05,sales,AC and sugar to Rahul,,Rahul Enterprises,tax_invoice,b2b,27,2026-04-05,,,,Sugar,1701,KGS,100,45.50,0.00,Sales,,
+S2,2026-04-08,sales,AC to Patel Agencies Gujarat,,Patel Agencies,tax_invoice,b2b,24,2026-04-08,,,,Split AC 1.5 ton,8415,NOS,1,30000.00,1000.00,Sales,,
+P2,2026-04-10,purchase,Sugar from Verma Delhi,VT/55,Verma Traders,tax_invoice,b2b,27,2026-04-10,,,,Sugar,1701,KGS,1000,40.00,0.00,Purchases,,
+S3,2026-04-12,sales,Retail sale in Maharashtra,,Walk-in Customers,tax_invoice,b2c,27,2026-04-12,,,,Sugar,1701,KGS,20,45.50,0.00,Sales,,
+S3,2026-04-12,sales,Retail sale in Maharashtra,,Walk-in Customers,tax_invoice,b2c,27,2026-04-12,,,,Medicine strips,3004,NOS,10,120.00,0.00,Sales,,
+P3,2026-04-14,purchase,AC from Karnataka Components,KC/9,Karnataka Components,tax_invoice,b2b,27,2026-04-14,,,,Split AC 1.5 ton,8415,NOS,2,18000.00,0.00,Purchases,,
+S4,2026-04-15,sales,Bulk AC to outstation customer Karnataka,,Walk-in Outstation,tax_invoice,b2c,29,2026-04-15,,,,Split AC 1.5 ton,8415,NOS,10,30000.00,0.00,Sales,,
+P4,2026-04-16,purchase,AC from Madras Metals,MM-204,Madras Metals,tax_invoice,b2b,27,2026-04-16,,,,Split AC 1.5 ton,8415,NOS,1,20000.00,0.00,Purchases,,
+S5,2026-04-18,sales,Potatoes to Rahul (nil rated),,Rahul Enterprises,bill_of_supply,b2b,27,2026-04-18,,,,Potatoes,0701,KGS,500,20.00,0.00,Sales,,
+P5,2026-04-20,purchase,Staff gym membership,SUP/102,Sharma Suppliers,tax_invoice,b2b,27,2026-04-20,,,,Staff gym membership,999699,,1,10000.00,0.00,Staff Welfare,,club_fitness_membership_17_5_b
+S6,2026-04-20,sales,Consulting to Rahul,,Rahul Enterprises,tax_invoice,b2b,27,2026-04-20,,,,Consulting service,998311,,1,25000.00,0.00,Service Income,,
+P6,2026-04-22,purchase,GTA freight (reverse charge),FR/12,Fast Roadways,self_invoice,unregistered_supplier,27,2026-04-22,,,,Goods transport service,996511,,1,10000.00,0.00,Freight Inward,gta_services,
+P7,2026-04-24,purchase,Sugar from Sharma,SUP/103,Sharma Suppliers,tax_invoice,b2b,27,2026-04-24,,,,Sugar,1701,KGS,200,40.00,0.00,Purchases,,
+CN1,2026-04-25,credit_note,AC returned by Rahul,,Rahul Enterprises,tax_invoice,b2b,27,2026-04-25,SAL/2026-27/0001,2026-04-05,sales_return,Split AC 1.5 ton,8415,NOS,1,30000.00,0.00,Sales Returns,,

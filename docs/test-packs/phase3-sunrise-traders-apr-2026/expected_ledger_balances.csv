@@ -1,0 +1,16 @@
+ledger_name,side,amount
+Output CGST,Cr,5116.50
+Output SGST,Cr,5116.50
+Output IGST,Cr,59220.00
+Input CGST,Dr,11000.00
+Input SGST,Dr,11000.00
+Input IGST,Dr,12080.00
+RCM CGST Payable,Cr,900.00
+RCM SGST Payable,Cr,900.00
+ITC Reversal,Dr,0.00
+Staff Welfare,Dr,11800.00
+Freight Inward,Dr,10000.00
+Sales,Cr,405660.00
+Sales Returns,Dr,30000.00
+Service Income,Cr,25000.00
+Purchases,Dr,214000.00

@@ -1,0 +1,8 @@
+name,item_kind,hsn_sac,uqc,sales_ledger,purchase_ledger
+Split AC 1.5 ton,goods,8415,NOS,Sales,Purchases
+Sugar,goods,1701,KGS,Sales,Purchases
+Medicine strips,goods,3004,NOS,Sales,Purchases
+Potatoes,goods,0701,KGS,Sales,Purchases
+Consulting service,service,998311,,Service Income,
+Goods transport service,service,996511,,,Freight Inward
+Staff gym membership,service,999699,,,Staff Welfare

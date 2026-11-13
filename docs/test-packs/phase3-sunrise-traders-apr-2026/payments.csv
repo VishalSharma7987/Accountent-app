@@ -1,0 +1,7 @@
+ref_id,date,party_ledger,bank_ledger,narration,bill_ref,amount
+PAY1,2026-05-05,Sharma Suppliers,HDFC Bank,Part payment SUP/101 and full SUP/102 SUP/103,SUP/101,64900.00
+PAY1,2026-05-05,Sharma Suppliers,HDFC Bank,Part payment SUP/101 and full SUP/102 SUP/103,SUP/102,11800.00
+PAY1,2026-05-05,Sharma Suppliers,HDFC Bank,Part payment SUP/101 and full SUP/102 SUP/103,SUP/103,8400.00
+PAY2,2026-05-06,Karnataka Components,HDFC Bank,Paid KC/9,KC/9,42480.00
+PAY3,2026-05-07,Madras Metals,HDFC Bank,Paid MM-204,MM-204,23600.00
+PAY4,2026-05-08,Fast Roadways,HDFC Bank,Paid freight FR/12,FR/12,10000.00
