@@ -451,7 +451,7 @@ BEGIN
                 RAISE EXCEPTION 'a % movement cannot come from a % voucher', NEW.kind, vtype;
             END IF;
             IF NEW.kind = 'purchase'
-               AND NEW.value <> il.taxable_value + CASE WHEN il.tax_in_cost THEN il.cgst + il.sgst + il.igst + il.cess ELSE 0 END THEN
+               AND NEW.value <> il.taxable_value + (CASE WHEN il.tax_in_cost THEN il.cgst + il.sgst + il.igst + il.cess ELSE 0 END) THEN
                 RAISE EXCEPTION 'the purchase cost must equal the taxable value plus the tax that is part of the cost';
             END IF;
         END IF;

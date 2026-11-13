@@ -12,6 +12,7 @@ from app.services.errors import ServiceError, VoucherRuleError
 
 UNPROCESSABLE = {"reason_required", "client_mismatch", "no_financial_year", "statement_invalid", "import_invalid", "ledger_role_missing"}
 UNPROCESSABLE |= {"no_rule", "allocation_exceeds"}  # TDS / TCS (Phase 4)
+UNPROCESSABLE |= {"no_policy", "period_locked", "negative_stock", "journal_reversal_blocked", "no_original_movement"}  # Inventory (Phase 5)
 UNPROCESSABLE |= {"period_invalid", "not_gst_client", "filed_invalid", "working_unsupported", "no_rate_rule"}  # GST returns (E)
 
 
