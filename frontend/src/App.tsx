@@ -29,6 +29,13 @@ import Registrations from './gst/Registrations'
 import Returns from './gst/Returns'
 import Rules from './gst/Rules'
 import Workings from './gst/Workings'
+import TdsChallans from './tds/Challans'
+import TdsDeductees from './tds/Deductees'
+import TdsEntry from './tds/TdsEntry'
+import TdsRecon26 from './tds/Recon26'
+import TdsRegister from './tds/Register'
+import TdsReturns from './tds/Returns'
+import TdsRules from './tds/Rules'
 
 function Shell() {
   const { clients, clientId, setClientId, latestYear } = useClient()
@@ -122,6 +129,13 @@ function Shell() {
           <Route path="/gst/composition" element={<Returns key="composition" kind="composition" />} />
           <Route path="/gst/workings" element={<Workings />} />
           <Route path="/gst/rules" element={<Rules />} />
+          <Route path="/tds/deductees" element={<TdsDeductees />} />
+          <Route path="/tds/entry" element={<TdsEntry />} />
+          <Route path="/tds/register" element={<TdsRegister />} />
+          <Route path="/tds/challans" element={<TdsChallans />} />
+          <Route path="/tds/returns" element={<TdsReturns />} />
+          <Route path="/tds/26as" element={<TdsRecon26 />} />
+          <Route path="/tds/rules" element={<TdsRules />} />
         </Routes>
         </main>
       </div>

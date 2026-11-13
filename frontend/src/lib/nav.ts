@@ -83,6 +83,20 @@ export const NAV_GROUPS: NavGroup[] = [
       { to: '/gst/rules', label: 'GST rules' },
     ],
   },
+  {
+    id: 'tds',
+    label: 'TDS',
+    icon: 'D',
+    items: [
+      { to: '/tds/deductees', label: 'Deductees and masters' },
+      { to: '/tds/entry', label: 'Voucher with TDS' },
+      { to: '/tds/register', label: 'TDS register' },
+      { to: '/tds/challans', label: 'Challans and interest' },
+      { to: '/tds/returns', label: 'Returns and certificates' },
+      { to: '/tds/26as', label: '26AS reconciliation' },
+      { to: '/tds/rules', label: 'TDS rules' },
+    ],
+  },
 ]
 
 function matches(item: NavItem, path: string): boolean {
