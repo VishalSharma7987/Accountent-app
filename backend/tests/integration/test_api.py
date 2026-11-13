@@ -256,8 +256,8 @@ def test_create_get_update_approve_post_a_voucher_through_the_api(api, b):
     voucher = api.get(f"/vouchers/{vid}").json()
     assert (voucher["status"], voucher["voucher_number"], voucher["created_by"], voucher["voucher_type"]) == ("draft", None, "tester", "payment")
     assert voucher["lines"] == [
-        {"line_no": 1, "ledger_id": str(b.ids["Rent"]), "ledger_name": "Rent", "debit": "1250.50", "credit": "0.00", "allocations": []},
-        {"line_no": 2, "ledger_id": str(b.ids["Cash"]), "ledger_name": "Cash", "debit": "0.00", "credit": "1250.50", "allocations": []},
+        {"line_no": 1, "ledger_id": str(b.ids["Rent"]), "ledger_name": "Rent", "debit": "1250.50", "credit": "0.00", "allocations": [], "gst_role": None, "item_line_no": None},
+        {"line_no": 2, "ledger_id": str(b.ids["Cash"]), "ledger_name": "Cash", "debit": "0.00", "credit": "1250.50", "allocations": [], "gst_role": None, "item_line_no": None},
     ]
 
     r = api.put(f"/vouchers/{vid}", json=payment(b, amount="999.99", narration="Edited"), headers=H)
