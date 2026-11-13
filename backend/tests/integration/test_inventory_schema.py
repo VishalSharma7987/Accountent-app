@@ -5,6 +5,7 @@ Each test builds its rows inside a transaction that is rolled back. Expected val
 """
 
 import uuid
+from decimal import Decimal
 
 import pytest
 from dbfactory import Factory, rejected
@@ -62,7 +63,7 @@ class World:
             "INSERT INTO voucher_item_lines (client_id, voucher_id, item_line_no, item_id, description, hsn_sac, uqc, quantity, "
             "unit_rate, gross_amount, taxable_value, ledger_id, treatment, tax_in_cost, itc_category_key) "
             "VALUES (%s, %s, 1, %s, 'Widget', '3004', 'NOS', %s, %s, %s, %s, %s, 'exempt', %s, %s)",
-            (self.client_id, vid, self.item_id, qty, rate, "120.00", "120.00", lines[0][0], tax_in_cost,
+            (self.client_id, vid, self.item_id, qty, rate, str(Decimal(str(qty)) * Decimal(str(rate))), str(Decimal(str(qty)) * Decimal(str(rate))), lines[0][0], tax_in_cost,
              "motor_vehicle" if tax_in_cost else None))
         if post:
             self.f.approve(vid)

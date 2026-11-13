@@ -229,7 +229,7 @@ def test_T14_T30_roles_tan_and_194q_flag(svc_conn, f):
         tds_masters.set_tan(svc_conn, client_id, "MUMS1234A", actor="clerk")
     assert rule_ids(e.value) == ["T-30"]
     tds_masters.set_tan(svc_conn, client_id, " mums12345a ", actor="clerk")
-    assert tds_masters.get_profile(svc_conn, client_id) == {"tan": "MUMS12345A", "fy_flags": []}
+    assert tds_masters.get_profile(svc_conn, client_id) == {"tan": "MUMS12345A", "fy_flags": [], "deductor_profile": []}
     assert tds_masters.fy_flag(svc_conn, client_id, fy_id) is None
     tds_masters.set_fy_flag(svc_conn, client_id, fy_id, True, "turnover above the limit", actor="clerk")
     tds_masters.set_fy_flag(svc_conn, client_id, fy_id, False, None, actor="clerk")

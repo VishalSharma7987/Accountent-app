@@ -127,8 +127,8 @@ def test_every_table_has_row_level_security_and_no_policies(f):
         ("voucher_gst_line_roles", True),
         ("voucher_item_lines", True),
         ("voucher_lines", True),
-        ("voucher_stock_lines", True),
         ("voucher_number_sequences", True),
+        ("voucher_stock_lines", True),
         ("vouchers", True),
     ]
     policies = f.conn.execute("SELECT count(*) FROM pg_policies WHERE schemaname = current_schema()").fetchone()[0]
