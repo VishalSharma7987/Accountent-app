@@ -1,0 +1,58 @@
+# Phase 4 API contract (TDS / TCS) (extends docs/API_CONTRACT.md, PHASE2 and PHASE3 contracts; same conventions)
+
+Amounts are 2-decimal strings, rates strings with up to 4 decimals, dates `YYYY-MM-DD`, `X-User` on writes, `ServiceError` -> `{code, message, details}`, rule errors `422 {errors:[{rule_id, message, line_no?}]}`.
+New error codes (409 unless named): `deductee_exists`, `deductee_in_use`, `certificate_exists`, `challan_exists`, `challan_locked`, `allocation_exceeds` (422), `item_has_allocation`, `working_final`, `import_duplicate`, `import_invalid` (422, `details` = `[{row, message}]`), `link_exists`, `no_rule` (422, T-02), `period_invalid` (422).
+Every response that uses rule data carries `rule_status: {"worst": "pending"|"secondary_verified"|"verified", "tables": {"rate": "...", "due_date": "...", ...}, "pending_sources": ["..."]}` (T-50) so screens can show the badge.
+Quarters are Indian FY quarters: Q1 Apr-Jun ... Q4 Jan-Mar, `quarter` = 1..4.
+
+## Masters (package A)
+- `PUT /clients/{c}/tds/profile` body `{tan}` -> `{"ok":true}` | `422 T-30` (format `AAAA99999A`); `GET` same path -> `{tan, fy_flags:[{financial_year_id, prev_year_turnover_over_threshold, note}]}`; `PUT /clients/{c}/tds/fy-flags/{fy_id}` body `{prev_year_turnover_over_threshold, note?}`.
+- `GET /clients/{c}/tds/deductees?q=` -> `[Deductee]`; `Deductee = {ledger_id, ledger_name, pan, pan_status: "valid"|"missing"|"invalid"|"applied_for", deductee_type, default_nature_key|null, is_active, lower_certs:[Cert], pan_warning|null}`.
+- `PUT /clients/{c}/tds/deductees/{ledger_id}` body `{pan?, pan_status, deductee_type, default_nature_key?, is_active?}` (create or replace; the ledger must be a party ledger of the client) -> `{"ok":true}` | `422 T-10 (PAN format / status), T-11 (PAN 4th letter vs deductee type: warning only when the type is 'other')`. No delete; deactivate.
+- `POST /clients/{c}/tds/deductees/{ledger_id}/certificates` body `{certificate_no, nature_key?, rate, max_amount, valid_from, valid_to, note?}` -> `201 {id}` | `422 T-12` | `409 certificate_exists`; `PUT .../certificates/{id}` (`is_active`, `note`, `valid_to` shortened only); `GET .../certificates` -> `[Cert + amount_used, amount_left]`. `Cert = {id, certificate_no, nature_key, rate, max_amount, valid_from, valid_to, amount_used, amount_left, is_active}`.
+- `PUT /clients/{c}/tds/ledger-roles` body `{roles:[{role, nature_key|null, ledger_id}]}` (replaces all) -> `{"ok":true}` | `422 T-14` (tds_payable / tcs_payable ledger must sit under Duties & Taxes, receivables under Current Assets / Loans & Advances, interest / late fee under Indirect Expenses; the ledger belongs to the client); `GET` -> `{roles:[{role, nature_key, ledger_id, ledger_name}]}`.
+- Read-only rule tables, all accept `?on=` (default today) and return `{on, status:{overall, counts}, rows}` (`overall` = the weakest status; every row has `verification_status` and `source_reference`): `GET /tds/natures`, `/tds/section-map` (old <-> new: `[{nature_key, description, sec_1961, sec_2025, table_ref_2025, payment_code_2025, status}]`), `/tds/rates?nature_key=`, `/tds/provisions`, `/tds/due-dates`, `/tds/interest-rules`, `/tds/forms`.
+- `GET /tds/rates/lookup?nature_key=&deductee_group=&on=` -> `{rate_rule_id, act, section_ref, table_ref, rate, no_pan_rate, thresholds, threshold_mode, verification_status}` | `422 no_rule`.
+
+## Deduction on vouchers (package B)
+`POST/PUT /clients/{c}/vouchers` (Phase 1 contract) accept an optional `tds` block on Payment, Purchase and Journal vouchers. The caller types the expense / party lines as before; the service ADDS the tax line (Cr TDS payable, and reduces the party / bank line) - the tax amount, rate and tax ledger typed by the caller are refused (T-05).
+```
+tds = {
+  items: [{
+    deductee_ledger_id,            // a party ledger with a Deductee row (T-09)
+    nature_key,                    // chosen by the accountant (never inferred from narration)
+    amount,                        // the base to which the nature applies (GST shown separately is excluded by the accountant)
+    credit_date|null, payment_date|null,   // at least one; the earlier decides the Act (T-01)
+    lower_cert_id|null,
+    manual_tax|null                // salary (rate_mode slab_manual) only
+  }]
+}
+```
+- Mode of the voucher lines: for a Payment, `Dr party / Cr bank` becomes `Dr party / Cr bank (amount - tax) / Cr TDS payable (tax)`; for a Purchase / Journal booking the expense, `Dr expense / Cr party (amount - tax) / Cr TDS payable (tax)`. `lines` are given by the caller for the gross amounts; the service shows the generated tax line read-only.
+- Response `Voucher` gains `tds: {engine_version, items:[{item_no, deductee_ledger_id, deductee_name, nature_key, act, section_ref, table_ref, event_date, payment_amount, cumulative_before, cumulative_after, threshold_crossed, taxable_base, rate_applied, rate_reason, lower_cert_id, tax_already_on_base, tds_amount, tds_line_no, verification_status, warnings:[{rule_id, message}]}]}`.
+- `POST /clients/{c}/vouchers/tds-preview` same body as create -> `{lines:[...], tds:{...}, errors:[...]}` (no write; 200 even when rules fail).
+- `GET /clients/{c}/tds/register?financial_year_id=&quarter=&nature_key=&deductee_ledger_id=&deposit_status=all|deposited|short|undeposited` -> `{rows:[{item_id, voucher_id, voucher_number, voucher_date, deductee_ledger_id, deductee_name, pan, nature_key, section_ref, event_date, payment_amount, taxable_base, rate_applied, rate_reason, tds_amount, deposited, balance, due_date, deposited_on|null, days_late|null}], totals:{...}, rule_status}`; `GET .../tds/register/by-deductee?financial_year_id=` -> per deductee and nature: `{cumulative_amount, tax_deducted, threshold, threshold_crossed_on|null}`.
+- `GET /clients/{c}/tds/threshold-position?deductee_ledger_id=&nature_key=&on=` -> `{financial_year_id, cumulative_amount, tax_deducted, single_threshold, annual_threshold, headroom}` (used by the entry screen).
+- Approve / post / reverse use the Phase 1 endpoints; T-13 fires at approve and post. A reversal is refused while a challan allocation exists on one of the voucher's items (T-25, `409 item_has_allocation`); the reversed voucher leaves the register and the threshold totals.
+
+## Challans, due dates, interest (package C)
+- `POST /clients/{c}/tds/challans` body `{kind, financial_year_id, quarter, bsr_code, deposit_date, challan_serial_no, tax_amount, interest_amount?, fee_amount?, other_amount?, payment_voucher_id?, note?, allocations:[{item_id, amount}]?}` -> `201 {id}` | `422 T-20..T-24` | `409 challan_exists` (same BSR + date + serial).
+- `GET /clients/{c}/tds/challans?financial_year_id=&quarter=&kind=` -> `[{id, bsr_code, deposit_date, challan_serial_no, tax_amount, interest_amount, fee_amount, other_amount, total_amount, allocated, unallocated, status}]`; `GET .../{id}` adds allocations; `PUT .../{id}` (not when locked: `409 challan_locked`); `PUT /clients/{c}/tds/challans/{id}/allocations` body `{allocations:[{item_id, amount}]}` replaces.
+- `GET /clients/{c}/tds/challan-matching?financial_year_id=&quarter=&kind=` -> `{rows:[{item_id, deductee_name, section_ref, tds_amount, allocated, balance, due_date, deposited_on, days_late, interest_late_deposit}], unallocated_challans:[...], totals}`; `POST .../tds/challan-matching/auto` body `{financial_year_id, quarter, kind}` -> `{proposed:[{item_id, challan_id, amount}]}` (proposal only; nothing is written until `PUT allocations`; rule: same quarter, oldest item first, never over-allocate).
+- `GET /clients/{c}/tds/interest?financial_year_id=&as_on=` -> `{rows:[{item_id, deductee_name, tds_amount, deductible_on, deducted_on, months_late_deduction, interest_late_deduction, deposited_on|null, due_date, months_late_deposit, interest_late_deposit, rule_status}], totals}` (T-26, T-27; `as_on` is used for items not yet deposited).
+- `GET /clients/{c}/tds/due-calendar?financial_year_id=` -> `[{event, kind, quarter, period, due_date, status: "done"|"due"|"overdue", amount_due}]` (T-28).
+
+## Returns and certificates (package D)
+- `GET /clients/{c}/tds/return-working?financial_year_id=&quarter=&return_kind=salary|non_salary_resident|tcs` -> `{form_no, form_status, tan, period, deductee_rows:[{deductee_name, pan, pan_status, section_ref, payment_code|null, amount_paid, tax_deducted, tax_deposited, rate, event_date, certificate_no|null}], challan_rows:[{bsr_code, deposit_date, serial_no, tax, interest, fee, total}], totals, errors:[...], warnings:[...], rule_status}` (T-30..T-33: missing TAN, missing / invalid PAN rows listed, deducted > deposited, unallocated items).
+- `POST /clients/{c}/tds/return-workings` body `{financial_year_id, quarter, return_kind}` -> `201 {working_id, version}`; `POST /tds/return-workings/{id}/finalise` (locks the challans it uses); `GET /clients/{c}/tds/return-workings?...`; `PUT /clients/{c}/tds/filed-returns` body `{financial_year_id, quarter, return_kind, receipt_no?, filed_on?, data}`; `GET` same.
+- `GET /tds/return-workings/{id}/export.xlsx|json` - working data in the tool's own structure (the official statement file format is NOT produced; response header `X-Rule-Status`).
+- `GET /clients/{c}/tds/certificates/preview?deductee_ledger_id=&financial_year_id=&quarter=&certificate_kind=` -> certificate data `{form_no, deductor:{name, tan, pan}, deductee:{name, pan}, items:[...], challans:[...], total_deducted, total_deposited}` | `422 T-34` (an item is not fully deposited / allocated); `POST /clients/{c}/tds/certificates` same body -> `201 {id, version}` (stored snapshot); `PUT .../{id}` `{certificate_no, issued_on}` only; `GET .../certificates?...`; `GET .../{id}/export.xlsx`.
+
+## 26AS / AIS reconciliation (package E)
+- `POST /clients/{c}/tds/26as/import` multipart(file, financial_year_id, source: "form_26as"|"ais"|"tis", side: "deductee"|"deductor") -> `201 {import_id, rows, totals:{amount_paid, tax_deducted, tax_deposited}}` | `422 import_invalid` (T-40: shape unknown / amounts malformed) | `409 import_duplicate` (T-41, same file hash).
+- `GET /clients/{c}/tds/26as/imports?financial_year_id=`; `GET /tds/26as/imports/{id}/rows`.
+- `GET /clients/{c}/tds/26as/reconciliation?financial_year_id=&import_id=` -> `{tolerance, summary:{matched, amount_mismatch, only_in_books, only_in_26as, date_mismatch}, rows:[{class, row:{...}|null, books:{item_id|voucher_id, deductee_name, section_ref, event_date, payment_amount, tds_amount}|null, difference, section_mapping_status}]}` (T-42, T-43). Matching key: PAN (deductee side: deductor TAN) + section mapped through the old <-> new table + amount within the tolerance (default 1.00, reported) + transaction month; an unmapped section is reported, never guessed.
+- `POST /clients/{c}/tds/26as/links` body `{row_id, item_id|voucher_id, link_kind: "manual"|"accepted_difference", note}` -> `201 {link_id}` | `409 link_exists`; `DELETE .../links/{id}` -> 204.
+
+## Frontend screens (package F)
+Deductee master (PAN status, certificates), ledger-role map, rule viewer (status badge, amber when `pending`; old <-> new section map), voucher entry with the TDS block and read-only tax preview (`tds-preview` on every change, threshold headroom), TDS register, challan entry and matching (auto-propose), interest and due-calendar, return working and certificate preview, 26AS import + reconciliation with manual link.

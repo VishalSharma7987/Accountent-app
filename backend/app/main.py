@@ -23,6 +23,11 @@ from app.api import (
     periods,
     reconciliation,
     reports,
+    tds_challans,
+    tds_deduction,
+    tds_masters,
+    tds_recon,
+    tds_returns,
     vouchers,
 )
 from app.api.errors import register_error_handlers
@@ -50,6 +55,11 @@ ROUTERS = [
     gst_itc.router,
     gst_recon.router,
     gst_returns.router,
+    tds_masters.router,
+    tds_deduction.router,
+    tds_challans.router,
+    tds_returns.router,
+    tds_recon.router,
 ]
 for _router in ROUTERS:
     app.include_router(_router)
