@@ -65,6 +65,24 @@ export const NAV_GROUPS: NavGroup[] = [
       { to: '/trial-balance', label: 'Trial Balance' },
     ],
   },
+  {
+    id: 'gst',
+    label: 'GST',
+    icon: 'G',
+    items: [
+      { to: '/gst/registrations', label: 'Registrations' },
+      { to: '/gst/items', label: 'Item master (HSN)' },
+      { to: '/gst/invoice', label: 'GST invoice' },
+      { to: '/gst/itc', label: 'ITC register' },
+      { to: '/gst/2b', label: 'GSTR-2B reconciliation' },
+      { to: '/gst/gstr1', label: 'GSTR-1 working' },
+      { to: '/gst/gstr3b', label: 'GSTR-3B working' },
+      { to: '/gst/tie-out', label: 'Tie-out' },
+      { to: '/gst/composition', label: 'Composition' },
+      { to: '/gst/workings', label: 'Saved workings' },
+      { to: '/gst/rules', label: 'GST rules' },
+    ],
+  },
 ]
 
 function matches(item: NavItem, path: string): boolean {
