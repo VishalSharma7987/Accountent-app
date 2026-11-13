@@ -6,6 +6,7 @@ from sqlalchemy import Connection
 
 from app.api.deps import get_actor, get_conn, parse_id
 from app.api.errors import rule_errors_response
+from app.api.gst_invoice_input import invoice_from_body
 from app.api.schemas import (
     AllocationOut,
     OkOut,
@@ -23,10 +24,23 @@ from app.api.schemas import (
     money,
 )
 from app.db.repositories import VoucherRecord
-from app.engine.models import Allocation, VoucherDraft, VoucherLine
-from app.services import queries, vouchers
+from app.engine.models import Allocation, ValidationError, VoucherDraft, VoucherLine
+from app.services import gst_hooks, queries, vouchers
 
 router = APIRouter(tags=["vouchers"])
+
+
+def draft_from_body(client_id: uuid.UUID, body: VoucherIn) -> tuple[VoucherDraft | None, list[ValidationError]]:
+    """The draft of a request body, or the G-14 / G-17 errors of its invoice block (Phase 3)."""
+    if body.gst is None:
+        return _draft(client_id, body), []
+    invoice, party_allocations, errors = invoice_from_body(body)
+    if errors:
+        return None, errors
+    return VoucherDraft(
+        client_id, body.voucher_type, body.voucher_date, body.narration, body.reference_no, body.party_ledger_id, (),
+        body.duplicate_override_reason, body.goods_received_date, invoice, None, party_allocations,
+    ), []
 
 
 def _draft(client_id: uuid.UUID, body: VoucherIn) -> VoucherDraft:
@@ -41,7 +55,8 @@ def _draft(client_id: uuid.UUID, body: VoucherIn) -> VoucherDraft:
     )
 
 
-def _voucher_out(r: VoucherRecord) -> VoucherOut:
+def _voucher_out(r: VoucherRecord, gst: dict | None = None) -> VoucherOut:
+    roles = (gst or {}).pop("line_roles", {})
     return VoucherOut(
         id=r.id, client_id=r.client_id, financial_year_id=r.financial_year_id, voucher_type=r.voucher_type,
         voucher_number=r.voucher_number, voucher_date=r.voucher_date, narration=r.narration,
@@ -51,16 +66,22 @@ def _voucher_out(r: VoucherRecord) -> VoucherOut:
         approved_by=r.approved_by, posted_by=r.posted_by, goods_received_date=r.goods_received_date,
         lines=[VoucherLineOut(line_no=x.line_no, ledger_id=x.ledger_id, ledger_name=x.ledger_name,
                               debit=money(x.debit), credit=money(x.credit),
+                              gst_role=roles.get(x.line_no, {}).get("gst_role"),
+                              item_line_no=roles.get(x.line_no, {}).get("item_line_no"),
                               allocations=[AllocationOut(kind=a.kind, amount=money(a.amount), bill_ref=a.bill_ref,
                                                          due_date=a.due_date) for a in x.allocations])
                for x in r.lines],
+        gst=gst,
     )
 
 
 @router.post("/clients/{client_id}/vouchers", status_code=201, response_model=VoucherCreated)
 def create_voucher(client_id: str, body: VoucherIn, conn: Connection = Depends(get_conn),
                    actor: str = Depends(get_actor)):
-    result = vouchers.create_draft(conn, _draft(parse_id(client_id, "Client"), body), actor=actor)
+    draft, bad = draft_from_body(parse_id(client_id, "Client"), body)
+    if bad:
+        return rule_errors_response(bad)
+    result = vouchers.create_draft(conn, draft, actor=actor)
     if result.errors:
         return rule_errors_response(result.errors)
     return VoucherCreated(voucher_id=result.voucher_id)
@@ -89,7 +110,8 @@ def list_vouchers(
 
 @router.get("/vouchers/{voucher_id}", response_model=VoucherOut)
 def get_voucher(voucher_id: str, conn: Connection = Depends(get_conn)):
-    return _voucher_out(vouchers.get_voucher(conn, parse_id(voucher_id, "Voucher")))
+    record = vouchers.get_voucher(conn, parse_id(voucher_id, "Voucher"))
+    return _voucher_out(record, gst_hooks.load_invoice(conn, record.client_id, record.id))
 
 
 @router.put("/vouchers/{voucher_id}", response_model=VoucherCreated)
@@ -97,7 +119,10 @@ def update_voucher(voucher_id: str, body: VoucherIn, conn: Connection = Depends(
                    actor: str = Depends(get_actor)):
     vid = parse_id(voucher_id, "Voucher")
     current = vouchers.get_voucher(conn, vid)
-    result = vouchers.update_draft(conn, vid, _draft(current.client_id, body), actor=actor)
+    draft, bad = draft_from_body(current.client_id, body)
+    if bad:
+        return rule_errors_response(bad)
+    result = vouchers.update_draft(conn, vid, draft, actor=actor)
     if result.errors:
         return rule_errors_response(result.errors)
     return VoucherCreated(voucher_id=result.voucher_id)

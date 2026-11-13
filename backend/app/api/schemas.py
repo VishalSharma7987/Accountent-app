@@ -7,6 +7,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from app.api.schemas_gst_invoices import GstIn
 from app.engine.models import Balance
 
 CENTS = Decimal("0.01")
@@ -162,7 +163,8 @@ class VoucherIn(BaseModel):
     party_ledger_id: uuid.UUID | None = None
     duplicate_override_reason: str | None = None
     goods_received_date: date | None = None  # Purchase only (V-15)
-    lines: list[VoucherLineIn]
+    lines: list[VoucherLineIn] = Field(default_factory=list)  # empty in invoice mode (Phase 3: `gst` builds them)
+    gst: GstIn | None = None
 
 
 class VoucherLineOut(BaseModel):
@@ -172,6 +174,8 @@ class VoucherLineOut(BaseModel):
     debit: str
     credit: str
     allocations: list[AllocationOut] = Field(default_factory=list)
+    gst_role: str | None = None  # Phase 3 invoice mode: party | taxable | tax_cgst | ... | round_off
+    item_line_no: int | None = None
 
 
 class VoucherOut(BaseModel):
@@ -193,6 +197,7 @@ class VoucherOut(BaseModel):
     posted_by: str | None
     goods_received_date: date | None = None
     lines: list[VoucherLineOut]
+    gst: dict | None = None  # Phase 3: header, items and engine figures when the voucher is in invoice mode
 
 
 class VoucherCreated(BaseModel):
