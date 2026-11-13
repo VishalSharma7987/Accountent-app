@@ -30,20 +30,9 @@ def p3_run(test_engine):
     return report
 
 
-# Differences between the hand workings and the tool found by this pack on 13-11-2026. They are FINDINGS for the owner (the pack
-# is not edited to fit the tool); strict xfail so that fixing one of them turns the test red until this table is updated.
-FINDINGS = {
-    "register_tie": "ITC register tie: Input ledgers include the reverse-charge credit (CGST/SGST 900.00 of P6) but the register "
-                    "side leaves RCM entries out, so 'ties' is False (diff 900.00 per head)",
-    "tie_out": "tie-out itc cess shows books_input '-0.00' (negative zero) instead of 0.00",
-    "wrong_cases": "W03 party state/GSTIN mismatch is reported as P-04, the pack (and PHASE3_API_CONTRACT) expects G-04; "
-                   "party GSTIN checks are not yet switched to G-01..G-04 (decisions_parts/A.md)",
-}
-
-
 @pytest.mark.parametrize(
     "section",
-    [pytest.param(s, marks=pytest.mark.xfail(reason=FINDINGS[s], strict=True)) if s in FINDINGS else s for s in SECTIONS],
+    SECTIONS,
 )
 def test_section_matches_the_hand_workings(p3_run, section):
     assert p3_run.problems[section] == [], "\n" + format_report(p3_run)
@@ -52,4 +41,4 @@ def test_section_matches_the_hand_workings(p3_run, section):
 def test_counts(p3_run):
     assert p3_run.counts["vouchers_posted"] == 14
     assert p3_run.counts["payments_posted"] == 4
-    assert p3_run.counts["wrong_cases_refused"] == 7  # 8 cases; W03 is the finding above
+    assert p3_run.counts["wrong_cases_refused"] == 8

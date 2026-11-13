@@ -68,11 +68,16 @@ def parse_amount(value: object) -> Decimal:
     return result
 
 
+def no_negative_zero(value: Decimal) -> Decimal:
+    """A zero amount is never negative: Decimal('-0.00') (from -1 * 0.00 or rounding -0.004) becomes Decimal('0.00')."""
+    return value.copy_abs() if value.is_zero() else value
+
+
 def round_half_up(value: Decimal, places: int = 2) -> Decimal:
-    """Round to `places` decimals, halves away from zero (the legal rounding for tax amounts)."""
+    """Round to `places` decimals, halves away from zero (the legal rounding for tax amounts). Zero is never negative."""
     with localcontext() as ctx:
         ctx.prec = 60
-        return value.quantize(Decimal(1).scaleb(-places), rounding=ROUND_HALF_UP)
+        return no_negative_zero(value.quantize(Decimal(1).scaleb(-places), rounding=ROUND_HALF_UP))
 
 
 def format_inr(value: Decimal) -> str:

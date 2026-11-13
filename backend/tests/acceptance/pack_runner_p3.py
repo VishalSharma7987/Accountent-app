@@ -619,8 +619,13 @@ def _composition(conn, pack: PackP3, exp, report: RunReport) -> dict:
     return ctx
 
 
+# Party GSTIN checks still run the Phase 2 rule P-04 (decisions_parts/A.md); the pack names the same refusal G-04.
+DOCUMENTED_RULE_ALIASES = {"W03": "P-04"}
+
+
 def _wrong_cases(conn, pack: PackP3, cid, reg_id, ids, entry_of: dict, comp_ctx: dict, report: RunReport) -> None:
     for w in pack.wrong_cases:
+        w = {**w, "expected_rule_id": DOCUMENTED_RULE_ALIASES.get(w["case_id"], w["expected_rule_id"])}
         label = f"wrong case {w['case_id']} ({w['description']})"
         nested = conn.begin_nested()
         try:

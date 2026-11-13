@@ -17,7 +17,7 @@ from sqlalchemy import Connection
 from app.db import repositories_gst_returns as repo
 from app.engine import composition as comp_engine
 from app.engine import gst_tieout, gstr1, gstr3b
-from app.engine.money import MoneyError, parse_amount
+from app.engine.money import MoneyError, no_negative_zero, parse_amount
 from app.services import audit
 from app.services.errors import ServiceError
 
@@ -182,7 +182,7 @@ def _heads_from(movement: dict, roles: dict, prefix: str, sign: int, warnings: l
             warnings.append(f"Ledger role {prefix}_{h} is not mapped for this registration: the books figure for {h.upper()} is shown as 0.00.")
             out[h] = Decimal("0.00")
         else:
-            out[h] = sign * movement.get(ledger, Decimal("0.00"))
+            out[h] = no_negative_zero(sign * movement.get(ledger, Decimal("0.00")))
     return out
 
 

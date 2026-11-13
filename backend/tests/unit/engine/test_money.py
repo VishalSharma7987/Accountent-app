@@ -119,3 +119,11 @@ def test_round_half_up(given, places, expected):
 )
 def test_format_inr_groups_in_lakhs_and_crores(given, expected):
     assert format_inr(given) == expected
+
+
+def test_no_negative_zero_money_values():
+    from app.engine.money import no_negative_zero
+
+    assert str(no_negative_zero(Decimal(-1) * Decimal("0.00"))) == "0.00"
+    assert str(round_half_up(Decimal("-0.004"))) == "0.00"
+    assert str(no_negative_zero(Decimal("-5.00"))) == "-5.00"

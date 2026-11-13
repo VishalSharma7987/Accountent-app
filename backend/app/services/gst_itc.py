@@ -614,16 +614,18 @@ def list_reversals(conn: Connection, client_id: object, status: str | None = Non
 
 
 def register_tie(conn: Connection, client_id: object, registration_id: object, as_on: date) -> dict[str, Any]:
-    """Input tax ledgers (regular purchases) against the register: eligible + pending credits, debit notes deducted, reversals
-    posted in the books deducted. Blocked credits are in the cost, not in the Input ledgers. RCM entries are not compared."""
+    """Input tax ledgers against the register: eligible + pending credits (regular AND reverse-charge: an RCM purchase books
+    Dr Input tax, so its credit is in the Input ledgers), debit notes deducted, reversals posted in the books deducted. Blocked
+    credits are in the cost, not in the Input ledgers. The cess role is needed only if the register holds cess or is mapped."""
     queries.require_client(conn, client_id)
     roles = repo.ledger_roles(conn, client_id, registration_id)
-    missing = sorted(f"input_{h}" for h in HEADS if f"input_{h}" not in roles)
-    if missing:
-        raise ServiceError("ledger_role_missing", f"Map these GST ledger roles on the registration first: {', '.join(missing)}.", {"roles": missing})
     trial = reports.trial_balance(conn, client_id, as_on)
     balance = {row.ledger_id: _d(row.debit) - _d(row.credit) for s in trial.sections for row in s.rows}
     entries = repo.register_sums(conn, client_id, registration_id, as_on)
+    has_cess = any(_d(e["cess"]) != 0 for e in entries)
+    missing = sorted(f"input_{h}" for h in HEADS if f"input_{h}" not in roles and (h != "cess" or has_cess))
+    if missing:
+        raise ServiceError("ledger_role_missing", f"Map these GST ledger roles on the registration first: {', '.join(missing)}.", {"roles": missing})
     reversals = repo.reversals_for_entries(conn, [e["id"] for e in entries])
     register = {h: Decimal("0.00") for h in HEADS}
     for e in entries:
@@ -637,11 +639,11 @@ def register_tie(conn: Connection, client_id: object, registration_id: object, a
     def bal(x: Decimal) -> dict[str, str]:
         return {"amount": format(abs(x), "f"), "side": "Dr" if x >= 0 else "Cr"}
 
-    books = {h: balance.get(roles[f"input_{h}"], Decimal("0.00")) for h in HEADS}
+    books = {h: balance.get(roles.get(f"input_{h}"), Decimal("0.00")) for h in HEADS}
     diff = {h: books[h] - register[h] for h in HEADS}
     ties = all(v == 0 for v in diff.values())
     notes = [
-        "Input ledgers are compared with regular-charge entries only; credits under reverse charge are not compared.",
+        "Input ledgers are compared with all register entries (regular and reverse charge: both are booked Dr Input tax).",
         "Blocked credits are part of the cost and are not in the Input ledgers.",
     ]
     if not ties:

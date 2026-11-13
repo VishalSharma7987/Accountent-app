@@ -245,12 +245,12 @@ def update_reversal(conn: Connection, reversal_id: object, changes: dict[str, An
 
 
 def register_sums(conn: Connection, client_id: object, registration_id: object, as_on: date) -> list[dict[str, Any]]:
-    """Regular-source entries of posted purchases / debit notes up to a date, with their status and amounts."""
+    """Entries (regular and reverse charge) of posted purchases / debit notes up to a date, with their status and amounts."""
     rows = conn.execute(
         text(
             "SELECT e.id, e.doc_type, e.status, e.igst, e.cgst, e.sgst, e.cess FROM itc_entries e "
             "JOIN vouchers v ON v.id = e.voucher_id WHERE e.client_id = :c AND e.gst_registration_id = :r "
-            "AND e.source = 'regular' AND v.voucher_date <= :a AND v.status IN ('posted', 'reversed')"
+            "AND v.voucher_date <= :a AND v.status IN ('posted', 'reversed')"
         ),
         {"c": client_id, "r": registration_id, "a": as_on},
     )
