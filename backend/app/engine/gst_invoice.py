@@ -38,6 +38,7 @@ from app.engine.gst_types import (
     InvoiceResult,
     TaxLine,
 )
+from app.engine.gstin import gstin_check_char
 from app.engine.models import ValidationError
 from app.engine.money import format_inr, round_half_up
 
@@ -84,7 +85,8 @@ class InvoiceContext:
     counterparty_state_code: str | None  # state of the buyer (not needed) / the SUPPLIER of a purchase
     round_off_invoices: bool
     rules: RuleData
-    gstin_check: Callable[[str], list[str]] | None = None  # G-01/G-02 check of package A: problems as text
+    gstin_check: Callable[[str], list[str]] | None = None  # optional extra check of the GSTIN: problems as text
+    party_state_code: str | None = None  # state saved on the party master; must equal the GSTIN's state (P-04)
 
 
 @dataclass(frozen=True)
@@ -192,9 +194,19 @@ def _header_errors(inv: InvoiceIn, ctx: InvoiceContext) -> list[ValidationError]
             errors.append(_err("G-19", "A B2C supply has no buyer GSTIN; use B2B for a registered buyer."))
         if not GSTIN_FORMAT.match(gstin):
             errors.append(_err("G-22", f"{who} GSTIN {gstin} is not in the GSTIN format (15 characters)."))
-        elif ctx.gstin_check is not None:
-            for problem in ctx.gstin_check(gstin):
-                errors.append(_err("G-22", f"{who} GSTIN {gstin}: {problem}"))
+        else:
+            expected = gstin_check_char(gstin[:14])
+            if gstin[14] != expected:
+                errors.append(_err(
+                    "G-22", f"{who} GSTIN {gstin} has a wrong check character '{gstin[14]}': the last character should be "
+                    f"'{expected}'. Please check the GSTIN against the registration certificate."))
+            if ctx.party_state_code is not None and ctx.party_state_code != gstin[:2]:
+                errors.append(_err(
+                    "P-04", f"State code {ctx.party_state_code} of the party does not match GSTIN {gstin}, which starts "
+                    f"with {gstin[:2]}."))
+            if ctx.gstin_check is not None:
+                for problem in ctx.gstin_check(gstin):
+                    errors.append(_err("G-22", f"{who} GSTIN {gstin}: {problem}"))
 
     # G-24 notes
     is_note = vt in ("credit_note", "debit_note")

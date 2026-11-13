@@ -344,5 +344,5 @@ Cr: 3,42,800 (creditors) + 7,72,500 = 11,15,300; + 4,45,000 = 15,60,300; + 10,00
 | WP2 | PAN `ABCPM5679K` differs from characters 3-12 of the GSTIN (`ABCPM5678K`) | P-03 |
 | WP3 | Mehta Agencies marked small MSME with no Udyam number | P-05 |
 
-Rahul's valid GSTIN `27ABCPR1234F1Z5`: characters 3-12 = `ABCPR1234F` = his PAN; state 27. (Format only; the check
+Rahul's valid GSTIN `27ABCPR1234F1ZY`: characters 3-12 = `ABCPR1234F` = his PAN; state 27. (Format only; the check
 digit is not verified in Phase 2.)

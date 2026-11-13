@@ -8,7 +8,7 @@ from app.engine.parties import normalise_id, party_nature, validate_party
 
 RAHUL = LEDGERS["rahul"]
 SHARMA = LEDGERS["sharma"]
-GSTIN = "27AABCU9603R1ZM"
+GSTIN = "27AABCU9603R1ZN"
 PAN = "AABCU9603R"
 
 

@@ -1,4 +1,4 @@
 ref_id,ledger_name,gstin,pan,state_code,credit_days,msme_category,udyam_no,activity,udyam_registration_date,msme_written_agreement,bill_wise,expected_rule_id,expected_message_contains,msme_agreed_days
 WP1,Meena Traders,27ABCPM5678K1Z,,27,45,none,,,,false,true,P-01,GSTIN,
-WP2,Meena Traders,27ABCPM5678K1Z2,ABCPM5679K,27,45,none,,,,false,true,P-03,PAN,
+WP2,Meena Traders,27ABCPM5678K1Z4,ABCPM5679K,27,45,none,,,,false,true,P-03,PAN,
 WP3,Mehta Agencies,,,27,45,small,,trading,,false,true,P-05,Udyam,

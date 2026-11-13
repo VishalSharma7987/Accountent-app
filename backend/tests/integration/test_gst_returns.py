@@ -16,7 +16,7 @@ from app.services.errors import ServiceError
 pytestmark = pytest.mark.integration
 
 GSTIN = "27AAPFU0939F1ZV"
-BUYER = "27AAAAA0000A1Z5"
+BUYER = "27AAAAA0000A1Z2"
 ROLES = {
     "output_cgst": "Output CGST", "output_sgst": "Output SGST", "output_igst": "Output IGST", "output_cess": "Output Cess",
     "input_cgst": "Input CGST", "input_sgst": "Input SGST", "input_igst": "Input IGST", "input_cess": "Input Cess",

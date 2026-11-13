@@ -1,4 +1,4 @@
-"""validate_party with the GST extension: gst_registration_type and the G-01 .. G-04 hand-over from P-01."""
+"""validate_party with the GST extension: gst_registration_type and the G-02/G-03 on top of P-01/P-03/P-04."""
 
 from datetime import date
 
@@ -42,9 +42,9 @@ def test_G02_party_gstin_check_digit_only_when_state_codes_are_given():
     assert ids(errors) == [("G-02", None)]
 
 
-def test_G01_replaces_P01_when_state_codes_are_given():
+def test_P01_format_error_stays_P01_also_when_state_codes_are_given():
     assert ids(check(gstin="BAD")) == [("P-01", None)]
-    assert ids(check(gstin="BAD", gst_state_codes=CODES, on_date=date(2026, 4, 1))) == [("G-01", None)]
+    assert ids(check(gstin="BAD", gst_state_codes=CODES, on_date=date(2026, 4, 1))) == [("P-01", None)]
 
 
 def test_G03_unknown_state_in_party_gstin():
@@ -55,11 +55,17 @@ def test_G03_unknown_state_in_party_gstin():
     assert ids(errors) == [("G-03", None)]
 
 
-def test_G04_replaces_P03_P04_mismatch_when_state_codes_are_given():
+def test_P03_P04_stay_the_party_rules_for_pan_and_state_mismatch_with_state_codes():
     kw = {"gstin": GSTIN, "pan": "AAPFU0939G", "state_code": "29"}
     assert sorted(r for r, _ in ids(check(**kw))) == ["P-03", "P-04"]
     got = check(gst_state_codes=CODES, on_date=date(2026, 4, 1), **kw)
-    assert ids(got) == [("G-04", None), ("G-04", None)]
+    assert sorted(r for r, _ in ids(got)) == ["P-03", "P-04"]
+
+
+def test_P04_state_code_differing_from_gstin_is_an_error_with_the_state_codes_too():
+    got = check(gstin="24ABCPA1234B1ZT", state_code="27", gst_state_codes=CODES, on_date=date(2026, 4, 1))
+    assert [e.rule_id for e in got if e.rule_id == "P-04"] == ["P-04"]
+    assert ids(check(gstin=GSTIN, state_code="29")) == [("P-04", None)]
 
 
 def test_G04_matching_pan_and_state_pass_with_state_codes():

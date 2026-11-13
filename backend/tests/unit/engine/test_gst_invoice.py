@@ -223,11 +223,26 @@ def test_G19_b2b_and_sez_need_a_buyer_gstin_and_b2c_must_not_carry_one():
 
 def test_G22_bad_gstin_reported_through_the_validator():
     def check(gstin):
-        return [] if gstin.endswith("0") else ["check character wrong"]
+        return ["some other problem"]
 
-    out = build_invoice(invoice([item()], gstin="27ABCDE1234F1Z5"), ctx(gstin_check=check))
+    out = build_invoice(invoice([item()]), ctx(gstin_check=check))
     assert [e.rule_id for e in out.errors] == ["G-22"]
-    assert "check character wrong" in out.errors[0].message
+    assert "some other problem" in out.errors[0].message
+
+
+def test_G22_wrong_check_character_is_refused_in_invoice_mode():
+    out = build_invoice(invoice([item()], gstin="27ABCDE1234F1Z5"), ctx())
+    assert [e.rule_id for e in out.errors] == ["G-22"]
+    assert "check character" in out.errors[0].message and "should be '0'" in out.errors[0].message
+    assert build_invoice(invoice([item()], gstin="27ABCDE1234F1Z0"), ctx()).errors == []
+
+
+def test_P04_party_state_differing_from_the_invoice_gstin_is_an_error():
+    out = build_invoice(invoice([item()], gstin="29ABCDE1234F1ZW", pos="29"), ctx(cp_state="29", party_state="27"))
+    assert [e.rule_id for e in out.errors] == ["P-04"]
+    assert "27" in out.errors[0].message and "29ABCDE1234F1ZW" in out.errors[0].message
+    ok = build_invoice(invoice([item()], gstin="29ABCDE1234F1ZW", pos="29"), ctx(cp_state="29", party_state="29"))
+    assert ok.errors == []
 
 
 def test_G22_gstin_format_checked_without_validator():

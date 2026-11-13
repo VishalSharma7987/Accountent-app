@@ -18,7 +18,7 @@ from app.main import app
 pytestmark = pytest.mark.integration
 
 GSTIN = "27AAPFU0939F1ZV"
-SUPPLIER = "29AAACB1234C1Z5"
+SUPPLIER = "29AAACB1234C1ZB"
 FIXTURE = Path(__file__).resolve().parents[1] / "fixtures" / "gstr2b" / "gstr2b_sample_042026.json"
 H = {"X-User": "tester"}
 
@@ -106,10 +106,10 @@ def test_G40_G41_G42_import_reconcile_and_duplicate_refused(api, world):
 
 def test_G40_wrong_recipient_wrong_period_and_ims_rejected(api, world):
     _, client_id, reg, _, _ = world
-    other = FIXTURE.read_text(encoding="utf-8").replace(GSTIN, "29AAACB1234C1Z5")
+    other = FIXTURE.read_text(encoding="utf-8").replace(GSTIN, "29AAACB1234C1ZB")
     response = upload(api, client_id, reg, other.encode())
     assert response.status_code == 422 and response.json()["code"] == "import_invalid"
-    assert "is for GSTIN 29AAACB1234C1Z5" in response.json()["message"]
+    assert "is for GSTIN 29AAACB1234C1ZB" in response.json()["message"]
     response = upload(api, client_id, reg, FIXTURE.read_bytes(), period="2026-05")
     assert response.status_code == 422 and "2026-04" in response.json()["message"]
     response = upload(api, client_id, reg, FIXTURE.read_bytes(), kind="ims")

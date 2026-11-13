@@ -135,7 +135,7 @@ def _excel(rows_b2b, gstin="27AAPFU0939F1ZV", header_extra=True) -> bytes:
     return out.getvalue()
 
 
-EXCEL_ROW = ["29AAACB1234C1Z5", "Bharat Traders", "INV-001", "Regular", "10-04-2026", 1180.0, "27", "No", 1000.0, 180.0, 0, 0, 0,
+EXCEL_ROW = ["29AAACB1234C1ZB", "Bharat Traders", "INV-001", "Regular", "10-04-2026", 1180.0, "27", "No", 1000.0, 180.0, 0, 0, 0,
              "042026", "11-05-2026", "Yes", None]
 
 

@@ -55,7 +55,7 @@ def build_for_draft(conn: Connection, draft: VoucherDraft) -> tuple[BuildOutcome
     resolved, state = _resolve(inv, rows.party)
     ctx = InvoiceContext(
         draft.voucher_type, draft.voucher_date, draft.party_ledger_id, rows.registration, state,
-        rows.round_off_invoices, rows.rules,
+        rows.round_off_invoices, rows.rules, party_state_code=None if rows.party is None else rows.party.state_code,
     )
     return build_invoice(resolved, ctx), resolved, rows, state
 
@@ -140,7 +140,7 @@ def revalidate(conn: Connection, record) -> list[ValidationError]:
     inv, state = _resolve(inv, rows.party)
     ctx = InvoiceContext(
         record.voucher_type, record.voucher_date, record.party_ledger_id, rows.registration, state,
-        rows.round_off_invoices, rows.rules,
+        rows.round_off_invoices, rows.rules, party_state_code=None if rows.party is None else rows.party.state_code,
     )
     outcome = build_invoice(inv, ctx)
     if outcome.result is None:

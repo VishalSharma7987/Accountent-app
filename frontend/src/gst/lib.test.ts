@@ -4,7 +4,7 @@ import { blankGstItem, isAmountText, previewBody, isQuarterly, missingRoles, qua
 
 const reg = (over: Partial<Registration>): Registration => ({
   id: 'r1',
-  gstin: '27AAAAA0000A1Z5',
+  gstin: '27AAAAA0000A1Z2',
   state_code: '27',
   state_name: 'Maharashtra',
   registration_type: 'regular',

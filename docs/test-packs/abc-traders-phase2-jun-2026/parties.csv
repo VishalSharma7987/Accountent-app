@@ -1,5 +1,5 @@
 ledger_name,gstin,pan,state_code,credit_days,msme_category,udyam_no,activity,udyam_registration_date,msme_written_agreement,bill_wise,msme_agreed_days
-Rahul Enterprises,27ABCPR1234F1Z5,ABCPR1234F,27,30,none,,,,false,true,
+Rahul Enterprises,27ABCPR1234F1ZY,ABCPR1234F,27,30,none,,,,false,true,
 Meena Traders,,,27,45,none,,,,false,true,
 Sunrise Stores,,,27,60,none,,,,false,true,
 Kapoor & Sons,,,27,30,none,,,,false,true,

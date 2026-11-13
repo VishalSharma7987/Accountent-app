@@ -97,5 +97,5 @@ def invoice(items, *, pos="27", on=date(2026, 5, 10), category="b2b", kind="tax_
 
 
 def ctx(*, vtype="sales", on=date(2026, 5, 10), reg=None, cp_state="27", round_off=False, party="party", rules=RULES,
-        gstin_check=None):
-    return InvoiceContext(vtype, on, party, reg or registration(), cp_state, round_off, rules, gstin_check)
+        gstin_check=None, party_state=None):
+    return InvoiceContext(vtype, on, party, reg or registration(), cp_state, round_off, rules, gstin_check, party_state)

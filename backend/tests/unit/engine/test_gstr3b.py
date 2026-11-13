@@ -39,8 +39,8 @@ def test_G52_t3_2_inter_state_to_unregistered_by_place_of_supply():
 
 
 def test_G52_t3_2_composition_and_uin_party_types_are_separate():
-    d1 = doc("SAL/20", "sales", "b2b", "29", "118", [item("100", igst="18")], gstin="29CCCCC2222C1Z7", ptype="composition")
-    d2 = doc("SAL/21", "sales", "b2b", "29", "236", [item("200", igst="36")], gstin="29DDDDD3333D1Z8", ptype="uin_holder")
+    d1 = doc("SAL/20", "sales", "b2b", "29", "118", [item("100", igst="18")], gstin="29CCCCC2222C1Z4", ptype="composition")
+    d2 = doc("SAL/21", "sales", "b2b", "29", "236", [item("200", igst="36")], gstin="29DDDDD3333D1ZP", ptype="uin_holder")
     t = build_gstr3b([d1, d2], [], [], [], REG, START, END).tables["t3_2"]
     assert t["composition"] == [{"place_of_supply": "29", "taxable_value": D(100), "igst": D(18)}]
     assert t["uin"] == [{"place_of_supply": "29", "taxable_value": D(200), "igst": D(36)}]
@@ -48,8 +48,8 @@ def test_G52_t3_2_composition_and_uin_party_types_are_separate():
 
 def test_G52_inward_rcm_goes_to_3_1_d_and_t5_lists_nil_inward():
     rcm = doc("PUR/1", "purchase", "unregistered_supplier", "29", "1180", [item("1000", igst="180", rcm=True)], day=12)
-    nil = doc("PUR/2", "purchase", "b2b", "27", "300", [item("300", "0", treatment="nil_rated")], gstin="27EEEEE4444E1Z9")
-    comp = doc("PUR/3", "purchase", "composition_supplier", "27", "80", [item("80", "0")], gstin="27FFFFF5555F1Z1")
+    nil = doc("PUR/2", "purchase", "b2b", "27", "300", [item("300", "0", treatment="nil_rated")], gstin="27EEEEE4444E1ZE")
+    comp = doc("PUR/3", "purchase", "composition_supplier", "27", "80", [item("80", "0")], gstin="27FFFFF5555F1ZZ")
     t = run(in_docs=[rcm, nil, comp])
     assert t["t3_1"]["d_inward_rcm"] == {"taxable_value": D(1000), "igst": D(180), "cgst": Z, "sgst": Z, "cess": Z}
     assert t["t5"]["intra_nil"]["taxable_value"] == D(300)

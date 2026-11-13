@@ -6,8 +6,8 @@ from decimal import Decimal as D
 from app.engine.gstr1 import DocRow, ItemRow
 
 REG = "27"
-X = "27AAAAA0000A1Z5"
-Y = "29BBBBB1111B1Z6"
+X = "27AAAAA0000A1Z2"
+Y = "29BBBBB1111B1ZJ"
 
 
 def item(taxable, rate="18", *, cgst="0", sgst="0", igst="0", cess="0", hsn="1001", qty="1", treatment="taxable",

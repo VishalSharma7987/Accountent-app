@@ -19,6 +19,7 @@ from app.engine import bills as bill_engine
 from app.engine import parties as engine
 from app.engine.models import ValidationError
 from app.engine.money import format_inr
+from app.rules import gst_rules
 from app.services import audit
 from app.services.audit import AuditEntry
 from app.services.errors import ServiceError, VoucherRuleError, require_actor
@@ -114,11 +115,13 @@ def set_party(
     groups = repo.groups_for_client(conn, client_id)
     gstin, pan, udyam_no = engine.normalise_id(gstin), engine.normalise_id(pan), engine.normalise_id(udyam_no)
     state_code = (state_code or "").strip() or None
+    today = date.today()
     errors = engine.validate_party(
         ledger, groups, gstin=gstin, pan=pan, state_code=state_code, credit_days=credit_days,
         msme_category=msme_category, udyam_no=udyam_no, msme_activity=msme_activity,
         udyam_registration_date=udyam_registration_date, msme_written_agreement=msme_written_agreement,
         msme_agreed_days=msme_agreed_days, gst_registration_type=gst_registration_type,
+        gst_state_codes=gst_rules.state_codes(conn, today), on_date=today,
     )
     existing = repo_b.party_rows_for(conn, client_id, [ledger_id]).get(ledger.id)
     if not any(e.rule_id == "P-07" for e in errors):

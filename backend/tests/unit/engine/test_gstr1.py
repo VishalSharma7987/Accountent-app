@@ -15,7 +15,7 @@ def run(docs=None, numbers=()):
 
 def test_G50_b2b_groups_by_party_and_merges_rates_inside_an_invoice():
     t = run().tables
-    assert [p["party_gstin"] for p in t["b2b"]] == ["27AAAAA0000A1Z5", "29BBBBB1111B1Z6"]
+    assert [p["party_gstin"] for p in t["b2b"]] == ["27AAAAA0000A1Z2", "29BBBBB1111B1ZJ"]
     x = t["b2b"][0]["invoices"]
     assert [i["invoice_no"] for i in x] == ["SAL/0001", "SAL/0002"]
     assert x[1]["items"] == [

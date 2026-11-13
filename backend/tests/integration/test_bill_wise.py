@@ -83,13 +83,13 @@ def scalar(conn, sql, **params):
 def test_party_set_get_list_update_and_audit(svc_conn, world):
     c, w = svc_conn, world
     parties.set_party(
-        c, w.client_id, w.ids["Rahul Enterprises"], gstin=" 27aabcu9603r1zm ", pan="AABCU9603R", state_code="27",
+        c, w.client_id, w.ids["Rahul Enterprises"], gstin=" 27aabcu9603r1zn ", pan="AABCU9603R", state_code="27",
         credit_days="30", msme_category="small", udyam_no="UDYAM-MH-18-0012345", actor="clerk",
         msme_activity="services", udyam_registration_date=date(2021, 3, 1), msme_written_agreement=True,
         msme_agreed_days=40,
     )
     p = parties.get_party(c, w.client_id, w.ids["Rahul Enterprises"])
-    assert (p.nature, p.gstin, p.credit_days, p.msme_category, p.bill_wise) == ("debtor", "27AABCU9603R1ZM", 30, "small", True)
+    assert (p.nature, p.gstin, p.credit_days, p.msme_category, p.bill_wise) == ("debtor", "27AABCU9603R1ZN", 30, "small", True)
     assert (p.msme_activity, p.udyam_registration_date, p.msme_agreed_days) == ("services", date(2021, 3, 1), 40)
 
     parties.set_party(c, w.client_id, w.ids["Sharma Suppliers"], actor="clerk")
@@ -103,6 +103,18 @@ def test_party_set_get_list_update_and_audit(svc_conn, world):
         text("SELECT action FROM audit_log WHERE entity = 'party' AND entity_id = :l ORDER BY id"),
         {"l": w.ids["Rahul Enterprises"]})]
     assert actions == ["create", "update"]
+
+
+def test_G02_party_gstin_with_wrong_check_character_is_refused_and_P04_state_mismatch_blocks_the_save(svc_conn, world):
+    c, w = svc_conn, world
+    rahul = w.ids["Rahul Enterprises"]
+    with pytest.raises(VoucherRuleError) as bad:
+        parties.set_party(c, w.client_id, rahul, gstin="27AABCU9603R1ZM", state_code="27", actor="clerk")
+    assert rule_ids(bad) == [("G-02", None)]
+    with pytest.raises(VoucherRuleError) as state:
+        parties.set_party(c, w.client_id, rahul, gstin="27AABCU9603R1ZN", state_code="29", actor="clerk")
+    assert rule_ids(state) == [("P-04", None)]
+    assert scalar(c, "SELECT count(*) FROM parties WHERE gstin IS NOT NULL") == 0
 
 
 def test_P01_P07_party_rules_raise_all_errors_and_write_nothing(svc_conn, world):
