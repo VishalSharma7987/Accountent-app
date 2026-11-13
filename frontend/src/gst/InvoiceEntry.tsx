@@ -9,6 +9,7 @@ import { today } from '../lib/dates'
 import type { ApiFailure } from '../lib/apiError'
 import { asFailure, useLoad } from '../lib/useLoad'
 import { InvoiceGstPanel } from './InvoiceGstPanel'
+import { InvoiceStockPanel } from '../inventory/InvoiceStockPanel'
 import { useRegistrations } from './common'
 import { blankGstItem } from './lib'
 import { TdsPanel } from '../tds/TdsPanel'
@@ -101,6 +102,7 @@ export default function InvoiceEntry() {
         </Field>
       </div>
       <InvoiceGstPanel clientId={clientId} registrations={active} ledgers={ledgers.data ?? []} base={base} value={effective} onChange={setGst} onPreview={setPreview} />
+      <InvoiceStockPanel clientId={clientId} voucherType={type} voucherDate={date} value={gst} onChange={setGst} />
       {type === 'purchase' && (
         <TdsPanel clientId={clientId} base={base} counterLedgerId="" natures={selectableNatures(natures.options)} items={tdsItems} onChange={setTdsItems} gst={effective} />
       )}

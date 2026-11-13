@@ -97,6 +97,18 @@ export const NAV_GROUPS: NavGroup[] = [
       { to: '/tds/rules', label: 'TDS rules' },
     ],
   },
+  {
+    id: 'inventory',
+    label: 'Inventory',
+    icon: 'I',
+    items: [
+      { to: '/inventory/masters', label: 'Godowns, items, opening' },
+      { to: '/inventory/policy', label: 'Valuation policy' },
+      { to: '/inventory/journals', label: 'Stock journals' },
+      { to: '/inventory/register', label: 'Stock register' },
+      { to: '/inventory/closing-stock', label: 'Closing stock (NRV)' },
+    ],
+  },
 ]
 
 function matches(item: NavItem, path: string): boolean {
