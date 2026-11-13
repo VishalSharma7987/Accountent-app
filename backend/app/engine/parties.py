@@ -1,13 +1,17 @@
 """Party master rules P-01 .. P-07 and P-09 .. P-11 (P-08 needs the database and lives in services/parties.py).
 
-Pure functions: plain data in, a list of ValidationError out, in plain accountant language. Format checks only:
-the GSTIN check digit is a Phase 3 matter. The patterns are the same as the CHECK constraints of migration 0005.
+Pure functions: plain data in, a list of ValidationError out, in plain accountant language. Format checks only
+(P-01), unless the caller passes the GST state-code table (`gst_state_codes`): then the GSTIN is checked by rules
+G-01 .. G-04 of engine/gstin.py (format, check character, state, PAN/state consistency) instead of P-01/P-03/P-04.
+The patterns are the same as the CHECK constraints of migration 0005.
 """
 
 import re
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from datetime import date
 
+from app.engine.gst_types import StateCode
+from app.engine.gstin import state_pan_errors, validate_gstin
 from app.engine.models import Group, Ledger, ValidationError
 from app.engine.validation import group_chain
 
@@ -15,6 +19,8 @@ GSTIN_RE = re.compile(r"^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$")
 PAN_RE = re.compile(r"^[A-Z]{5}[0-9]{4}[A-Z]$")
 STATE_RE = re.compile(r"^[0-9]{2}$")
 UDYAM_RE = re.compile(r"^UDYAM-[A-Z]{2}-[0-9]{2}-[0-9]{7}$")
+GST_REGISTRATION_TYPES = ("regular", "composition", "unregistered", "sez", "overseas", "uin_holder", "government")
+GST_TYPES_WITH_GSTIN = ("regular", "composition", "sez", "uin_holder")
 MSME_CATEGORIES = ("none", "micro", "small", "medium")
 MSME_ACTIVITIES = ("manufacturing", "services", "trading")
 MSME_MAX_AGREED_DAYS = 45  # MSMED Act 2006 s.15: an agreed credit period is never longer than 45 days
@@ -65,6 +71,9 @@ def validate_party(
     udyam_registration_date: date | None = None,
     msme_written_agreement: bool = False,
     msme_agreed_days: int | None = None,
+    gst_registration_type: str | None = None,
+    gst_state_codes: Sequence[StateCode] | None = None,
+    on_date: date | None = None,
 ) -> list[ValidationError]:
     """Every problem with the party details of one ledger (empty list = valid). Values are checked as given:
     use normalise_id first if capitals/blank should be forgiven."""
@@ -80,8 +89,11 @@ def validate_party(
             "Sundry Creditors can be parties.",
         ))
 
+    gst_checks = gst_state_codes is not None and on_date is not None
     gstin_ok = gstin is not None and GSTIN_RE.match(gstin) is not None
-    if gstin is not None and not gstin_ok:
+    if gstin is not None and gst_checks:
+        errors += validate_gstin(gstin, gst_state_codes, on_date)  # type: ignore[arg-type]
+    elif gstin is not None and not gstin_ok:
         errors.append(ValidationError(
             "P-01", f"GSTIN '{gstin}' is not valid: it must be 15 characters in the GST format (for example 27AABCU9603R1ZM)."
         ))
@@ -90,19 +102,38 @@ def validate_party(
         errors.append(ValidationError(
             "P-02", f"PAN '{pan}' is not valid: it must be 5 letters, 4 digits and 1 letter (for example AABCU9603R)."
         ))
-    if gstin_ok and pan_ok and gstin[2:12] != pan:
-        errors.append(ValidationError(
-            "P-03",
-            f"PAN {pan} does not match GSTIN {gstin}: characters 3 to 12 of the GSTIN must be the PAN ({gstin[2:12]}).",
-        ))
-
-    if state_code is not None:
-        if STATE_RE.match(state_code) is None:
-            errors.append(ValidationError("P-04", f"State code '{state_code}' is not valid: it must be 2 digits."))
-        elif gstin_ok and gstin[:2] != state_code:
+    state_ok = state_code is not None and STATE_RE.match(state_code) is not None
+    if state_code is not None and not state_ok:
+        errors.append(ValidationError("P-04", f"State code '{state_code}' is not valid: it must be 2 digits."))
+    if gst_checks:
+        if gstin_ok:
+            errors += state_pan_errors(
+                gstin, state_code=state_code if state_ok else None, pan=pan if pan_ok else None  # type: ignore[arg-type]
+            )
+    else:
+        if gstin_ok and pan_ok and gstin[2:12] != pan:  # type: ignore[index]
             errors.append(ValidationError(
-                "P-04",
-                f"State code {state_code} does not match GSTIN {gstin}, which starts with {gstin[:2]}.",
+                "P-03",
+                f"PAN {pan} does not match GSTIN {gstin}: characters 3 to 12 of the GSTIN must be the PAN ({gstin[2:12]}).",  # type: ignore[index]
+            ))
+        if gstin_ok and state_ok and gstin[:2] != state_code:  # type: ignore[index]
+            errors.append(ValidationError(
+                "P-04", f"State code {state_code} does not match GSTIN {gstin}, which starts with {gstin[:2]}."  # type: ignore[index]
+            ))
+
+    if gst_registration_type is not None:
+        if gst_registration_type not in GST_REGISTRATION_TYPES:
+            errors.append(ValidationError(
+                "G-05", f"GST registration type '{gst_registration_type}' is not valid: use one of "
+                f"{', '.join(GST_REGISTRATION_TYPES)}."
+            ))
+        elif gst_registration_type in GST_TYPES_WITH_GSTIN and gstin is None:
+            errors.append(ValidationError(
+                "G-01", f"A {gst_registration_type} party needs a GSTIN: enter it, or set the type to unregistered."
+            ))
+        elif gst_registration_type == "unregistered" and gstin is not None:
+            errors.append(ValidationError(
+                "G-01", f"The party is marked unregistered but has GSTIN {gstin}: remove the GSTIN or change the type."
             ))
 
     if msme_category not in MSME_CATEGORIES:

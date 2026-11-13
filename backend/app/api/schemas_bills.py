@@ -30,6 +30,7 @@ class PartyIn(BaseModel):
     msme_activity: str | None = None  # manufacturing | services | trading
     udyam_registration_date: date | None = None
     msme_agreed_days: int | None = None  # 1..45, only with a written agreement
+    gst_registration_type: str | None = None  # regular|composition|unregistered|sez|overseas|uin_holder|government
 
 
 class PartyOut(BaseModel):
@@ -47,6 +48,7 @@ class PartyOut(BaseModel):
     msme_activity: str | None
     udyam_registration_date: date | None
     msme_agreed_days: int | None
+    gst_registration_type: str | None
 
 
 def party_out(p: Party) -> PartyOut:

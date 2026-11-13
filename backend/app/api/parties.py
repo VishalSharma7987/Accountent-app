@@ -27,7 +27,7 @@ def set_party(client_id: str, ledger_id: str, body: PartyIn, conn: Connection = 
         state_code=body.state_code, credit_days=body.credit_days, msme_category=body.msme_category,
         udyam_no=body.udyam_no, msme_written_agreement=body.msme_written_agreement, bill_wise=body.bill_wise,
         msme_activity=body.msme_activity, udyam_registration_date=body.udyam_registration_date,
-        msme_agreed_days=body.msme_agreed_days,
+        msme_agreed_days=body.msme_agreed_days, gst_registration_type=body.gst_registration_type,
         actor=actor,
     )
     return OkOut()
