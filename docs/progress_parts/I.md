@@ -1,5 +1,0 @@
-- Step 2.1-I: Excel voucher import bill allocation columns (parser, service auto New Ref, API, template notes, ImportScreen, API_CONTRACT).
-- Done: bill_type/bill_ref/bill_amount/due_date columns, continuation rows, auto New Ref (Sales/Purchase) flagged in preview and commit.
-- Tests: unit importers (parsing/template) + integration test_voucher_import_bills.py, updated test_api_imports.py.
-- Commit: branch p21-I.
-- Decisions added: 3 rows in docs/decisions_parts/I.md.

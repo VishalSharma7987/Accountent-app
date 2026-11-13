@@ -58,3 +58,21 @@ Tests: helpers 10 unit tests pass; integration run: 16 passed (all 15 sections +
 Commit: on branch p2-R.
 Decisions added: 3 (decisions_parts/R.md).
 - **Phase 2 gate**: full suite 991 passed (before runner) + Phase 2 pack runner 16 passed + Phase 1 runner 5 passed; unit 618 passed; ruff clean; frontend build ok, vitest 55 passed. Migrations 0005-0007 + seed 0002 applied to test and dev. Phase 3 NOT started.
+- Step 2.1-I: Excel voucher import bill allocation columns (parser, service auto New Ref, API, template notes, ImportScreen, API_CONTRACT).
+- Done: bill_type/bill_ref/bill_amount/due_date columns, continuation rows, auto New Ref (Sales/Purchase) flagged in preview and commit.
+- Tests: unit importers (parsing/template) + integration test_voucher_import_bills.py, updated test_api_imports.py.
+- Commit: branch p21-I.
+- Decisions added: 3 rows in docs/decisions_parts/I.md.
+
+Phase 2.1 agent K: (a) newest-first statements detected from running balances, (b) Cr/Dr balance text, (c) GET reconciliation matches endpoint + Reconciliation screen.
+Done: parser (importers/bank_statement.py), notes in preview/import, services/reconciliation.list_matches, API + schemas, frontend types/api/screens, contract doc.
+Tests: unit tests/unit/importers/test_bank_statement_orient.py; integration tests/integration/test_recon_matches.py + updated test_bank_statements.py; vitest phase2.test.ts (57 pass), npm build ok.
+Commit: branch p21-K (see final report).
+Decisions added: 4 rows in docs/decisions_parts/K.md (replaces the 2.6 "file order, no re-sorting" decision).
+
+Phase 2.1 step M (MSME rule corrections + acceptance date), branch p21-M.
+Done: migration 0008 + seed 0003, party fields (P-09/P-10/P-11), goods_received_date (V-15) through service/API/frontend, MSME engine (activity, Udyam date, acceptance basis, 3-valued status), pack + runner + docs.
+Tests: unit suite green (634 passed); integration/pack runner see the final report.
+Commit: on branch p21-M.
+Decisions added: docs/decisions_parts/M.md (8 rows).
+
