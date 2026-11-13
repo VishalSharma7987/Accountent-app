@@ -1,0 +1,29 @@
+ref_id,date,voucher_type,reference_no,narration,party_ledger,counter_ledger,amount,nature_key,credit_date,payment_date,cert_ref
+V01,2026-03-01,purchase,MH/118,Professional fees bill March,Mehta and Co,Professional Fees Paid,60000.00,professional_fees,2026-03-01,,
+V05,2026-03-15,sales,,Scrap sold to Metro,Metro Scrap Traders,Scrap and Vehicle Sales,100000.00,tcs_scrap,2026-03-15,,
+V02,2026-03-20,purchase,AC/041,Contract bill March,Alpha Constructions Pvt Ltd,Contract Expenses,50000.00,contractor,2026-03-20,,
+V03,2026-04-03,payment,,Commission credited 28-03 and paid 03-04,Beta Agencies,HDFC Bank,50000.00,commission_brokerage,2026-03-28,2026-04-03,
+V10,2026-04-05,purchase,AC/042,Contract bill April,Alpha Constructions Pvt Ltd,Contract Expenses,50000.00,contractor,2026-04-05,,
+V50,2026-04-05,payment,,Rent for April,Silver Estates,HDFC Bank,60000.00,rent_land_building,,2026-04-05,
+V40,2026-04-10,purchase,BA/07,Commission bill April,Beta Agencies,Commission Paid,25000.00,commission_brokerage,2026-04-10,,
+V95,2026-04-10,sales,,Scrap sold to Metro,Metro Scrap Traders,Scrap and Vehicle Sales,200000.00,tcs_scrap,2026-04-10,,
+V30,2026-04-30,purchase,MH/131,Professional fees bill April,Mehta and Co,Professional Fees Paid,40000.00,professional_fees,2026-04-30,,
+V51,2026-05-05,payment,,Rent for May,Silver Estates,HDFC Bank,45000.00,rent_land_building,,2026-05-05,
+V20,2026-05-07,purchase,RK/11,Contract bill May,Ravi Kumar,Contract Expenses,25000.00,contractor,2026-05-07,,
+V11,2026-05-20,purchase,AC/043,Contract bill May,Alpha Constructions Pvt Ltd,Contract Expenses,20000.00,contractor,2026-05-20,,
+V60,2026-06-05,purchase,DF/03,Contract bill June no PAN,Delta Fabricators,Contract Expenses,80000.00,contractor,2026-06-05,,
+V52,2026-06-05,payment,,Rent first part of June,Silver Estates,HDFC Bank,30000.00,rent_land_building,,2026-06-05,
+V21,2026-06-15,purchase,RK/12,Contract bill June,Ravi Kumar,Contract Expenses,28000.00,contractor,2026-06-15,,
+V12,2026-06-18,purchase,AC/044,Contract bill June,Alpha Constructions Pvt Ltd,Contract Expenses,40000.00,contractor,2026-06-18,,
+V53,2026-06-20,payment,,Rent second part of June,Silver Estates,HDFC Bank,25000.00,rent_land_building,,2026-06-20,
+V70,2026-07-10,purchase,OE/21,Contract bill July under certificate,Omega Engineers Pvt Ltd,Contract Expenses,200000.00,contractor,2026-07-10,,LDC-OMEGA
+V90,2026-07-12,purchase,SM/501,Steel purchase July,Steel Mart Pvt Ltd,Purchases,4000000.00,purchase_of_goods,2026-07-12,,
+V13,2026-07-25,purchase,AC/045,Contract bill July,Alpha Constructions Pvt Ltd,Contract Expenses,10000.00,contractor,2026-07-25,,
+V80,2026-08-05,purchase,KC/02,Consultancy bill August under nil certificate,Kiran Consultants,Professional Fees Paid,100000.00,professional_fees,2026-08-05,,NIL-KIRAN
+V22,2026-08-12,purchase,RK/13,Contract bill August,Ravi Kumar,Contract Expenses,60000.00,contractor,2026-08-12,,
+V96,2026-08-20,sales,,Vehicle sold to Metro,Metro Scrap Traders,Scrap and Vehicle Sales,1200000.00,tcs_motor_vehicle,2026-08-20,,
+V31,2026-08-25,purchase,MH/160,Professional fees bill August,Mehta and Co,Professional Fees Paid,30000.00,professional_fees,2026-08-25,,
+V23,2026-09-10,purchase,RK/14,Contract bill September,Ravi Kumar,Contract Expenses,20050.00,contractor,2026-09-10,,
+V91,2026-09-12,purchase,SM/540,Steel purchase September,Steel Mart Pvt Ltd,Purchases,2000000.00,purchase_of_goods,2026-09-12,,
+V71,2026-09-15,purchase,OE/22,Contract bill September under certificate,Omega Engineers Pvt Ltd,Contract Expenses,200000.00,contractor,2026-09-15,,LDC-OMEGA
+V72,2026-10-10,purchase,OE/23,Contract bill October certificate limit used up,Omega Engineers Pvt Ltd,Contract Expenses,50000.00,contractor,2026-10-10,,LDC-OMEGA

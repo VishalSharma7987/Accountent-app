@@ -1,0 +1,4 @@
+case,ledger_name,fy,quarter,kind,form_no,period,total_amount_paid,total_deducted,total_deposited,item_count,challan_count,refusal_rule
+C1,Alpha Constructions Pvt Ltd,second,1,non_salary,Form 131,FY 2026-27 Q1,90000.00,2200.00,2200.00,2,2,
+C2,Alpha Constructions Pvt Ltd,second,2,non_salary,,,,,,,,T-34
+C3,Mehta and Co,first,4,non_salary,Form 16A,FY 2025-26 Q4,60000.00,6000.00,6000.00,1,1,

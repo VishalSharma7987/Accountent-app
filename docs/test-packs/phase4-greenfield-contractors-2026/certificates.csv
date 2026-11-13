@@ -1,0 +1,3 @@
+cert_ref,ledger_name,certificate_no,nature_key,rate,max_amount,valid_from,valid_to
+LDC-OMEGA,Omega Engineers Pvt Ltd,LDC/2026/0007,contractor,0.5,300000.00,2026-04-01,2027-03-31
+NIL-KIRAN,Kiran Consultants,NIL/2026/0001,professional_fees,0,500000.00,2026-04-01,2027-03-31

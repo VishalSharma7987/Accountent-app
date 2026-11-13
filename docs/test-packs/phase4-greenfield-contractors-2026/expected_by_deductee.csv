@@ -1,0 +1,12 @@
+deductee_name,nature_key,cumulative_amount,tax_deducted,threshold_crossed_on,threshold
+Alpha Constructions Pvt Ltd,contractor,120000.00,2400.00,2026-06-18,100000.00
+Beta Agencies,commission_brokerage,25000.00,500.00,2026-04-10,20000.00
+Delta Fabricators,contractor,80000.00,16000.00,,100000.00
+Kiran Consultants,professional_fees,100000.00,0.00,2026-08-05,50000.00
+Mehta and Co,professional_fees,70000.00,7000.00,2026-08-25,50000.00
+Metro Scrap Traders,tcs_motor_vehicle,1200000.00,2000.00,2026-08-20,1000000.00
+Metro Scrap Traders,tcs_scrap,200000.00,4000.00,,
+Omega Engineers Pvt Ltd,contractor,450000.00,4500.00,2026-07-10,100000.00
+Ravi Kumar,contractor,133050.00,1331.00,2026-08-12,100000.00
+Silver Estates,rent_land_building,160000.00,11500.00,2026-04-05,
+Steel Mart Pvt Ltd,purchase_of_goods,6000000.00,1000.00,2026-09-12,5000000.00

@@ -1,0 +1,12 @@
+case_id,kind,description,voucher_type,party_ledger,counter_ledger,amount,nature_key,date,credit_date,payment_date,cert_ref,manual_tax,expected_rule_id,expected_message_contains
+W01,voucher,Party has no deductee row (no PAN or type known),purchase,Plain Supplier,Contract Expenses,40000.00,contractor,2026-08-01,2026-08-01,,,,T-09,deductee
+W02,voucher,Tax amount typed by the caller for a contractor payment,purchase,Alpha Constructions Pvt Ltd,Contract Expenses,40000.00,contractor,2026-08-01,2026-08-01,,,100.00,T-03,calculated
+W03,voucher,Certificate used on 30-03-2026 before its validity starts on 01-04-2026,purchase,Omega Engineers Pvt Ltd,Contract Expenses,40000.00,contractor,2026-03-30,2026-03-30,,LDC-OMEGA,,T-12,valid from
+W04,voucher,Purchase of goods in 2025-26 with no buyer-turnover flag entered for that year,purchase,Steel Mart Pvt Ltd,Purchases,100000.00,purchase_of_goods,2026-03-10,2026-03-10,,,,T-15,buyer-turnover
+W05,voucher,Neither payment date nor credit date entered,purchase,Alpha Constructions Pvt Ltd,Contract Expenses,40000.00,contractor,2026-08-01,,,,,T-01,date
+W06,voucher,TDS block on a Receipt voucher,receipt,Alpha Constructions Pvt Ltd,HDFC Bank,10000.00,contractor,2026-08-01,2026-08-01,,,,T-16,Receipt
+W07,deductee,PAN with only 6 characters,,Alpha Constructions Pvt Ltd,,,,,,,,,T-10,PAN
+W08,reverse,Reverse V10 whose tax is allocated to challan CH1,,V10,,,,2026-11-15,,,,,item_has_allocation,challan
+W09,challan,Allocation of 300.00 to V13 whose tax is 200.00,,V13,,300.00,,2026-11-05,,,,,T-24,200.00
+W10,challan,"Same BSR code, date and serial as challan CH1",,CH1,,,,2026-05-07,,,,,challan_exists,already exists
+W11,challan,BSR code with 5 digits,,BAD,,,,2026-11-05,,,,,T-20,BSR

@@ -1,0 +1,18 @@
+working,row_no,deductee_name,event_date,section_ref,amount_paid,taxable_base,tax_deducted,tax_deposited,rate,rate_reason,error_row
+q1_fy2026-27_non_salary,1,Alpha Constructions Pvt Ltd,2026-04-05,393(1),50000.00,50000.00,1000.00,1000.00,2,normal,false
+q1_fy2026-27_non_salary,2,Alpha Constructions Pvt Ltd,2026-05-20,393(1),20000.00,0.00,0.00,0.00,0,below_threshold,false
+q1_fy2026-27_non_salary,3,Alpha Constructions Pvt Ltd,2026-06-18,393(1),40000.00,110000.00,1200.00,1200.00,2,normal,false
+q1_fy2026-27_non_salary,4,Beta Agencies,2026-04-10,393(1),25000.00,25000.00,500.00,500.00,2,normal,false
+q1_fy2026-27_non_salary,5,Delta Fabricators,2026-06-05,393(1),80000.00,80000.00,16000.00,16000.00,20,no_pan,true
+q1_fy2026-27_non_salary,6,Mehta and Co,2026-04-30,393(1),40000.00,0.00,0.00,0.00,0,below_threshold,false
+q1_fy2026-27_non_salary,7,Ravi Kumar,2026-05-07,393(1),25000.00,0.00,0.00,0.00,0,below_threshold,false
+q1_fy2026-27_non_salary,8,Ravi Kumar,2026-06-15,393(1),28000.00,0.00,0.00,0.00,0,below_threshold,false
+q1_fy2026-27_non_salary,9,Silver Estates,2026-04-05,393(1),60000.00,60000.00,6000.00,6000.00,10,normal,false
+q1_fy2026-27_non_salary,10,Silver Estates,2026-05-05,393(1),45000.00,0.00,0.00,0.00,0,below_threshold,false
+q1_fy2026-27_non_salary,11,Silver Estates,2026-06-05,393(1),30000.00,0.00,0.00,0.00,0,below_threshold,false
+q1_fy2026-27_non_salary,12,Silver Estates,2026-06-20,393(1),25000.00,55000.00,5500.00,5500.00,10,normal,false
+q4_fy2025-26_non_salary,1,Alpha Constructions Pvt Ltd,2026-03-20,194C,50000.00,50000.00,1000.00,1000.00,2,normal,false
+q4_fy2025-26_non_salary,2,Beta Agencies,2026-03-28,194H,50000.00,50000.00,1000.00,1000.00,2,normal,false
+q4_fy2025-26_non_salary,3,Mehta and Co,2026-03-01,194J(b),60000.00,60000.00,6000.00,6000.00,10,normal,false
+q1_fy2026-27_tcs,1,Metro Scrap Traders,2026-04-10,394,200000.00,200000.00,4000.00,4000.00,2,normal,false
+q4_fy2025-26_tcs,1,Metro Scrap Traders,2026-03-15,206C(1),100000.00,100000.00,1000.00,1000.00,1,normal,false

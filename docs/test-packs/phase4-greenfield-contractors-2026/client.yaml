@@ -1,0 +1,15 @@
+# Greenfield Contractors - Phase 4 (TDS / TCS) pack, financial years 2025-26 and 2026-27 (dummy, synthetic data only)
+# Two financial years on purpose: 2025-26 ends 31-03-2026 (Income-tax Act 1961), 2026-27 starts 01-04-2026 (Income-tax Act 2025).
+# All PAN / TAN values are SYNTHETIC. Every rate, threshold, section number and due date comes from the seeded rule tables;
+# the pending ones are listed in SIGNOFF.md.
+name: Greenfield Contractors
+entity_type: partnership
+business_type: service
+gst_type: unregistered
+fy_start: 2025-04-01
+second_fy_start: 2026-04-01
+tan: MUMG12345A
+partners: [Partner A, Partner B]
+balances_as_on_first_year: 2026-03-31
+balances_as_on_second_year: 2026-11-30
+interest_as_on: 2026-10-31

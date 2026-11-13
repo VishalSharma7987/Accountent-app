@@ -1,0 +1,4 @@
+deductee_name,nature_key,on,cumulative_amount,tax_deducted,single_threshold,monthly_threshold,annual_threshold,headroom
+Alpha Constructions Pvt Ltd,contractor,2026-07-31,120000.00,2400.00,30000.00,,100000.00,0.00
+Silver Estates,rent_land_building,2026-06-30,160000.00,11500.00,,50000.00,,
+Steel Mart Pvt Ltd,purchase_of_goods,2026-09-30,6000000.00,1000.00,,,5000000.00,0.00

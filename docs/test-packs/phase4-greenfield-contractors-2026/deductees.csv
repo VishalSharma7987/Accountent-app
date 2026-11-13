@@ -1,0 +1,11 @@
+ledger_name,pan,pan_status,deductee_type
+Alpha Constructions Pvt Ltd,AAACA1234A,valid,company
+Ravi Kumar,ABCPK1234A,valid,individual
+Mehta and Co,AAAFM1234A,valid,firm
+Beta Agencies,AAAFB1234A,valid,firm
+Silver Estates,ABCPS1234A,valid,individual
+Delta Fabricators,,missing,company
+Omega Engineers Pvt Ltd,AAACO1234A,valid,company
+Kiran Consultants,AAAFK1234A,valid,firm
+Steel Mart Pvt Ltd,AAACS1234A,valid,company
+Metro Scrap Traders,AAAFT1234A,valid,firm
