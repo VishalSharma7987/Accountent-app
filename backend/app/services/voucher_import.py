@@ -10,12 +10,13 @@ Services take a SQLAlchemy Connection and never commit (the caller owns the tran
 import uuid
 from dataclasses import dataclass, field
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from sqlalchemy import Connection, text
 
 from app.db import repositories_bills as repo_b
 from app.engine.duplicates import ExistingVoucher, find_possible_duplicate
+from app.engine.gst_types import InvoiceIn, ItemLineIn
 from app.engine.models import Allocation, VoucherDraft, VoucherLine
 from app.engine.money import MoneyError, format_inr, parse_amount
 from app.importers.voucher_excel import ImportFileError, ParsedVoucher, parse_workbook
@@ -129,6 +130,74 @@ def _line_amount(line) -> Decimal | None:
     return sides[0] or sides[1] if (sides[0] > 0) != (sides[1] > 0) else None
 
 
+def _registrations(conn: Connection, client_id: object) -> dict[str, list[tuple[object, date, date | None]]]:
+    rows = conn.execute(
+        text("SELECT upper(gstin), id, effective_from, effective_to FROM gst_registrations "
+             "WHERE client_id = :c AND is_active"), {"c": client_id})
+    found: dict[str, list[tuple[object, date, date | None]]] = {}
+    for gstin, reg_id, start, end in rows:
+        found.setdefault(gstin, []).append((reg_id, start, end))
+    return found
+
+
+def _decimal(raw: object, label: str, number: int, row: int, issues: list[ImportIssue], *, default: Decimal | None = None) -> Decimal:
+    if raw is None or (isinstance(raw, str) and not raw.strip()):
+        if default is not None:
+            return default
+        issues.append(ImportIssue("G-17", f"Item {number}: {label} is empty.", number, row))
+        return Decimal(0)
+    try:
+        return raw if isinstance(raw, Decimal) else Decimal(str(raw).strip())
+    except InvalidOperation:
+        issues.append(ImportIssue("G-17", f"Item {number}: {label} '{raw}' is not a valid number.", number, row))
+        return Decimal(0)
+
+
+def _prepare_invoice(
+    conn: Connection, client_id: object, voucher: ParsedVoucher, item: _Prepared, ledger_ids: dict[str, object],
+    party_id: object | None, registrations: dict[str, list[tuple[object, date, date | None]]],
+) -> None:
+    """Phase 3: a voucher made of item rows. The ledger and tax lines are built by the GST engine inside
+    vouchers.validate_draft / create_draft; nothing about tax is read from the sheet. The invoice date is the voucher date."""
+    gst = voucher.gst
+    on = voucher.voucher_date
+    reg_id = None
+    for candidate, start, end in registrations.get(gst.registration, []):
+        if on is not None and start <= on and (end is None or on <= end):
+            reg_id = candidate
+    if reg_id is None:
+        item.issues.append(ImportIssue(
+            "G-06", f"No active GST registration {gst.registration or '(blank)'} of this client is in force on the voucher date.",
+            None, voucher.first_row))
+    items = []
+    for number, entry in enumerate(voucher.items, start=1):
+        ledger_id = ledger_ids.get(entry.item_ledger.lower()) if entry.item_ledger else None
+        if ledger_id is None:
+            item.issues.append(ImportIssue(
+                "V-05", f"Item {number}: ledger '{entry.item_ledger}' does not exist for this client; the import never creates ledgers.",
+                number, entry.row))
+        items.append(ItemLineIn(
+            entry.description, entry.hsn_sac, _decimal(entry.quantity, "quantity", number, entry.row, item.issues),
+            _decimal(entry.unit_rate, "rate", number, entry.row, item.issues),
+            _decimal(entry.discount, "discount", number, entry.row, item.issues, default=ZERO), ledger_id,
+            None, entry.uqc, entry.rcm_category, entry.itc_category,
+        ))
+    if item.issues or reg_id is None or on is None:
+        return
+    invoice = InvoiceIn(
+        str(reg_id), gst.document_kind, gst.supply_category, gst.place_of_supply, on, tuple(items), gst.counterparty_gstin,
+        gst.original_invoice_no, gst.original_invoice_date, gst.note_reason,
+    )
+    draft = VoucherDraft(
+        client_id, voucher.voucher_type, on, voucher.narration, voucher.reference_no or None, party_id, (), gst=invoice,
+    )
+    item.draft = draft
+    for error in vouchers.validate_draft(conn, draft):
+        # G-rules report the ITEM number; voucher-level rules (V-xx, B-xx) point at the first row of the invoice
+        row = voucher.items[error.line_no - 1].row if error.rule_id.startswith("G-") and error.line_no else voucher.first_row
+        item.issues.append(ImportIssue(error.rule_id, error.message, error.line_no, row))
+
+
 def _prepare(conn: Connection, client_id: object, data: bytes) -> list[_Prepared]:
     try:
         parsed = parse_workbook(data)
@@ -142,6 +211,7 @@ def _prepare(conn: Connection, client_id: object, data: bytes) -> list[_Prepared
         raise ServiceError("not_found", "Client not found.")
     ledger_ids = _ledger_ids(conn, client_id)
     bill_wise = {i for i, row in repo_b.list_party_rows(conn, client_id).items() if row.bill_wise}
+    registrations = _registrations(conn, client_id) if any(v.gst is not None for v in parsed.vouchers) else {}
 
     prepared: list[_Prepared] = []
     accepted: list[ExistingVoucher] = []  # vouchers of this file that passed, for in-file duplicate detection
@@ -171,6 +241,11 @@ def _prepare(conn: Connection, client_id: object, data: bytes) -> list[_Prepared
                     None, voucher.first_row,
                 ))
 
+        if voucher.gst is not None:
+            if item.ok:
+                _prepare_invoice(conn, client_id, voucher, item, ledger_ids, party_id, registrations)
+            prepared.append(item)
+            continue
         if item.ok:
             built: list[VoucherLine] = []
             no_reference: set[int] = set()  # lines that would get an automatic New Ref but the voucher has no reference

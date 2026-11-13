@@ -26,7 +26,7 @@ from app.engine.duplicates import duplicate_error, find_possible_duplicate
 from app.engine.models import PeriodInfo, ValidationError, VoucherDraft, VoucherLine
 from app.engine.money import format_inr, parse_amount
 from app.engine.validation import validate_voucher
-from app.services import audit, bills, cash_checks
+from app.services import audit, bills, cash_checks, gst_hooks
 from app.services.audit import AuditEntry
 from app.services.errors import ServiceError, VoucherRuleError, require_actor
 
@@ -118,6 +118,8 @@ def _snapshot(draft: VoucherDraft, status: str = "draft") -> dict:
     }
     if draft.goods_received_date is not None:  # Phase 2.1: only when entered, so older snapshots are unchanged
         snap["goods_received_date"] = draft.goods_received_date.isoformat()
+    if draft.gst is not None:  # Phase 3: invoice mode
+        snap["gst"] = gst_hooks.snapshot(draft)
     return snap
 
 
@@ -190,6 +192,9 @@ def _validate_all(
 def validate_draft(conn: Connection, draft: VoucherDraft, draft_id: object | None = None) -> list[ValidationError]:
     """The errors create_draft/update_draft would return for this draft, WITHOUT saving or logging anything.
     draft_id is the voucher being edited (it does not clash with itself under V-10). Used by the Excel dry run."""
+    draft, gst_errors = gst_hooks.expand_invoice(conn, draft)  # Phase 3: invoice mode builds the lines
+    if gst_errors:
+        return _order(gst_errors)
     return _validate_all(conn, draft, draft_id)[0]
 
 
@@ -197,10 +202,14 @@ def create_draft(conn: Connection, draft: VoucherDraft, *, actor: str) -> DraftR
     """Validate and save a new draft. On rule errors (V-01..V-10, V-13, V-14) nothing is saved and all errors are
     returned. A possible duplicate (V-10) needs `draft.duplicate_override_reason` to be saved anyway."""
     actor = require_actor(actor)
+    draft, gst_errors = gst_hooks.expand_invoice(conn, draft)  # Phase 3: invoice mode builds the lines
+    if gst_errors:
+        return DraftResult(None, _order(gst_errors))
     errors, ctx = _validate_all(conn, draft, None)
     if errors:
         return DraftResult(None, errors)
     voucher_id = _insert_voucher(conn, draft, _financial_year_id(ctx, draft.voucher_date), actor)
+    gst_hooks.persist_invoice(conn, draft.client_id, voucher_id, draft, actor)
     bills.persist_allocations(conn, voucher_id, draft, ctx)
     audit.log(conn, AuditEntry(draft.client_id, actor, "create", "voucher", voucher_id, new=_snapshot(draft)))
     return DraftResult(voucher_id, [])
@@ -218,6 +227,9 @@ def update_draft(conn: Connection, voucher_id: object, draft: VoucherDraft, *, a
         )
     if draft.client_id != record.client_id:
         raise ServiceError("client_mismatch", "A voucher cannot be moved to another client.")
+    draft, gst_errors = gst_hooks.expand_invoice(conn, draft)  # Phase 3: invoice mode builds the lines
+    if gst_errors:
+        return DraftResult(None, _order(gst_errors))
     errors, ctx = _validate_all(conn, draft, record.id)
     if errors:
         return DraftResult(None, errors)
@@ -236,6 +248,7 @@ def update_draft(conn: Connection, voucher_id: object, draft: VoucherDraft, *, a
     )
     conn.execute(text("DELETE FROM voucher_lines WHERE voucher_id = :id"), {"id": record.id})
     _insert_lines(conn, record.client_id, record.id, draft)  # deleting the lines cascaded to their allocations
+    gst_hooks.persist_invoice(conn, record.client_id, record.id, draft, actor)
     bills.persist_allocations(conn, record.id, draft, ctx)
     _log(conn, record, actor, "update", _snapshot(_draft_from(record)), _snapshot(draft))
     return DraftResult(record.id, [])
@@ -258,6 +271,7 @@ def _revalidate(conn: Connection, record: VoucherRecord) -> ValidationContext:
     draft, is_reversal = _draft_from(record), record.reverses_voucher_id is not None
     errors, ctx = _validate(conn, draft, is_reversal=is_reversal)
     errors += bills.draft_errors(conn, draft, ctx, record.id, is_reversal=is_reversal)
+    errors += gst_hooks.revalidate_invoice(conn, record)  # Phase 3: G-26 (a tampered invoice cannot be approved / posted)
     if errors:
         raise VoucherRuleError(_order(errors))
     return ctx
@@ -322,6 +336,7 @@ def _post_locked(conn: Connection, record: VoucherRecord, actor: str) -> str:
         {"c": record.client_id, "fy": record.financial_year_id, "t": record.voucher_type},
     ).scalar_one()
     number = f"{TYPE_CODES[record.voucher_type]}/{_fy_label(record.financial_year_start)}/{last:04d}"
+    gst_hooks.check_number(conn, record, number)  # Phase 3: G-23 (GST documents: at most 16 characters)
     conn.execute(
         text(
             "UPDATE vouchers SET status = 'posted', voucher_number = :n, posted_by = :by, posted_at = now() "
@@ -350,7 +365,9 @@ def post(conn: Connection, voucher_id: object, *, actor: str) -> str:
     b07 = bills.opening_cover_errors(conn, record.client_id, record.financial_year_id, [x.ledger_id for x in record.lines])
     if b07:
         raise VoucherRuleError(b07)
-    return _post_locked(conn, record, actor)
+    number = _post_locked(conn, record, actor)
+    gst_hooks.on_post(conn, record.client_id, record.id, actor)  # Phase 3: input-credit entries (package C)
+    return number
 
 
 # ================================================================================================== reverse
@@ -392,6 +409,7 @@ def reverse(conn: Connection, voucher_id: object, reversal_date: date, reason: s
 
     reversal_id = _insert_voucher(conn, mirror, reversal_fy, actor, reverses_voucher_id=original.id)
     bills.persist_allocations(conn, reversal_id, mirror, ctx)
+    gst_hooks.copy_for_reversal(conn, original.id, reversal_id)  # Phase 3: item rows follow the mirrored lines
     reversal = repo.load_voucher(conn, reversal_id)
     audit.log(conn, AuditEntry(original.client_id, actor, "create", "voucher", reversal_id, new=_snapshot(mirror)))
     _approve_locked(conn, reversal, actor)
@@ -405,6 +423,7 @@ def reverse(conn: Connection, voucher_id: object, reversal_date: date, reason: s
         conn, original, actor, "reverse", {"status": "posted"},
         {"status": "reversed", "reversed_by": str(reversal_id), "reversal_number": reversal_number, "reason": reason},
     )
+    gst_hooks.on_reverse(conn, original.client_id, original.id, reversal_id, actor)  # Phase 3 (package C)
     return reversal_id
 
 

@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
 
+from app.engine.gst_types import InvoiceIn, InvoiceResult
+
 # An amount "as entered": text from a cell, an int, a Decimal, or nothing (blank = zero).
 # Floats are accepted here only so that validation can reject them (V-03).
 RawAmount = str | int | Decimal | float | None
@@ -62,6 +64,10 @@ class VoucherDraft:
     lines: tuple[VoucherLine, ...]
     duplicate_override_reason: str | None = None  # the user's reason for saving a possible duplicate (V-10)
     goods_received_date: date | None = None  # Purchase only (V-15): the date of acceptance when not the bill date
+    # Phase 3 invoice mode: the invoice the lines were built from, the engine's result, optional party-line allocations
+    gst: InvoiceIn | None = None
+    gst_result: InvoiceResult | None = None
+    gst_party_allocations: tuple["Allocation", ...] = ()
 
 
 @dataclass(frozen=True)

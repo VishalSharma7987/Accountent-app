@@ -33,14 +33,17 @@ gst = {
     ledger_id,                        // Sales / Purchase / expense / asset ledger of this item
     rcm_category_key|null,
     itc_category_key|null, itc_exception_claimed: false, itc_exception_note|null   // purchase only
-  }]
+  }],
+  allocations?: [{kind, amount, bill_ref, due_date}]   // optional bill-wise allocation of the party line (Phase 2 shape);
+                                                       // default for Sales / Purchase of a bill-wise party: new_ref, full invoice value, reference_no
 }
 ```
 `party_ledger_id`, `reference_no`, `voucher_date`, `narration`, `allocations` of the party line (optional; default `new_ref` = reference no, full invoice value) behave as before.
 Response `Voucher` gains `gst`: header fields above + `invoice_value`, `invoice_round_off`, `has_rcm`, `engine_version`, `warnings:[{rule_id, message, item_line_no}]` (e.g. G-10 default rate used), and `items[]` with the engine's results: `{item_line_no, ..., gross_amount, taxable_value, treatment, gst_rate, cess_rate, cgst, sgst, igst, cess, rate_rule_id, rate_is_default, rcm, tax_in_cost}`; `lines[]` carry `gst_role` (`party|taxable|tax_cgst|...|round_off`) and `item_line_no`.
+- Rule errors of an item line carry the ITEM number in `line_no` (the voucher lines are generated); `details.item_line_no` is not used. A tax amount, rate or ledger line typed in the request is refused as G-14 (item keys cgst, sgst, igst, cess, gst_rate, tax, tax_amount, taxable_value, ...).
 - `POST /clients/{c}/vouchers/gst-preview` same body as create -> `{lines:[{ledger_id, ledger_name, debit, credit, gst_role}], gst:{...as above}, errors:[...]}` (no write; the screen shows tax lines read-only; errors as a list, 200 even when rules fail)
 - Approve / post / reverse use the Phase 1 endpoints; G-26 and G-23 fire there (`422 errors`). Reversal vouchers mirror the lines; item rows are copied with the reversal link and `itc_entries` are marked reversed (C).
-- Excel import (Phase 1.8 format) accepts extra optional columns for invoice mode: `gst_registration`, `supply_category`, `place_of_supply`, `item_description`, `hsn_sac`, `uqc`, `quantity`, `unit_rate`, `discount`, `item_ledger`, `itc_category`, `rcm_category`; rows with the same `voucher_ref` form one invoice. Tax columns are refused (G-14).
+- Excel import (Phase 1.8 format) accepts extra optional columns for invoice mode: `gst_registration`, `supply_category`, `place_of_supply`, `item_description`, `hsn_sac`, `uqc`, `quantity`, `unit_rate`, `discount`, `item_ledger`, `itc_category`, `rcm_category`; rows with the same `ref_id` form one invoice (item rows have empty ledger_name / debit / credit). Also accepted, after the 13 standard columns and in any order: `document_kind` (required, never defaulted), `counterparty_gstin`, `original_invoice_no`, `original_invoice_date`, `note_reason`; `gst_registration` is the registration's GSTIN; the invoice date is the voucher date. Tax columns (cgst, sgst, igst, cess, gst_rate, tax_amount, taxable_value) are refused (G-14).
 
 ## ITC (package C)
 `ItcEntry = {id, voucher_id, voucher_number, item_line_no, doc_type, source: "regular"|"rcm", supplier_ledger_id, supplier_name, supplier_gstin, supplier_invoice_no, supplier_invoice_date, igst, cgst, sgst, cess, status: "eligible"|"blocked"|"pending"|"reversed", pending_reason|null, blocked_category_key|null, tax_document_held, goods_services_received, received_date|null, supplier_tax_paid: "unknown"|"in_2b"|"not_in_2b"|"manual_confirmed", evidence_note|null, claim_deadline|null, claimed_in_period|null, days_since_invoice, unpaid_share: {fraction, igst, cgst, sgst, cess}|null}`

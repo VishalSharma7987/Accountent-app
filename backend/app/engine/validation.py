@@ -8,6 +8,7 @@ from collections.abc import Callable, Mapping, Sequence
 from datetime import date
 from decimal import Decimal
 
+from app.engine.gst_invoice import check_lines_match
 from app.engine.models import Group, Ledger, PeriodInfo, ValidationError, VoucherDraft
 from app.engine.money import MoneyError, format_inr, parse_amount
 
@@ -204,6 +205,10 @@ def validate_voucher(
                 f"Goods received date {_fmt_date(grd)} is more than 365 days away from the voucher date "
                 f"{_fmt_date(draft.voucher_date)}; check the date.",
             ))
+
+    # ---- G-26: an invoice-mode voucher's lines must be exactly what the GST engine built --------------
+    if draft.gst_result is not None and not is_reversal and amounts_ok:
+        errors.extend(check_lines_match(draft.gst_result, [(ln.ledger_id, *amounts[n]) for n, ln in enumerate(lines, start=1) if n in amounts]))
 
     errors.sort(key=lambda e: (e.rule_id, e.line_no is None, e.line_no or 0))
     return errors
