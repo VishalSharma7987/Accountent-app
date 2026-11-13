@@ -17,6 +17,9 @@ from app.api import (
     gst_recon,
     gst_returns,
     imports,
+    inventory_journals,
+    inventory_masters,
+    inventory_reports,
     ledgers,
     msme,
     parties,
@@ -60,6 +63,9 @@ ROUTERS = [
     tds_challans.router,
     tds_returns.router,
     tds_recon.router,
+    inventory_masters.router,
+    inventory_journals.router,
+    inventory_reports.router,
 ]
 for _router in ROUTERS:
     app.include_router(_router)

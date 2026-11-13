@@ -320,3 +320,16 @@ Anything that touches a legal value, existing data or `docs/REQUIREMENTS.md` is 
 | 2026-11-13 | 4.0 | Statement / certificate output is working data (Excel / JSON), not the TRACES / FVU file | File layouts unverified; building them would be a guess |
 | 2026-11-13 | 4.0 | Challan `locked` status and final return workings are frozen by triggers; certificate snapshots are immutable except number and issue date | Same discipline as Phase 3 filed workings |
 
+
+<!-- decisions_parts/P5.md -->
+| date | step | decision | reason |
+| --- | --- | --- | --- |
+| 2026-11-13 | 5.0 | A stock item is a gst_items goods row plus a stock_items row (SKU, default godown); invoice item lines already point at gst_items, so Phase 3 tables are unchanged | Reuses the existing item_id link; no duplicate item master |
+| 2026-11-13 | 5.0 | Godown override and the Credit / Debit Note goods-returned marker + original_movement_id live in draft-only voucher_stock_lines | voucher_item_lines carries no godown; note_reason has no purchase-return value; a note line without a row stays value-only |
+| 2026-11-13 | 5.0 | Movements are INSERT-only rows written at posting; only a purchase stores a value (cost = taxable value + tax in cost); outward / return cost is computed by the engine on every report | S-13: no typed or stale cost; backdated entries cannot corrupt valuation |
+| 2026-11-13 | 5.0 | Quantity: 3 decimals, stored numeric(18,4) with CHECK (qty = round(qty,3)), like money | Database rejects 1.0005 instead of rounding it (principle 4) |
+| 2026-11-13 | 5.0 | Valuation per item (not per godown); transfers change godown quantities only; policy stored per client + FY, never silently defaulted (negative stock mode defaults to block) | Standard practice; simplest correct model; principle 3 |
+| 2026-11-13 | 5.0 | Returns and reversals are valued at the unit cost of the movement they refer to (S-12); FIFO purchase return takes from that layer; periodic average treats a sales return as less outward | Standard practice; flagged for accountant sign-off in PHASE5_PLAN.md |
+| 2026-11-13 | 5.0 | Stock journal reversal appends mirror movements and sets the journal to reversed (no second journal); voucher reversal appends mirror movements dated the reversal date | Append-only discipline; the reversal voucher has no item lines |
+| 2026-11-13 | 5.0 | Weighted average periodic uses the report window; a window starting after FY start opens with the same method's valuation of FY start..previous day | Deterministic, needs no stored closing values |
+| 2026-11-13 | 5.0 | Migration 0016 (0015 reserved for Phase 4.1); no legal value needed, so nothing is pending | AS 2 and costing are standards, not rate tables |

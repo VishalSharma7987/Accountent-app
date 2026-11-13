@@ -186,3 +186,10 @@ Tests: unit tests, `ruff check .`, and the schema / guard / grant integration te
 Commit: on branch p4-plan (not merged). Migrations applied to the TEST schema only; dev is applied after merge.
 Decisions added: see docs/decisions_parts/P4.md. Legal values: none verified, see docs/PHASE4_LEGAL_VALUES.md section 5.
 
+
+<!-- progress_parts/P5.md -->
+Step 5.0 (planning + foundation, branch p5-plan): Phase 5 plan, API contract; migration 0016 (godowns, stock items, policy, opening, stock journals, movements, voucher stock lines, NRV).
+Done: `engine/inventory_types.py`, `services/inventory_hooks.py` stubs, empty routers `api/inventory_{masters,journals,reports}.py` registered in `main.py`, `test_schema_guards.py` table list, `test_inventory_foundation.py` (unit), `test_inventory_schema.py` (integration).
+Tests: unit suite 1158 passed (+7 new), `ruff check .` clean; the database was NOT touched: migration 0016 and the schema tests are not yet run.
+Commit: on branch p5-plan (not merged). Main agent applies 0016 to test, runs test_inventory_schema.py, then dev.
+Decisions added: 9 rows (see DECISIONS.md, step 5.0). Legal values: none needed.
