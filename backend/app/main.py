@@ -11,6 +11,11 @@ from app.api import (
     cashbook,
     clients,
     groups,
+    gst_invoices,
+    gst_itc,
+    gst_masters,
+    gst_recon,
+    gst_returns,
     imports,
     ledgers,
     msme,
@@ -40,6 +45,11 @@ ROUTERS = [
     parties.router,
     bills.router,
     reconciliation.router,
+    gst_masters.router,
+    gst_invoices.router,
+    gst_itc.router,
+    gst_recon.router,
+    gst_returns.router,
 ]
 for _router in ROUTERS:
     app.include_router(_router)

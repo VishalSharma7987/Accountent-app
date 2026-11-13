@@ -94,3 +94,7 @@ Anything that touches a legal value, existing data or `docs/REQUIREMENTS.md` is 
 | 2026-11-12 | 2.9 | Wrong vouchers that pass create_draft are also tried at approve (C-01 / D-01 fire there); a wrongly accepted one is never posted. A message that lacks the advisory `expected_message_contains` word is a WARNING, a wrong or extra rule id is a failure. | Pack says the word is advisory. |
 | 2026-11-12 | 2.9 | Days past due of a not-yet-due item: the pack writes a negative number (still to run), the tool reports 0 (API contract). When that is the only difference it is reported as a NOTE, not a failure. | Representation difference, not an arithmetic dispute. |
 
+
+| 2026-11-13 | 3.0 | Migrations 0009-0011 and seeds 0004-0007 reviewed and applied to the TEST schema unchanged (no SQL bug found); dev not yet applied | Owner rule: test first, then dev after the tests pass |
+| 2026-11-13 | 3.0 | `services/gst_hooks.py` on_post/on_reverse import `services.gst_itc` lazily and do nothing if it does not exist yet | Lets B and C merge in any order without touching each other's files |
+| 2026-11-13 | 3.0 | Frozen dataclasses of the GST engine live in `engine/gst_types.py` incl. `ENGINE_VERSION = "gst-1"`, `GeneratedLine`, and enums for treatment / document kind / supply category / line role | One shared contract for packages A-E |

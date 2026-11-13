@@ -58,3 +58,7 @@ Tests: helpers 10 unit tests pass; integration run: 16 passed (all 15 sections +
 Commit: on branch p2-R.
 Decisions added: 3 (decisions_parts/R.md).
 - **Phase 2 gate**: full suite 991 passed (before runner) + Phase 2 pack runner 16 passed + Phase 1 runner 5 passed; unit 618 passed; ruff clean; frontend build ok, vitest 55 passed. Migrations 0005-0007 + seed 0002 applied to test and dev. Phase 3 NOT started.
+
+- Step 3.0 (GST foundation, backend only): migrations 0009-0011 + seeds 0004-0007 applied to TEST schema; `engine/gst_types.py`, hook stubs, 5 empty routers registered; package ownership in docs/PHASE3_PACKAGES.md.
+  Tests: new tests/integration/test_gst_schema.py, table list in test_schema_guards, seed list in test_migrate (see commit). Full suite deliberately NOT run (owner instruction).
+  Commit: p3-plan (see git log). Decisions added: 3 rows. Dev schema NOT migrated yet.
