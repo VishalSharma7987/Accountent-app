@@ -1,0 +1,4 @@
+Deductor TAN,Name of Deductor,Section,Transaction Date,Date of Booking,Status of Booking,Amount Paid/Credited,Tax Deducted,Tax Deposited
+MUMA12345B,Alpha Industries,194C,20-04-2026,15-06-2026,F,"1,00,000.00",1000.00,1000.00
+MUMA12345B,Alpha Industries,194J,10-05-2026,15-06-2026,F,50000.00,5000.00,5000.00
+DELD54321C,Delta Services,194C,12-06-2026,15-07-2026,F,200000.00,2000.00,2000.00
