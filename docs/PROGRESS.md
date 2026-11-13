@@ -192,3 +192,9 @@ Done: engine (`tds_calc.py`, `tds_types.py`), G-26 made TDS-aware, migration 001
 Tests: unit tests + ruff + frontend build / vitest in the worktree; DB tests NOT run by the author (database busy): the main agent applies 0015 + seed 0011 and runs the integration tests.
 Commit: branch p41 (not merged).
 Decisions added: see DECISIONS.md rows of 2026-11-13 step 4.1. Pending for the CA: whole-month reading of ex-194-IB, circular number for the GST-excluded base, certificate on an untaxed earlier payment.
+<!-- progress_parts/P5.md -->
+Step 5.0 (planning + foundation, branch p5-plan): Phase 5 plan, API contract; migration 0016 (godowns, stock items, policy, opening, stock journals, movements, voucher stock lines, NRV).
+Done: `engine/inventory_types.py`, `services/inventory_hooks.py` stubs, empty routers `api/inventory_{masters,journals,reports}.py` registered in `main.py`, `test_schema_guards.py` table list, `test_inventory_foundation.py` (unit), `test_inventory_schema.py` (integration).
+Tests: unit suite 1158 passed (+7 new), `ruff check .` clean; the database was NOT touched: migration 0016 and the schema tests are not yet run.
+Commit: on branch p5-plan (not merged). Main agent applies 0016 to test, runs test_inventory_schema.py, then dev.
+Decisions added: 9 rows (see DECISIONS.md, step 5.0). Legal values: none needed.
