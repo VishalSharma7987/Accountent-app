@@ -8,6 +8,7 @@ from datetime import date
 from decimal import Decimal
 
 from app.engine.gst_types import InvoiceIn, InvoiceResult
+from app.engine.tds_types import TdsItemResult, TdsLineIn
 
 # An amount "as entered": text from a cell, an int, a Decimal, or nothing (blank = zero).
 # Floats are accepted here only so that validation can reject them (V-03).
@@ -68,6 +69,9 @@ class VoucherDraft:
     gst: InvoiceIn | None = None
     gst_result: InvoiceResult | None = None
     gst_party_allocations: tuple["Allocation", ...] = ()
+    # Phase 4 TDS / TCS: the items the accountant marked (inputs) and the engine's results once the tax line is generated
+    tds: tuple[TdsLineIn, ...] = ()
+    tds_results: tuple[TdsItemResult, ...] = ()
 
 
 @dataclass(frozen=True)

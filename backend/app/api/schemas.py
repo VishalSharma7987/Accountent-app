@@ -8,6 +8,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field
 
 from app.api.schemas_gst_invoices import GstIn
+from app.api.schemas_tds_deduction import TdsBlockIn
 from app.engine.models import Balance
 
 CENTS = Decimal("0.01")
@@ -165,6 +166,7 @@ class VoucherIn(BaseModel):
     goods_received_date: date | None = None  # Purchase only (V-15)
     lines: list[VoucherLineIn] = Field(default_factory=list)  # empty in invoice mode (Phase 3: `gst` builds them)
     gst: GstIn | None = None
+    tds: TdsBlockIn | None = None  # Phase 4: TDS / TCS items on Payment, Purchase, Journal (Sales for TCS)
 
 
 class VoucherLineOut(BaseModel):
@@ -198,6 +200,7 @@ class VoucherOut(BaseModel):
     goods_received_date: date | None = None
     lines: list[VoucherLineOut]
     gst: dict | None = None  # Phase 3: header, items and engine figures when the voucher is in invoice mode
+    tds: dict | None = None  # Phase 4: the engine's working per deduction (None without TDS)
 
 
 class VoucherCreated(BaseModel):

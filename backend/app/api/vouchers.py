@@ -1,3 +1,4 @@
+import dataclasses
 import uuid
 from datetime import date
 
@@ -23,23 +24,27 @@ from app.api.schemas import (
     VoucherType,
     money,
 )
+from app.api.schemas_tds_deduction import tds_from_body
 from app.db.repositories import VoucherRecord
 from app.engine.models import Allocation, ValidationError, VoucherDraft, VoucherLine
-from app.services import gst_hooks, queries, vouchers
+from app.services import gst_hooks, queries, tds_hooks, vouchers
 
 router = APIRouter(tags=["vouchers"])
 
 
 def draft_from_body(client_id: uuid.UUID, body: VoucherIn) -> tuple[VoucherDraft | None, list[ValidationError]]:
-    """The draft of a request body, or the G-14 / G-17 errors of its invoice block (Phase 3)."""
+    """The draft of a request body, or the G-14 / G-17 (invoice block) and T-05 / T-16 (TDS block) errors."""
+    tds, tds_errors = tds_from_body(body.tds)
+    if tds_errors:
+        return None, tds_errors
     if body.gst is None:
-        return _draft(client_id, body), []
+        return dataclasses.replace(_draft(client_id, body), tds=tds), []
     invoice, party_allocations, errors = invoice_from_body(body)
     if errors:
         return None, errors
     return VoucherDraft(
         client_id, body.voucher_type, body.voucher_date, body.narration, body.reference_no, body.party_ledger_id, (),
-        body.duplicate_override_reason, body.goods_received_date, invoice, None, party_allocations,
+        body.duplicate_override_reason, body.goods_received_date, invoice, None, party_allocations, tds,
     ), []
 
 
@@ -55,7 +60,7 @@ def _draft(client_id: uuid.UUID, body: VoucherIn) -> VoucherDraft:
     )
 
 
-def _voucher_out(r: VoucherRecord, gst: dict | None = None) -> VoucherOut:
+def _voucher_out(r: VoucherRecord, gst: dict | None = None, tds: dict | None = None) -> VoucherOut:
     roles = (gst or {}).pop("line_roles", {})
     return VoucherOut(
         id=r.id, client_id=r.client_id, financial_year_id=r.financial_year_id, voucher_type=r.voucher_type,
@@ -71,7 +76,7 @@ def _voucher_out(r: VoucherRecord, gst: dict | None = None) -> VoucherOut:
                               allocations=[AllocationOut(kind=a.kind, amount=money(a.amount), bill_ref=a.bill_ref,
                                                          due_date=a.due_date) for a in x.allocations])
                for x in r.lines],
-        gst=gst,
+        gst=gst, tds=tds,
     )
 
 
@@ -111,7 +116,7 @@ def list_vouchers(
 @router.get("/vouchers/{voucher_id}", response_model=VoucherOut)
 def get_voucher(voucher_id: str, conn: Connection = Depends(get_conn)):
     record = vouchers.get_voucher(conn, parse_id(voucher_id, "Voucher"))
-    return _voucher_out(record, gst_hooks.load_invoice(conn, record.client_id, record.id))
+    return _voucher_out(record, gst_hooks.load_invoice(conn, record.client_id, record.id), tds_hooks.load_tds(conn, record.client_id, record.id))
 
 
 @router.put("/vouchers/{voucher_id}", response_model=VoucherCreated)
