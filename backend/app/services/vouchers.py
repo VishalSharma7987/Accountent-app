@@ -26,7 +26,7 @@ from app.engine.duplicates import duplicate_error, find_possible_duplicate
 from app.engine.models import PeriodInfo, ValidationError, VoucherDraft, VoucherLine
 from app.engine.money import format_inr, parse_amount
 from app.engine.validation import validate_voucher
-from app.services import audit, bills, cash_checks, gst_hooks
+from app.services import audit, bills, cash_checks, gst_hooks, tds_hooks
 from app.services.audit import AuditEntry
 from app.services.errors import ServiceError, VoucherRuleError, require_actor
 
@@ -120,6 +120,8 @@ def _snapshot(draft: VoucherDraft, status: str = "draft") -> dict:
         snap["goods_received_date"] = draft.goods_received_date.isoformat()
     if draft.gst is not None:  # Phase 3: invoice mode
         snap["gst"] = gst_hooks.snapshot(draft)
+    if draft.tds_results:  # Phase 4: TDS / TCS items
+        snap["tds"] = tds_hooks.snapshot(draft)
     return snap
 
 
@@ -195,6 +197,9 @@ def validate_draft(conn: Connection, draft: VoucherDraft, draft_id: object | Non
     draft, gst_errors = gst_hooks.expand_invoice(conn, draft)  # Phase 3: invoice mode builds the lines
     if gst_errors:
         return _order(gst_errors)
+    draft, tds_errors = tds_hooks.expand_tds(conn, draft)  # Phase 4: the generated tax line
+    if tds_errors:
+        return _order(tds_errors)
     return _validate_all(conn, draft, draft_id)[0]
 
 
@@ -205,11 +210,15 @@ def create_draft(conn: Connection, draft: VoucherDraft, *, actor: str) -> DraftR
     draft, gst_errors = gst_hooks.expand_invoice(conn, draft)  # Phase 3: invoice mode builds the lines
     if gst_errors:
         return DraftResult(None, _order(gst_errors))
+    draft, tds_errors = tds_hooks.expand_tds(conn, draft)  # Phase 4: the generated tax line
+    if tds_errors:
+        return DraftResult(None, _order(tds_errors))
     errors, ctx = _validate_all(conn, draft, None)
     if errors:
         return DraftResult(None, errors)
     voucher_id = _insert_voucher(conn, draft, _financial_year_id(ctx, draft.voucher_date), actor)
     gst_hooks.persist_invoice(conn, draft.client_id, voucher_id, draft, actor)
+    tds_hooks.persist_tds(conn, draft.client_id, voucher_id, draft, actor)
     bills.persist_allocations(conn, voucher_id, draft, ctx)
     audit.log(conn, AuditEntry(draft.client_id, actor, "create", "voucher", voucher_id, new=_snapshot(draft)))
     return DraftResult(voucher_id, [])
@@ -230,6 +239,9 @@ def update_draft(conn: Connection, voucher_id: object, draft: VoucherDraft, *, a
     draft, gst_errors = gst_hooks.expand_invoice(conn, draft)  # Phase 3: invoice mode builds the lines
     if gst_errors:
         return DraftResult(None, _order(gst_errors))
+    draft, tds_errors = tds_hooks.expand_tds(conn, draft)  # Phase 4: the generated tax line
+    if tds_errors:
+        return DraftResult(None, _order(tds_errors))
     errors, ctx = _validate_all(conn, draft, record.id)
     if errors:
         return DraftResult(None, errors)
@@ -249,6 +261,7 @@ def update_draft(conn: Connection, voucher_id: object, draft: VoucherDraft, *, a
     conn.execute(text("DELETE FROM voucher_lines WHERE voucher_id = :id"), {"id": record.id})
     _insert_lines(conn, record.client_id, record.id, draft)  # deleting the lines cascaded to their allocations
     gst_hooks.persist_invoice(conn, record.client_id, record.id, draft, actor)
+    tds_hooks.persist_tds(conn, record.client_id, record.id, draft, actor)
     bills.persist_allocations(conn, record.id, draft, ctx)
     _log(conn, record, actor, "update", _snapshot(_draft_from(record)), _snapshot(draft))
     return DraftResult(record.id, [])
@@ -272,6 +285,7 @@ def _revalidate(conn: Connection, record: VoucherRecord) -> ValidationContext:
     errors, ctx = _validate(conn, draft, is_reversal=is_reversal)
     errors += bills.draft_errors(conn, draft, ctx, record.id, is_reversal=is_reversal)
     errors += gst_hooks.revalidate_invoice(conn, record)  # Phase 3: G-26 (a tampered invoice cannot be approved / posted)
+    errors += tds_hooks.revalidate_tds(conn, record)  # Phase 4: T-13 (a tampered TDS working cannot be approved / posted)
     if errors:
         raise VoucherRuleError(_order(errors))
     return ctx
@@ -367,6 +381,7 @@ def post(conn: Connection, voucher_id: object, *, actor: str) -> str:
         raise VoucherRuleError(b07)
     number = _post_locked(conn, record, actor)
     gst_hooks.on_post(conn, record.client_id, record.id, actor)  # Phase 3: input-credit entries (package C)
+    tds_hooks.on_post(conn, record.client_id, record.id, actor)  # Phase 4
     return number
 
 
@@ -424,6 +439,7 @@ def reverse(conn: Connection, voucher_id: object, reversal_date: date, reason: s
         {"status": "reversed", "reversed_by": str(reversal_id), "reversal_number": reversal_number, "reason": reason},
     )
     gst_hooks.on_reverse(conn, original.client_id, original.id, reversal_id, actor)  # Phase 3 (package C)
+    tds_hooks.on_reverse(conn, original.client_id, original.id, reversal_id, actor)  # Phase 4: T-25 (package C)
     return reversal_id
 
 
