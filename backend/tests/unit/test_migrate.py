@@ -48,7 +48,15 @@ def test_real_migrations_are_in_order():
 
 def test_seeds_are_listed_in_name_order_and_recorded_with_a_prefix():
     seeds = migrate.seed_files()
-    assert [s.name for s in seeds] == ["0001_account_groups.sql", "0002_msme_payment_rules.sql", "0003_msme_rule_corrections.sql"]
+    assert [s.name for s in seeds] == [
+        "0001_account_groups.sql",
+        "0002_msme_payment_rules.sql",
+        "0003_msme_rule_corrections.sql",
+        "0004_gst_state_codes_uqc.sql",
+        "0005_gst_rate_slabs_rules.sql",
+        "0006_gst_rcm_blocked_itc_rules.sql",
+        "0007_gst_composition_thresholds.sql",
+    ]
     assert migrate.seed_record_name(seeds[0]) == "seeds/0001_account_groups.sql"
 
 

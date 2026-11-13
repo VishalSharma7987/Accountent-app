@@ -76,3 +76,7 @@ Tests: unit suite green (634 passed); integration/pack runner see the final repo
 Commit: on branch p21-M.
 Decisions added: docs/decisions_parts/M.md (8 rows).
 
+
+- Step 3.0 (GST foundation, backend only): migrations 0009-0011 + seeds 0004-0007 applied to TEST schema; `engine/gst_types.py`, hook stubs, 5 empty routers registered; package ownership in docs/PHASE3_PACKAGES.md.
+  Tests: new tests/integration/test_gst_schema.py, table list in test_schema_guards, seed list in test_migrate (see commit). Full suite deliberately NOT run (owner instruction).
+  Commit: p3-plan (see git log). Decisions added: 3 rows. Dev schema NOT migrated yet.

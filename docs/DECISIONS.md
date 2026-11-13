@@ -94,6 +94,7 @@ Anything that touches a legal value, existing data or `docs/REQUIREMENTS.md` is 
 | 2026-11-12 | 2.9 | Wrong vouchers that pass create_draft are also tried at approve (C-01 / D-01 fire there); a wrongly accepted one is never posted. A message that lacks the advisory `expected_message_contains` word is a WARNING, a wrong or extra rule id is a failure. | Pack says the word is advisory. |
 | 2026-11-12 | 2.9 | Days past due of a not-yet-due item: the pack writes a negative number (still to run), the tool reports 0 (API contract). When that is the only difference it is reported as a NOTE, not a failure. | Representation difference, not an arithmetic dispute. |
 
+<<<<<<< HEAD
 | 2026-11-12 | 2.1 import | Allocation layout: bill_type, bill_ref, bill_amount, due_date appended to the voucher sheet; first allocation on the line's own row, further ones on continuation rows (same ref_id, ledger_name/debit/credit empty). No line-number column. | Minimal extension of the ref_id grouping; a row with only bill cells can only mean "another allocation of the line above". |
 | 2026-11-12 | 2.1 import | Old 9-column header still accepted; any other header is a file error listing the 13 columns. | Existing files keep working; no silent column guessing. |
 | 2026-11-12 | 2.1 import | Auto New Ref (bill_ref = reference_no, full line amount, no due date so the party's credit days apply) is built in services/voucher_import.py only for Sales/Purchase lines of a bill-wise party without allocation rows; shown with auto=true in dry run and commit. Blank reference_no: Sales -> B-03 error naming the voucher, Purchase -> V-14 (the redundant B-01 for that line is hidden). All other types: engine B-01 stands. | Owner decision; engine and rules untouched. |
@@ -112,3 +113,9 @@ Anything that touches a legal value, existing data or `docs/REQUIREMENTS.md` is 
 | 2026-11-12 | 2.1 M | Opening bills and bills created by non-purchase vouchers have acceptance basis "bill date". | No goods received date exists for them. |
 | 2026-11-12 | 2.1 M | Pack: Mehta Agencies became micro/trading (Udyam UDYAM-MH-03-0034567) to show the trader exclusion; Sharma got agreed days 45 (P-11 needs 1..45 with a written agreement; credit_days stays 60); V19 (GW/0412) has goods_received_date 12-05-2026. Expected MSME file re-worked by hand: Gupta GW/0412 due 11-06, 19 days. | Shows both acceptance bases and the exclusion without changing any other expected file. |
 
+=======
+
+| 2026-11-13 | 3.0 | Migrations 0009-0011 and seeds 0004-0007 reviewed and applied to the TEST schema unchanged (no SQL bug found); dev not yet applied | Owner rule: test first, then dev after the tests pass |
+| 2026-11-13 | 3.0 | `services/gst_hooks.py` on_post/on_reverse import `services.gst_itc` lazily and do nothing if it does not exist yet | Lets B and C merge in any order without touching each other's files |
+| 2026-11-13 | 3.0 | Frozen dataclasses of the GST engine live in `engine/gst_types.py` incl. `ENGINE_VERSION = "gst-1"`, `GeneratedLine`, and enums for treatment / document kind / supply category / line role | One shared contract for packages A-E |
+>>>>>>> p3-plan
