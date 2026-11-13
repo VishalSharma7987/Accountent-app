@@ -119,7 +119,7 @@ def post_journal(conn, w, voucher_id):
 
 def entry_of(conn, w, vid):
     entries = gst_itc.list_register(conn, w.client_id)["entries"]
-    return entries, [e for e in entries if e["voucher_id"] == vid][0]
+    return entries, next(e for e in entries if e["voucher_id"] == vid)
 
 
 def test_G30_G31_G32_G33_posting_creates_entry_then_evidence_confirm_claim_and_deadline(svc_conn, world):
@@ -244,3 +244,19 @@ def test_api_register_amounts_are_strings_and_unknown_entry_is_404(svc_conn, wor
         assert api.get(f"/clients/{w.client_id}/gst/itc/{uuid.uuid4()}").status_code == 404
     finally:
         app.dependency_overrides.clear()
+
+
+def test_G32_apply_2b_result_from_the_reconciliation_sets_pending_reason_and_never_eligible(svc_conn, world):
+    from app.engine.gst_recon import ItcEffect
+
+    w, c = world, svc_conn
+    vid = purchase(c, w)
+    _, e = entry_of(c, w, vid)
+    gst_itc.update_evidence(c, w.client_id, e["id"], tax_document_held=True, goods_services_received=True,
+                            received_date=date(2026, 4, 5), actor="clerk")
+    reg = w.ids["registration"]
+    [r] = gst_itc.apply_2b_result(c, w.client_id, reg, date(2026, 4, 1), [ItcEffect(vid, "in_2b", "ims_rejected", "matched")], "clerk")
+    assert (r["from_status"], r["to_status"]) == ("pending", "pending")
+    assert gst_itc.get_entry(c, w.client_id, e["id"])["pending_reason"] == "ims_rejected"
+    [r] = gst_itc.apply_2b_result(c, w.client_id, reg, date(2026, 4, 1), [ItcEffect(vid, "in_2b", None, "matched")], "clerk")
+    assert (r["from_status"], r["to_status"]) == ("pending", "eligible")

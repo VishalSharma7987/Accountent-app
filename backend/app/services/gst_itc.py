@@ -321,11 +321,11 @@ def confirm(conn: Connection, client_id: object, entry_id: object, *, reason: st
     return _view(fresh, date.today())
 
 
-def apply_2b_result(
+def apply_2b_to_entry(
     conn: Connection, client_id: object, entry_id: object, *, supplier_tax_paid: str, ims_status: str | None = None,
     actor: str, reason: str,
 ) -> tuple[str, str]:
-    """Called by the 2B reconciliation (package D). supplier_tax_paid: in_2b | not_in_2b; ims_status: None | pending | rejected.
+    """One entry. supplier_tax_paid: in_2b | not_in_2b; ims_status: None | pending | rejected.
     Returns (from_status, to_status). Never makes a line eligible without the evidence of G-31 (classify decides); a claimed or
     reversed entry is left unchanged; a manual confirmation is kept unless the document is now in 2B."""
     actor = require_actor(actor)
@@ -342,6 +342,27 @@ def apply_2b_result(
         changes={"supplier_tax_paid": supplier_tax_paid}, action="itc_2b_result",
     )
     return e["status"], fresh["status"]
+
+
+def apply_2b_result(
+    conn: Connection, client_id: object, registration_id: object, period: date, effects: Any, actor: str
+) -> list[dict[str, Any]]:
+    """Called by the 2B reconciliation (package D) with its ItcEffect list: each effect names a book voucher and what 2B says
+    (supplier_tax_paid in_2b | not_in_2b, pending_reason not_in_2b | ims_pending | ims_rejected | None). Only regular-charge entries
+    of that registration are touched. Returns [{itc_entry_id, from_status, to_status}] for every entry looked at."""
+    actor = require_actor(actor)
+    out = []
+    for fx in effects:
+        ims = {"ims_pending": "pending", "ims_rejected": "rejected"}.get(fx.pending_reason or "")
+        for e in repo.entries_of_voucher(conn, fx.voucher_id):
+            if e["gst_registration_id"] != registration_id or e["source"] != "regular":
+                continue
+            before, after = apply_2b_to_entry(
+                conn, client_id, e["id"], supplier_tax_paid=fx.supplier_tax_paid, ims_status=ims, actor=actor,
+                reason=f"{period:%m-%Y}: {fx.note}",
+            )
+            out.append({"itc_entry_id": e["id"], "from_status": before, "to_status": after})
+    return out
 
 
 def set_claimed_period(conn: Connection, client_id: object, entry_id: object, period: date, *, actor: str) -> dict[str, Any]:
