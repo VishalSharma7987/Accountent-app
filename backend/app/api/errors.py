@@ -11,6 +11,7 @@ from app.engine.models import ValidationError
 from app.services.errors import ServiceError, VoucherRuleError
 
 UNPROCESSABLE = {"reason_required", "client_mismatch", "no_financial_year", "statement_invalid"}
+UNPROCESSABLE |= {"period_invalid", "not_gst_client", "filed_invalid", "working_unsupported", "no_rate_rule"}  # GST returns (E)
 
 
 def status_for(code: str) -> int:
