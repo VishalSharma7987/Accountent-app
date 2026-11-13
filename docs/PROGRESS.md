@@ -80,3 +80,109 @@ Decisions added: docs/decisions_parts/M.md (8 rows).
 - Step 3.0 (GST foundation, backend only): migrations 0009-0011 + seeds 0004-0007 applied to TEST schema; `engine/gst_types.py`, hook stubs, 5 empty routers registered; package ownership in docs/PHASE3_PACKAGES.md.
   Tests: new tests/integration/test_gst_schema.py, table list in test_schema_guards, seed list in test_migrate (see commit). Full suite deliberately NOT run (owner instruction).
   Commit: p3-plan (see git log). Decisions added: 3 rows. Dev schema NOT migrated yet.
+
+<!-- Phase 3 + Phase 4 package status (folded from progress_parts) -->
+<!-- progress_parts/A.md -->
+Step 3.1 (package A, branch p3-a): GSTIN (G-01..G-04 incl. mod-36 check char), registrations + ledger roles (G-05, G-06, G-08), item master (G-07), rule loaders/pickers for all nine tables, masters API, party `gst_registration_type`.
+Done: engine/gstin.py, engine/gst_masters.py, engine/parties.py (new field + G hand-over), rules/gst_rules.py, db/repositories_gst_masters.py, services/gst_registrations.py + gst_items.py + parties.py (new field), api/gst_masters.py + schemas_gst_masters.py (+ one field in schemas_bills.py / api/parties.py).
+Tests: unit (gstin, masters, party, rules) added to the 633-test unit run (all pass); 6 integration tests in test_gst_masters_db.py pass via dbrun.sh; `ruff check .` clean. The full suite was NOT run (owner's instruction).
+Commit: on branch p3-a (not merged).
+Decisions added: see docs/decisions_parts/A.md (parties do not yet use the check digit: Phase 2 fixtures use an invalid check character).
+
+<!-- progress_parts/A4.md -->
+Step 4.1 (package A): TDS masters.
+Done: PAN / TAN / certificate / ledger-role rules (engine/tds_masters.py), rule loaders and pickers by date with status roll-up (rules/tds_rules.py), repository, service, API (profile, FY flags, deductees, certificates, ledger roles, rule tables, rate lookup, section map).
+Tests: unit engine 25 + rules 11 (all unit suite 865 passed); integration tests/integration/test_tds_masters_db.py 4 passed via dbrun.sh; ruff clean.
+Commit: branch p4-a (see report). Shared edit: api/errors.py one line (no_rule, allocation_exceeds are 422).
+Decisions added: docs/decisions_parts/A4.md (7 rows).
+
+<!-- progress_parts/B.md -->
+Step 3.2 / 3.3 (package B): pure tax engine `engine/gst_tax.py` and invoice mode `engine/gst_invoice.py` (G-06, G-08, G-10..G-26, G-30 flags), API (`gst` block on the voucher endpoints, `POST /clients/{c}/vouchers/gst-preview`), hooks in `services/vouchers.py` and bodies of `services/gst_hooks.py`.
+Tests: 77 engine unit tests (hand-calculated), 5 API / Excel parser unit tests, 5 new integration tests (create -> approve -> post -> reverse, G-26, G-23, RCM purchase, Excel import); full suite NOT run (owner rule); unit run 767 passed; ruff clean.
+Done: Sales, Purchase, Credit Note, Debit Note in invoice mode; CGST / SGST / IGST / cess, RCM, blocked credit flag (tax into cost), zero-rated LUT, round-off option, composition client bill of supply; preview; Excel item rows.
+Gaps: G-02 check digit for invoices waits for package A (`InvoiceContext.gstin_check`); purchases of composition clients refused; no schema change requested.
+Decisions: docs/decisions_parts/B.md (19 rows).
+
+<!-- progress_parts/B4.md -->
+Step 4.2 + 4.3 (package B): pure TDS / TCS engine `engine/tds_calc.py` (T-01 .. T-12, T-15 .. T-17, T-50, `round_tax`, `expand_lines`), deduction service + hook bodies, T-13 recheck, register / by-deductee / threshold-position / tds-preview endpoints, `tds` block on the voucher endpoints.
+Tests: `tests/unit/engine/test_tds_calc.py` (56, hand-calculated: law by date 31-03 / 01-04-2026, earlier-of-two-dates, threshold crossing, excess only, monthly rent, no PAN, certificate limit / nil / validity, rounding, TCS), `tests/unit/test_tds_input.py` (5), `tests/integration/test_tds_deduction_db.py` (13).
+Files: engine/tds_calc.py, db/repositories_tds_deduction.py, services/tds_deduction.py, services/tds_hooks.py (bodies), api/tds_deduction.py, api/schemas_tds_deduction.py; shared: engine/models.py (VoucherDraft `tds`, `tds_results`), services/vouchers.py (hook calls), api/vouchers.py + api/schemas.py (tds field in / out).
+Decisions: docs/decisions_parts/B4.md. Gaps: TDS on GST invoice-mode vouchers refused; register due dates null (package C); voucher_import TDS columns not built.
+Dependencies: integration tests insert masters with SQL (no package A needed); `on_reverse_check` of package C is called only once that module exists.
+
+<!-- progress_parts/C.md -->
+Step 3.4/3.5 (package C, ITC register): engine/gst_itc.py (classify, deadline, 180-day share, reversal/reclaim arithmetic), services/gst_itc.py (on_post, on_reverse, evidence, confirm, tag-blocked, apply_2b_result for D, set_claimed_period for E, exposure, reversal/reclaim drafts, register tie), repository, API + schemas.
+Tests: 32 engine unit tests; 6 integration tests in tests/integration/test_gst_itc_register.py run via dbrun.sh (pass). Full suite NOT run (owner instruction). ruff clean.
+Dependencies: B must call hooks on post/reverse (integration tests call on_post by hand); A for registrations/ledger roles (tests insert them by SQL).
+Decisions: docs/decisions_parts/C.md. Pending legal: 180-day formula, Section 16(4) annual-return clause, RCM credit timing, 17(5) rows.
+
+<!-- progress_parts/C4.md -->
+Step 4.4 (package C): challans, allocation, matching proposal, due dates, interest, due calendar, on_reverse_check.
+Done: engine/tds_challan.py, db/repositories_tds_challans.py, services/tds_challans.py, api/tds_challans.py + schemas_tds_challans.py; contract notes in decisions_parts/C4.md.
+Tests: tests/unit/engine/test_tds_challan.py (47) and tests/integration/test_tds_challans.py (8, items inserted with raw SQL; B / A not needed).
+Commit: see git log of branch p4-c.
+Decisions added: 8 rows in decisions_parts/C4.md (interest dates, months, due rules, calendar status, error shapes).
+
+<!-- progress_parts/D.md -->
+Step 3.6 (package D, branch p3-d): GSTR-2B import and reconciliation.
+Done: importers/gstr2b.py (JSON + Excel, strict), engine/gst_recon.py, repository, service, API + schemas, hand-made fixtures.
+Tests: unit 30 passed (engine 18, importer 12); integration tests/integration/test_gst_recon.py 3 passed via dbrun.sh; ruff clean; full suite NOT run (owner instruction).
+Commit: see git log of p3-d. Open: a real GSTR-2B JSON/Excel and an IMS sample from the owner; C's apply_2b_result hook.
+Decisions added: 9 rows in docs/decisions_parts/D.md.
+
+<!-- progress_parts/D4.md -->
+Step 4.5 (package D, branch p4-d): quarterly return working, certificate data, filed figures, Excel / JSON export (T-30 .. T-34, T-50).
+Done: engine/tds_returns.py, services/tds_returns.py + tds_export.py, db/repositories_tds_returns.py, api/tds_returns.py + schemas_tds_returns.py.
+Tests: 24 unit tests (engine + export) pass; 6 integration tests in test_tds_returns_db.py pass via dbrun.sh (raw SQL items / challans, so they need only 0012-0014); `ruff check .` clean. Full suite NOT run.
+Commit: on branch p4-d (not merged).
+Decisions added: docs/decisions_parts/D4.md (PAN rows non-blocking, challan selection, stale-working refusal, own-structure exports).
+
+<!-- progress_parts/E.md -->
+Step 3.7-3.8 (package E: GSTR-1, GSTR-3B, tie-out, composition, exports)
+Done: pure engines gstr1/gstr3b/gst_tieout/composition, repository, services gst_returns + gst_export (Excel, portal-shape JSON), API + schemas, versions/finalise/filed figures, audit log
+Tests: 44 new unit tests (engine, export round trip) + 4 integration tests (tests/integration/test_gst_returns.py via dbrun.sh); ruff clean; FULL SUITE NOT RUN (owner forbids); needs A (registrations, party type), B (voucher_gst/item rows), C (itc_entries/itc_reversals): tests build those rows with raw SQL, real flow untested until merge
+Gaps: reclaim journals not in 4(A); Rule 38/42/43, ISD, amendments (GSTR-1 table 9) absent; JSON shape and table numbers unverified against the portal
+Commit: branch p3-e; decisions in docs/decisions_parts/E.md
+
+<!-- progress_parts/E4.md -->
+Step 4.6 (package E): 26AS / AIS import and reconciliation.
+Done: `importers/form26as.py` (strict CSV / xlsx parser), `engine/tds_recon.py`, `db/repositories_tds_recon.py`, `services/tds_recon.py`, `api/tds_recon.py` + `schemas_tds_recon.py`, fixtures `tests/fixtures/tds26as/`.
+Tests: unit 24 (9 parser T-40, 15 engine T-42/T-43); integration 4 (`tests/integration/test_tds_recon_db.py`); ruff clean.
+Commit: see git log of branch p4-e. Dependencies: none on A..D code (raw SQL on tds_section_refs / tds_deductees / tds_voucher_items / tds_ledger_roles); real use needs A's masters and B's posted items.
+Decisions added: docs/decisions_parts/E4.md (layout unverified: a real 26AS / AIS sample file is needed).
+
+<!-- progress_parts/F.md -->
+- Step 3.F (frontend GST), branch p3-f.
+- Done: api/gst.ts; screens Registrations (live GSTIN check, ledger roles), Items, Rules viewer, InvoiceGstPanel + GST invoice, ITC register (evidence, confirm, tag blocked, events, 180-day, reversals, ledger tie), 2B import/reconciliation, GSTR-1, GSTR-3B, Tie-out, Composition, Workings; GST nav group + routes.
+- Tests: vitest 71 passed (gst/lib.test.ts added, nav test covers new routes); `npm run build` ok. Not run against a real backend.
+- Commit: see git log on p3-f.
+- Decisions added: docs/decisions_parts/F.md (6 rows).
+
+<!-- progress_parts/F4.md -->
+- Step 4.7 (frontend TDS), branch p4-f.
+- Done: api/tds.ts; screens Deductees (PAN status, certificates, ledger roles, TAN and 194Q flag), Rules viewer (1961<->2025 map, pending badges), TdsPanel + Voucher with TDS (tds-preview, threshold headroom), Register (+by deductee, Excel), Challans (entry, allocation, auto-propose, interest, due calendar), Returns (working, versions, finalise, export, certificates), 26AS import + reconciliation + links; TDS nav group + 7 routes.
+- Tests: vitest 78 passed (tds/lib.test.ts added, nav test covers new routes); `npm run build` ok. Not run against a real backend (mocked contract only).
+- Commit: see git log on p4-f.
+- Decisions added: docs/decisions_parts/F4.md (7 rows).
+
+<!-- progress_parts/G.md -->
+Step 3.10 (package G, branch p3-g): Phase 3 accountant test pack `docs/test-packs/phase3-sunrise-traders-apr-2026/` (client.yaml, ledgers/parties/registrations/items/roles, 14 invoice-mode vouchers, payments, two GSTR-2B JSON files, ITC evidence/claims, 8 wrong cases, composition client, 16 expected_*.csv, WORKING.md, SIGNOFF.md, VERIFICATION_SHEET.xlsx from `scripts/build_verification_sheet_p3.py`).
+Done: `pack_loader_p3.py`, `pack_runner_p3.py` (17 sections), `test_pack_runner_p3.py` (integration), `test_pack_p3_selfcheck.py` (7 unit tests), `test_pack_runner.py` skips the Phase 3 pack.
+Tests: see the final report (pack runner via dbrun.sh; unit self-check; P1 and P2 runner tests; `ruff check .`). The full suite was NOT run (owner's instruction).
+Commit: on branch p3-g (not merged).
+Decisions added: see docs/decisions_parts/G.md. Findings (pack vs tool differences) are listed in the final report and are not hidden by editing the pack.
+
+<!-- progress_parts/G4.md -->
+Step 4.8 (package G): Phase 4 test pack, hand workings, sign-off, verification sheet, acceptance runner.
+Done: `docs/test-packs/phase4-greenfield-contractors-2026/` (inputs, 14 expected_*.csv, WORKING.md, SIGNOFF.md, VERIFICATION_SHEET.xlsx via `scripts/build_verification_sheet_p4.py`), `tests/acceptance/pack_loader_p4.py`, `pack_runner_p4.py`, `test_pack_runner_p4.py`, `test_pack_p4_selfcheck.py`; `test_pack_runner.py` skips packs with deductees.csv.
+Tests: unit self-check 8 pass; P4 runner (locked, once) 14 of 15 sections pass, the 15th differed only by a typo in the expected total (fixed, same value the tool gave); ruff clean.
+Commit: see git log of branch p4-g (not merged).
+Decisions added: docs/decisions_parts/G4.md (two FYs, 26AS Deductee PAN column, blended certificate rate left blank).
+
+<!-- progress_parts/P4.md -->
+Step 4.0 (planning + foundation, branch p4-plan): Phase 4 plan, API contract, legal values sheet; migrations 0012-0014 and seeds 0008-0009 (TDS/TCS rule tables, deductee master, items, challans, returns, certificates, 26AS tables).
+Done: `engine/tds_types.py`, `services/tds_hooks.py` stubs, empty routers `api/tds_{masters,deduction,challans,returns,recon}.py` registered in `main.py`, `test_migrate.py` seed list, `test_schema_guards.py` table list, `test_tds_schema.py`.
+Tests: unit tests, `ruff check .`, and the schema / guard / grant integration tests only (see the report); the full suite was NOT run (owner's instruction).
+Commit: on branch p4-plan (not merged). Migrations applied to the TEST schema only; dev is applied after merge.
+Decisions added: see docs/decisions_parts/P4.md. Legal values: none verified, see docs/PHASE4_LEGAL_VALUES.md section 5.
+
