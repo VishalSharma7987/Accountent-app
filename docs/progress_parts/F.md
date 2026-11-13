@@ -1,0 +1,5 @@
+- Step 3.F (frontend GST), branch p3-f.
+- Done: api/gst.ts; screens Registrations (live GSTIN check, ledger roles), Items, Rules viewer, InvoiceGstPanel + GST invoice, ITC register (evidence, confirm, tag blocked, events, 180-day, reversals, ledger tie), 2B import/reconciliation, GSTR-1, GSTR-3B, Tie-out, Composition, Workings; GST nav group + routes.
+- Tests: vitest 71 passed (gst/lib.test.ts added, nav test covers new routes); `npm run build` ok. Not run against a real backend.
+- Commit: see git log on p3-f.
+- Decisions added: docs/decisions_parts/F.md (6 rows).

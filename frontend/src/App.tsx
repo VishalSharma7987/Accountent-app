@@ -21,6 +21,14 @@ import Statement from './screens/Statement'
 import TrialBalance from './screens/TrialBalance'
 import VoucherEntry from './screens/VoucherEntry'
 import VoucherList from './screens/VoucherList'
+import InvoiceEntry from './gst/InvoiceEntry'
+import Items from './gst/Items'
+import ItcRegister from './gst/ItcRegister'
+import Recon2b from './gst/Recon2b'
+import Registrations from './gst/Registrations'
+import Returns from './gst/Returns'
+import Rules from './gst/Rules'
+import Workings from './gst/Workings'
 
 function Shell() {
   const { clients, clientId, setClientId, latestYear } = useClient()
@@ -103,6 +111,17 @@ function Shell() {
           <Route path="/bank" element={<Bank />} />
           <Route path="/reconciliation" element={<Reconciliation />} />
           <Route path="/brs" element={<Brs />} />
+          <Route path="/gst/registrations" element={<Registrations />} />
+          <Route path="/gst/items" element={<Items />} />
+          <Route path="/gst/invoice" element={<InvoiceEntry />} />
+          <Route path="/gst/itc" element={<ItcRegister />} />
+          <Route path="/gst/2b" element={<Recon2b />} />
+          <Route path="/gst/gstr1" element={<Returns key="gstr1" kind="gstr1" />} />
+          <Route path="/gst/gstr3b" element={<Returns key="gstr3b" kind="gstr3b" />} />
+          <Route path="/gst/tie-out" element={<Returns key="tie-out" kind="tie-out" />} />
+          <Route path="/gst/composition" element={<Returns key="composition" kind="composition" />} />
+          <Route path="/gst/workings" element={<Workings />} />
+          <Route path="/gst/rules" element={<Rules />} />
         </Routes>
         </main>
       </div>
