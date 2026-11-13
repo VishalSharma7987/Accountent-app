@@ -58,6 +58,7 @@ def test_seeds_are_listed_in_name_order_and_recorded_with_a_prefix():
         "0007_gst_composition_thresholds.sql",
         "0008_tds_sections_rates.sql",
         "0009_tds_due_dates_interest_forms.sql",
+        "0010_tds_owner_verified_values.sql",
     ]
     assert migrate.seed_record_name(seeds[0]) == "seeds/0001_account_groups.sql"
 

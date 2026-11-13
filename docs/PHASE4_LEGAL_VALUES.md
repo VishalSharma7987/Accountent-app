@@ -1,6 +1,6 @@
 # Phase 4 legal values (TDS / TCS) and their status
 
-Written 2026-11-13 (planning step 4.0). **No value below is `verified`.** incometaxindia.gov.in, the text of the Income-tax Act 2025 and the CBDT
+Written 2026-11-13 (planning step 4.0). **No value is `verified`** (see section 0 for the owner-supplied values added later, stored `secondary_verified`). incometaxindia.gov.in, the text of the Income-tax Act 2025 and the CBDT
 notifications were not read in this step (web search / fetch returned only secondary pages). Per CLAUDE.md 2.5 every value is data in the rule
 tables (`database/seeds/0008_*`, `0009_*`); the status shown is the status stored. The owner / CA must confirm the items in section 4 before the
 tool is used for real deduction.
@@ -8,6 +8,23 @@ tool is used for real deduction.
 Statuses: `secondary_verified` = the figure is on two secondary pages we read (taxguru.in "TDS Master Sheet - Income Tax Act 2025", cleartax.in
 "TDS and TCS changes from April 2026" / TDS rate chart FY 2026-27, taxaj.com form table, taxscan.in, taxheal.com, businesstoday.in). `pending` = recalled
 from the Finance Act 2025 position, seen on one page only, or reported differently by two pages.
+
+## 0. Owner-supplied values applied (seed 0010, 2026-11-13)
+The owner supplied the values below as verified from official sources. We tried to read the official pages (incometaxindia.gov.in, s.393 and the s.397 FAQ): both returned HTTP 403 to our fetch, so we could not confirm them ourselves. They are stored as `secondary_verified` (the schema enum has `verified`, `secondary_verified`, `pending`; the owner's "official_verified" would map to `verified`, which we do not set without reading the text). Upgrade to `verified` once someone reads the official page. Applied by `database/seeds/0010_tds_owner_verified_values.sql` (2025-Act rows only, from 01-04-2026).
+
+| Value | Applied | Status | Source |
+| --- | --- | --- | --- |
+| Rent (ex-194-I), s.393(1) rent entry | Rs 50,000 for a month or part of a month (not 6,00,000 a year); 2% machinery / plant / equipment; 10% land / building / furniture (specified person); 2% for a person other than a specified person (ex-194-IB) is NOT modelled in the table (needs a deductee flag) | secondary_verified | https://www.incometaxindia.gov.in/w/section-393-5 (owner; 403 for us) |
+| No PAN, s.397(2) | higher of specified rate, rate in force, 20%; 5% for purchase of goods (ex-194Q) and e-commerce (ex-194-O); provision `no_pan_higher_rate` 2025 row now cites 397(2) | secondary_verified | https://www.incometaxindia.gov.in/documents/d/guest/faqs-on-higher-rate-of-tds-under-section-397 (owner; 403 for us) |
+| Ex-194M, s.393(1) Sl.6(ii) | 2%, Rs 50,00,000 a year (conflict resolved) | secondary_verified | owner |
+| Ex-194T, s.393(3) Sl.7 | 10%, Rs 20,000 aggregate a year, payment code 1067 | secondary_verified | owner |
+| Ex-194Q, s.393(1) Sl.8(ii) | 0.1% on purchases above Rs 50,00,000 in the year, no-PAN 5% | secondary_verified | owner |
+| Deposit, Rule 218 | 7th of next month; March deductions by 30 April | secondary_verified | owner |
+| Statements, Rule 219 | 31 Jul, 31 Oct, 31 Jan, 31 May | secondary_verified | owner |
+| Forms | 138 salary, 140 non-salary resident, 130 salary certificate | secondary_verified | owner |
+| STILL PENDING | TCS rates / limits (s.394); ex-194Q buyer-turnover limit (Rs 10 crore) under the 2025 Act; TCS no-PAN rule; the 1961-Act rows (rent 1961 rows still carry the 50,000 monthly figure and stay `pending`) | pending | none |
+
+Sections 2 to 5 below are the earlier planning-step text; where they conflict with this table (rent threshold, 194M threshold, 194T, no-PAN and 194Q rate, 30 April rule), this table wins.
 
 ## 1. Law selection (owner requirement; not a rate)
 - The earlier of the date of payment and the date of credit (the `event_date`) decides the Act: on or before 31-03-2026 -> Income-tax Act 1961 (rows `it_act_1961`, `effective_to` 2026-03-31); on or after 01-04-2026 -> Income-tax Act 2025 (rows `it_act_2025`, `effective_from` 2026-04-01).

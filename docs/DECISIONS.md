@@ -119,3 +119,4 @@ Anything that touches a legal value, existing data or `docs/REQUIREMENTS.md` is 
 | 2026-11-13 | 3.0 | `services/gst_hooks.py` on_post/on_reverse import `services.gst_itc` lazily and do nothing if it does not exist yet | Lets B and C merge in any order without touching each other's files |
 | 2026-11-13 | 3.0 | Frozen dataclasses of the GST engine live in `engine/gst_types.py` incl. `ENGINE_VERSION = "gst-1"`, `GeneratedLine`, and enums for treatment / document kind / supply category / line role | One shared contract for packages A-E |
 >>>>>>> p3-plan
+| 2026-11-13 | 4.0 legal | Owner-supplied official values applied by new seed 0010 and stored as `secondary_verified`, not `verified` (owner called it official_verified) | The official pages returned HTTP 403 to our fetch, so we could not read them; CLAUDE.md 2.5 forbids marking unverified. Upgrade to `verified` after someone reads the page |
