@@ -65,11 +65,36 @@ def test_T02_T50_rule_loaders_pick_by_date_and_report_status(svc_conn):
         rows = tds_rules.load_rates(svc_conn, on)
         keys = [(r.nature_key, r.deductee_group) for r in rows]
         assert len(keys) == len(set(keys)), on
-    assert tds_rules.status_summary(tds_rules.load_rates(svc_conn, first_new, "rent_land_building"))["overall"] == "pending"
-    status = tds_rules.rule_status({"rate": tds_rules.load_rates(svc_conn, first_new, "rent_land_building")})
+    assert tds_rules.status_summary(tds_rules.load_rates(svc_conn, first_new, "tcs_scrap"))["overall"] == "pending"
+    status = tds_rules.rule_status({"rate": tds_rules.load_rates(svc_conn, first_new, "tcs_scrap")})
     assert status["worst"] == "pending" and status["pending_sources"]
     assert len(tds_rules.load_forms(svc_conn, first_new)) > 0 and len(tds_rules.load_due_dates(svc_conn, first_new)) > 0
     assert len(tds_rules.load_interest_rules(svc_conn, first_new)) > 0 and len(tds_rules.load_provisions(svc_conn, first_new)) > 0
+
+
+def test_T02_owner_verified_values_seed_0010_by_date(svc_conn):
+    """Seed 0010 (owner-supplied values, literal): rent 50,000 a month from 01-04-2026, no-PAN 20% / 5%, 194T, 194M, 194Q."""
+    d = date(2026, 4, 1)
+    rent = tds_rules.rate_lookup(svc_conn, "rent_plant_machinery", "any", d)
+    assert (rent.rate, rent.monthly_threshold, rent.annual_threshold, rent.no_pan_rate) == (Decimal("2.0000"), Decimal("50000.0000"), None, Decimal("20.0000"))
+    assert rent.verification_status == "secondary_verified"
+    land = tds_rules.rate_lookup(svc_conn, "rent_land_building", "any", d)
+    assert (land.rate, land.monthly_threshold, land.annual_threshold) == (Decimal("10.0000"), Decimal("50000.0000"), None)
+    partner = tds_rules.rate_lookup(svc_conn, "partner_payment", "any", d)
+    assert (partner.rate, partner.annual_threshold, partner.no_pan_rate, partner.verification_status) == (Decimal("10.0000"), Decimal("20000.0000"), Decimal("20.0000"), "secondary_verified")
+    p_ref = tds_rules.pick_section_ref(tds_rules.load_section_refs(svc_conn), "partner_payment", "it_act_2025", d)
+    assert (p_ref.section_ref, p_ref.table_ref, p_ref.payment_code) == ("393(3)", "Sl. 7", "1067")
+    m = tds_rules.rate_lookup(svc_conn, "contract_prof_by_individual_huf", "any", d)
+    assert (m.rate, m.annual_threshold, m.verification_status) == (Decimal("2.0000"), Decimal("5000000.0000"), "secondary_verified")
+    q = tds_rules.rate_lookup(svc_conn, "purchase_of_goods", "any", d)
+    assert (q.rate, q.annual_threshold, q.threshold_mode, q.no_pan_rate) == (Decimal("0.1000"), Decimal("5000000.0000"), "excess_only", Decimal("5.0000"))
+    assert tds_rules.rate_lookup(svc_conn, "ecommerce_participant", "any", d).no_pan_rate == Decimal("5.0000")
+    prov = next(p for p in tds_rules.load_provisions(svc_conn, d) if p.provision_key == "no_pan_higher_rate")
+    assert (prov.section_ref, prov.verification_status) == ("397(2)", "secondary_verified")
+    # still pending: TCS rates (s.394)
+    assert tds_rules.rate_lookup(svc_conn, "tcs_scrap", "any", d).verification_status == "pending"
+    # the day before the 2025 Act the 1961 rows apply (unchanged by 0010)
+    assert tds_rules.rate_lookup(svc_conn, "partner_payment", "any", date(2026, 3, 31)).act == "it_act_1961"
 
 
 def test_T09_T10_T12_deductee_master_and_certificates(svc_conn, f):
