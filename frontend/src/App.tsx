@@ -36,6 +36,11 @@ import TdsRecon26 from './tds/Recon26'
 import TdsRegister from './tds/Register'
 import TdsReturns from './tds/Returns'
 import TdsRules from './tds/Rules'
+import InvClosingStock from './inventory/ClosingStock'
+import InvJournals from './inventory/Journals'
+import InvMasters from './inventory/Masters'
+import InvPolicy from './inventory/Policy'
+import InvRegister from './inventory/Register'
 
 function Shell() {
   const { clients, clientId, setClientId, latestYear } = useClient()
@@ -136,6 +141,11 @@ function Shell() {
           <Route path="/tds/returns" element={<TdsReturns />} />
           <Route path="/tds/26as" element={<TdsRecon26 />} />
           <Route path="/tds/rules" element={<TdsRules />} />
+          <Route path="/inventory/masters" element={<InvMasters />} />
+          <Route path="/inventory/policy" element={<InvPolicy />} />
+          <Route path="/inventory/journals" element={<InvJournals />} />
+          <Route path="/inventory/register" element={<InvRegister />} />
+          <Route path="/inventory/closing-stock" element={<InvClosingStock />} />
         </Routes>
         </main>
       </div>
