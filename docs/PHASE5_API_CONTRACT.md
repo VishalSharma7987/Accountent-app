@@ -14,7 +14,7 @@ Money is never typed for outward movements: no endpoint accepts a cost for a sal
 ## Voucher integration (package C) - `api/vouchers.py` (existing endpoints)
 `POST/PUT /clients/{c}/vouchers` (invoice mode, Phase 3 `gst.items[]`) accept an optional `stock` object on an item line; the line's `item_id` decides whether stock is affected:
 ```
-gst.items[i].stock = { godown_id|null,            // null = the item's default godown
+gst.items[i].stock = { godown_id|null,            // null = the item's default godown (Credit / Debit Note: the original movement's godown)
                        original_movement_id|null  // Credit / Debit Note only: the sale / purchase movement the goods came back from / went back to
                      }
 ```
