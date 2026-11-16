@@ -1,0 +1,4 @@
+method,cost_value,write_down,carrying_value,items_without_nrv
+fifo,3735.00,265.00,3470.00,Vitamin C 500 strip
+wa_periodic,3423.00,13.00,3410.00,Vitamin C 500 strip
+wa_moving,3499.50,45.50,3454.00,Vitamin C 500 strip

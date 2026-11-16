@@ -1,0 +1,4 @@
+item_name,sku,hsn_sac,uqc,default_godown,sales_ledger,purchase_ledger
+Paracetamol 500 strip,PCM-500,3004,NOS,Main,Sales,Purchases
+Cough Syrup 100ml,CSY-100,3004,NOS,Main,Sales,Purchases
+Vitamin C 500 strip,VTC-500,3004,NOS,Main,Sales,Purchases

@@ -1,0 +1,4 @@
+method,opening_value,inward_value,outward_value,closing_value
+fifo,4000.00,10625.00,10890.00,3735.00
+wa_periodic,4000.00,10500.00,11077.00,3423.00
+wa_moving,4000.00,10628.00,11128.50,3499.50

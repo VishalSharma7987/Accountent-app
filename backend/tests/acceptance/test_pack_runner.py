@@ -16,11 +16,11 @@ from pack_runner import format_report, run_pack
 pytestmark = pytest.mark.integration
 
 PACKS_DIR = Path(__file__).resolve().parents[3] / "docs" / "test-packs"
-# the template included: it must pass too. Phase 2 packs (they have allocations.csv) run in test_pack_runner_p2.py, Phase 3 packs (gst_registrations.csv) in test_pack_runner_p3.py, Phase 4 packs (deductees.csv) in test_pack_runner_p4.py
+# the template included: it must pass too. Phase 2 packs (they have allocations.csv) run in test_pack_runner_p2.py, Phase 3 packs (gst_registrations.csv) in test_pack_runner_p3.py, Phase 4 packs (deductees.csv) in test_pack_runner_p4.py, Phase 5 packs (godowns.csv) in test_pack_runner_p5.py
 PACKS = sorted(
     p for p in PACKS_DIR.iterdir()
     if p.is_dir() and not (p / "allocations.csv").exists() and not (p / "gst_registrations.csv").exists()
-    and not (p / "deductees.csv").exists()
+    and not (p / "deductees.csv").exists() and not (p / "godowns.csv").exists()
 )
 
 

@@ -1,0 +1,7 @@
+role,ledger_name
+output_cgst,Output CGST
+output_sgst,Output SGST
+output_igst,Output IGST
+input_cgst,Input CGST
+input_sgst,Input SGST
+input_igst,Input IGST

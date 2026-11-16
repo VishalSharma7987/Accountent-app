@@ -1,0 +1,16 @@
+# Fresh Pharma Traders - Phase 5 (Inventory) pack, April 2026 (dummy, synthetic data only)
+# The policy (valuation method) is frozen once a year has movements, so the SAME month is run for three clients that differ only in
+# their method: FIFO, weighted average periodic, weighted average moving. Every expected value is hand-calculated in WORKING.md.
+name: Fresh Pharma Traders
+entity_type: proprietorship
+business_type: trading
+gst_type: regular
+fy_start: 2026-04-01
+proprietor_name: Owner
+registration_gstin: 27AAPFU0939F1ZV     # synthetic (the Phase 3 pack uses the same one)
+place_of_supply: "29"                    # every party is in Karnataka, so GST on the lines is IGST (5%, HSN 3004 example row of the rule table)
+report_from: 2026-04-01
+report_to: 2026-04-30
+nrv_as_on: 2026-04-30
+negative_stock_mode: block
+methods: [fifo, wa_periodic, wa_moving]

@@ -1,0 +1,10 @@
+method,item_name,opening_qty,opening_value,inward_qty,inward_value,outward_qty,outward_value,closing_qty,closing_value
+fifo,Paracetamol 500 strip,100.000,1000.00,310.000,4025.00,330.000,3850.00,80.000,1175.00
+fifo,Cough Syrup 100ml,40.000,2000.00,115.000,6600.00,129.000,7040.00,26.000,1560.00
+fifo,Vitamin C 500 strip,10.000,1000.00,0.000,0.00,0.000,0.00,10.000,1000.00
+wa_periodic,Paracetamol 500 strip,100.000,1000.00,300.000,3900.00,320.000,3920.00,80.000,980.00
+wa_periodic,Cough Syrup 100ml,40.000,2000.00,115.000,6600.00,129.000,7157.00,26.000,1443.00
+wa_periodic,Vitamin C 500 strip,10.000,1000.00,0.000,0.00,0.000,0.00,10.000,1000.00
+wa_moving,Paracetamol 500 strip,100.000,1000.00,310.000,4028.00,330.000,4004.00,80.000,1024.00
+wa_moving,Cough Syrup 100ml,40.000,2000.00,115.000,6600.00,129.000,7124.50,26.000,1475.50
+wa_moving,Vitamin C 500 strip,10.000,1000.00,0.000,0.00,0.000,0.00,10.000,1000.00

@@ -1,0 +1,8 @@
+case_id,kind,date,item_name,quantity,godown_name,to_godown_name,reason_code,original_ref,expected_rule,description
+W1,sales,2026-04-27,Paracetamol 500 strip,500.000,,,,,S-01,Sale of 500 strips when only 80 are on hand: stock would go negative
+W2,transfer,2026-04-28,Paracetamol 500 strip,30.000,Shop,Main,,,S-01,Transfer of 30 strips out of Shop which holds only 20 (per godown check)
+W3,write_off,2026-04-28,Cough Syrup 100ml,100.000,Main,,damage,,S-01,Write-off of 100 bottles when only 26 are on hand
+W4,sales,2026-04-27,Paracetamol 500 strip,1.0005,,,,,G-17,Quantity with 4 decimals is rejected and not rounded (the GST invoice quantity rule G-17 fires before the stock rule S-02)
+W5,credit_note,2026-04-28,Paracetamol 500 strip,200.000,,,,S-A1,S-12,Return of 200 strips against a sale of 150
+W6,write_off,2026-04-28,Cough Syrup 100ml,1.000,Main,,,,S-10,Write-off without a reason code and note
+W7,sales,2026-04-27,Paracetamol 500 strip,70.000,Shop,,,,S-01,Sale of 70 strips from Shop which holds only 20 (per godown check)

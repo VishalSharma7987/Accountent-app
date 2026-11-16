@@ -1,0 +1,13 @@
+ledger_name,group_name
+Rahul Enterprises,Sundry Debtors
+Sharma Suppliers,Sundry Creditors
+Purchases,Purchase Accounts
+Purchase Returns,Purchase Accounts
+Sales,Sales Accounts
+Sales Returns,Sales Accounts
+Output CGST,Duties & Taxes
+Output SGST,Duties & Taxes
+Output IGST,Duties & Taxes
+Input CGST,Duties & Taxes
+Input SGST,Duties & Taxes
+Input IGST,Duties & Taxes

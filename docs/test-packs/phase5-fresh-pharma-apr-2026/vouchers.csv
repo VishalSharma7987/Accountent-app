@@ -1,0 +1,11 @@
+ref_id,date,voucher_type,narration,reference_no,party_ledger,counterparty_gstin,original_ref,note_reason,item_name,quantity,unit_rate,godown_name,item_ledger
+P-A1,2026-04-05,purchase,Paracetamol strips from Sharma,SUP/PA/101,Sharma Suppliers,29ABCDE1234F1ZW,,,Paracetamol 500 strip,200.000,12.00,,Purchases
+P-B1,2026-04-06,purchase,Cough syrup from Sharma,SUP/CS/102,Sharma Suppliers,29ABCDE1234F1ZW,,,Cough Syrup 100ml,60.000,55.00,,Purchases
+S-A1,2026-04-10,sales,Paracetamol strips to Rahul,,Rahul Enterprises,29ABCDE1234F1ZW,,,Paracetamol 500 strip,150.000,20.00,,Sales
+S-B1,2026-04-12,sales,Cough syrup to Rahul,,Rahul Enterprises,29ABCDE1234F1ZW,,,Cough Syrup 100ml,50.000,80.00,,Sales
+DN-B,2026-04-14,debit_note,5 bottles of cough syrup returned to Sharma,DN/CS/001,Sharma Suppliers,29ABCDE1234F1ZW,P-B1,others,Cough Syrup 100ml,5.000,55.00,,Purchase Returns
+P-A2,2026-04-15,purchase,Paracetamol strips from Sharma,SUP/PA/103,Sharma Suppliers,29ABCDE1234F1ZW,,,Paracetamol 500 strip,100.000,15.00,,Purchases
+P-B2,2026-04-18,purchase,Cough syrup from Sharma,SUP/CS/104,Sharma Suppliers,29ABCDE1234F1ZW,,,Cough Syrup 100ml,55.000,60.00,,Purchases
+S-A2,2026-04-20,sales,Paracetamol strips to Rahul,,Rahul Enterprises,29ABCDE1234F1ZW,,,Paracetamol 500 strip,180.000,22.00,,Sales
+CN-A,2026-04-22,credit_note,10 strips returned by Rahul,,Rahul Enterprises,29ABCDE1234F1ZW,S-A2,sales_return,Paracetamol 500 strip,10.000,22.00,,Sales Returns
+S-B2,2026-04-26,sales,Cough syrup to Rahul,,Rahul Enterprises,29ABCDE1234F1ZW,,,Cough Syrup 100ml,70.000,85.00,,Sales

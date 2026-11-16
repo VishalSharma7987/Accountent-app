@@ -1,0 +1,10 @@
+method,item_name,closing_qty,cost_value,nrv_per_unit,nrv_value,write_down,carrying_value
+fifo,Paracetamol 500 strip,80.000,1175.00,13.00,1040.00,135.00,1040.00
+fifo,Cough Syrup 100ml,26.000,1560.00,55.00,1430.00,130.00,1430.00
+fifo,Vitamin C 500 strip,10.000,1000.00,,,0.00,1000.00
+wa_periodic,Paracetamol 500 strip,80.000,980.00,13.00,1040.00,0.00,980.00
+wa_periodic,Cough Syrup 100ml,26.000,1443.00,55.00,1430.00,13.00,1430.00
+wa_periodic,Vitamin C 500 strip,10.000,1000.00,,,0.00,1000.00
+wa_moving,Paracetamol 500 strip,80.000,1024.00,13.00,1040.00,0.00,1024.00
+wa_moving,Cough Syrup 100ml,26.000,1475.50,55.00,1430.00,45.50,1430.00
+wa_moving,Vitamin C 500 strip,10.000,1000.00,,,0.00,1000.00
