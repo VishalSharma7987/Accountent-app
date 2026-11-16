@@ -182,7 +182,8 @@ def test_T21_T26_T27_T28_matching_proposal_interest_and_calendar(svc_conn, w):
     assert rows[str(i2)]["due_date"] == date(2026, 6, 7)
     assert m["totals"] == {"tds_amount": D("1500.00"), "allocated": D("1000.00"), "balance": D("500.00"), "interest_late_deposit": D("75.00")}
     assert m["unallocated_challans"] == []
-    assert m["rule_status"]["worst"] == "pending"
+    assert m["rule_status"]["worst"] == "secondary_verified"
+    # interest (owner-supplied, seed 0011) and the 2026 due dates (seed 0010) are both secondary_verified now
     assert "interest" in m["rule_status"]["tables"] and "due_date" in m["rule_status"]["tables"]
 
     i = tds_challans.interest(svc_conn, w.client_id, w.fy_id, on)
