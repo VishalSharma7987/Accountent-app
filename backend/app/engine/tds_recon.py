@@ -104,6 +104,10 @@ def normalise_section(text: str | None) -> str:
     return re.sub(r"[\s\-()]", "", value).upper()
 
 
+def _exact(text: str | None) -> str:
+    return re.sub(r"(?i)^\s*section\s*|\s", "", text or "").upper()
+
+
 def map_section(printed: str | None, sections: list[SectionMap]) -> tuple[str, str | None]:
     """-> (status, nature_key): mapped / unmapped / ambiguous; never a guess."""
     wanted = normalise_section(printed)
@@ -111,6 +115,10 @@ def map_section(printed: str | None, sections: list[SectionMap]) -> tuple[str, s
     if not natures:
         return "unmapped", None
     if len(natures) > 1:
+        # 194I(b) and 194-IB normalise to the same text but are different sections: an EXACT printed match (case and spaces aside) decides
+        exact = sorted({s.nature_key for s in sections if _exact(s.section_ref) == _exact(printed)})
+        if len(exact) == 1:
+            return "mapped", exact[0]
         return "ambiguous", None
     return "mapped", natures[0]
 

@@ -139,3 +139,11 @@ def test_T42_deductee_side_matches_on_month_and_amount_only():
 def test_T42_empty_inputs_give_zero_summary():
     result = run([], [])
     assert result.rows == [] and result.summary == {"matched": 0, "amount_mismatch": 0, "only_in_books": 0, "only_in_26as": 0, "date_mismatch": 0}
+
+
+def test_T42_194I_b_and_194_IB_normalise_alike_but_the_exact_printed_section_decides():
+    sections = [SectionMap("rent_land_building", "194I(b)"), SectionMap("rent_194ib", "194-IB")]
+    assert normalise_section("194I(b)") == normalise_section("194-IB") == "194IB"
+    assert map_section("194I(b)", sections) == ("mapped", "rent_land_building")
+    assert map_section("194-IB", sections) == ("mapped", "rent_194ib")
+    assert map_section("194IB", sections) == ("ambiguous", None)  # printed without the bracket or hyphen: not guessed
