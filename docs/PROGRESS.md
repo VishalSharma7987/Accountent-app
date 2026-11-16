@@ -198,3 +198,53 @@ Done: `engine/inventory_types.py`, `services/inventory_hooks.py` stubs, empty ro
 Tests: unit suite 1158 passed (+7 new), `ruff check .` clean; the database was NOT touched: migration 0016 and the schema tests are not yet run.
 Commit: on branch p5-plan (not merged). Main agent applies 0016 to test, runs test_inventory_schema.py, then dev.
 Decisions added: 9 rows (see DECISIONS.md, step 5.0). Legal values: none needed.
+
+<!-- Phase 4.1/5 package status (folded from progress_parts) -->
+<!-- progress_parts/A5.md -->
+Step 5.1 package A (masters and opening): godowns, stock items (PUT upsert, no delete), per-FY policy (+copy), opening stock (replace whole FY) with audit; rules S-02/03/04/07/08/09/18.
+Done: engine/inventory_masters.py, db/repositories_inventory_masters.py, services/inventory_masters.py, api/inventory_masters.py + schemas_inventory_masters.py.
+Tests: 11 unit tests (tests/unit/engine/test_inventory_masters.py) pass; 11 integration tests (tests/integration/test_inventory_masters_db.py) written, NOT run (migration 0016 not applied when written). Unit suite: 1169 passed; ruff clean.
+Commit: branch p5-a (not merged).
+Decisions added: 5 rows in docs/decisions_parts/A5.md. Needs from main: api/errors.py UNPROCESSABLE += {"no_policy", "period_locked", "negative_stock", "journal_reversal_blocked", "no_original_movement"} (contract says 422).
+
+<!-- progress_parts/B5.md -->
+Step 5.1 package B (valuation engine)
+Done: engine/inventory_valuation.py (FIFO, WA periodic, WA moving, returns/reversals, S-01 chronology, register, by-godown), inventory_nrv.py (AS 2, S-15), inventory_costing.py (S-14).
+Tests: tests/unit/engine/test_inventory_valuation.py + test_inventory_nrv_costing.py, 38 unit tests, hand-derived literals (plan figures confirmed).
+Commit: branch p5-b (not merged).
+Decisions added: docs/decisions_parts/B5.md (7 rows).
+
+<!-- progress_parts/C5.md -->
+Step 5.2 package C (voucher integration), branch p5-c.
+Done: engine/inventory_voucher.py (S-02/03/06/07/12/14 plan), db/repositories_inventory_movements.py, services/inventory_movements.py + inventory_hooks bodies, hook calls in vouchers.py, `stock` block on item lines, stock-preview and returnable endpoints, movements at posting, mirror at reversal (S-17).
+Tests: tests/unit/engine/test_inventory_voucher.py (17), tests/integration/test_inventory_vouchers_db.py (8 passed in one locked run).
+Commit: on branch p5-c (not merged).
+Decisions: docs/decisions_parts/C5.md.
+
+<!-- progress_parts/D5.md -->
+Step 5.2 D (stock journals): S-10 / S-11 engine (engine/inventory_journals.py), service (create / update / delete draft, approve, post with gapless SJ number, reverse with mirror movements, audit), repository, API + schemas.
+Tests: 19 engine unit tests (tests/unit/engine/test_inventory_journals.py); 9 integration tests (tests/integration/test_inventory_journals_db.py): lifecycle, write-off reason, S-01 block/warn, backdated chain, reversal once + blocked, period lock, no policy, API.
+Commit: on branch p5-d (not merged).
+Decisions added: docs/decisions_parts/D5.md (7 rows).
+
+<!-- progress_parts/E5.md -->
+Step 5.3 package E (reports and NRV): stock register (item / by godown / window), item ledger, closing stock at lower of cost and NRV, NRV CRUD with audit, Excel exports.
+Done: engine/inventory_report.py, db/repositories_inventory_reports.py, services/inventory_reports.py + inventory_nrv.py + inventory_export.py, api/inventory_reports.py + schemas_inventory_reports.py.
+Tests: 11 engine + 2 export unit tests; 5 integration tests (tests/integration/test_inventory_reports_db.py) passed (5 passed in 72s via dbrun.sh).
+Commit: branch p5-e (not merged).
+Decisions added: 10 rows in docs/decisions_parts/E5.md. No shared file edited (main.py already lists the router).
+
+<!-- progress_parts/F5.md -->
+Step: Phase 5 package F (inventory frontend)
+Done: api/inventory.ts; screens Masters (godowns, stock items, opening), Policy, Journals, Register (+ item ledger), ClosingStock (NRV, AS 2 write-down, Excel export); InvoiceStockPanel on GST invoice; nav group + 5 routes.
+Tests: vitest 92 passed (8 files, 15 new in inventory/lib.test.ts); npm run build ok; tsc clean.
+Commit: branch p5-f (not merged).
+Decisions added: 4 rows in docs/decisions_parts/F5.md (policy PUT query param, stock-preview not wired).
+
+<!-- progress_parts/G5.md -->
+Step 5.5 G: test pack phase5-fresh-pharma-apr-2026 (3 clients: FIFO, WA periodic, WA moving), runner, loader, self-check, verification sheet.
+Done: hand values for register, movement cost, by godown, AS 2 closing stock all matched the tool; W4 (4-decimal qty) is refused by G-17 before S-02, pack expects G-17.
+Tests: unit green; P5 runner 21 sections run once (all ok except W4 rule id, since fixed in the pack).
+Known issue (not fixed): B's FIFO reversal_in opens a new layer, so reversing the original purchase is still refused S-17.
+Decisions: docs/decisions_parts/G5.md
+
