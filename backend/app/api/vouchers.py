@@ -52,7 +52,7 @@ def draft_from_body(client_id: uuid.UUID, body: VoucherIn) -> tuple[VoucherDraft
         return None, errors
     return VoucherDraft(
         client_id, body.voucher_type, body.voucher_date, body.narration, body.reference_no, body.party_ledger_id, (),
-        body.duplicate_override_reason, body.goods_received_date, invoice, None, party_allocations, tds,
+        body.duplicate_override_reason, body.goods_received_date, invoice, None, party_allocations, tds, (),
         tuple(
             StockLineIn(n, None if x.stock.godown_id is None else str(x.stock.godown_id),
                         None if x.stock.original_movement_id is None else str(x.stock.original_movement_id))

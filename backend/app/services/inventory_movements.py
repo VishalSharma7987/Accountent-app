@@ -98,7 +98,7 @@ def _chronology(
     existing = repo.load_movements(conn, client_id, fy.financial_year_id, item_ids=touched)
     opening = repo.load_opening(conn, client_id, fy.financial_year_id, touched)
     result = compute_valuation(fy.policy, fy.start_date, fy.end_date, opening, existing + new)
-    errors, warnings = [], []
+    errors, warnings, seen = [], [], set()
     warn_mode = fy.policy.negative_stock_mode == NegativeStockMode.WARN
     for e in result.errors:
         if e.item_id is not None and str(e.item_id) not in touched:
@@ -108,6 +108,11 @@ def _chronology(
         text = _rewrite(e.message, items, godowns, e.item_id, e.godown_id)
         line_no = line_of.get(str(e.movement_id))
         out = ValidationError(rule if rule == "S-17" else e.rule_id, text, line_no)
+        if e.rule_id == "S-01":  # one finding per item and godown (the first date it goes below zero)
+            key = (e.severity, e.item_id, e.godown_id)
+            if key in seen:
+                continue
+            seen.add(key)
         (warnings if e.severity == "warning" else errors).append(out)
     ids = {m.movement_id for m in new}
     return errors, warnings, [c for c in result.costed if c.movement_id in ids]
