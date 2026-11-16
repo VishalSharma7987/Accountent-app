@@ -26,8 +26,16 @@ from app.api.schemas import (
 )
 from app.api.schemas_tds_deduction import tds_from_body
 from app.db.repositories import VoucherRecord
+from app.engine.inventory_voucher import StockLineIn
 from app.engine.models import Allocation, ValidationError, VoucherDraft, VoucherLine
-from app.services import gst_hooks, queries, tds_hooks, vouchers
+from app.services import (
+    gst_hooks,
+    inventory_hooks,
+    inventory_movements,
+    queries,
+    tds_hooks,
+    vouchers,
+)
 
 router = APIRouter(tags=["vouchers"])
 
@@ -44,7 +52,12 @@ def draft_from_body(client_id: uuid.UUID, body: VoucherIn) -> tuple[VoucherDraft
         return None, errors
     return VoucherDraft(
         client_id, body.voucher_type, body.voucher_date, body.narration, body.reference_no, body.party_ledger_id, (),
-        body.duplicate_override_reason, body.goods_received_date, invoice, None, party_allocations, tds,
+        body.duplicate_override_reason, body.goods_received_date, invoice, None, party_allocations, tds, (),
+        tuple(
+            StockLineIn(n, None if x.stock.godown_id is None else str(x.stock.godown_id),
+                        None if x.stock.original_movement_id is None else str(x.stock.original_movement_id))
+            for n, x in enumerate(body.gst.items, start=1) if x.stock is not None
+        ),
     ), []
 
 
@@ -116,7 +129,13 @@ def list_vouchers(
 @router.get("/vouchers/{voucher_id}", response_model=VoucherOut)
 def get_voucher(voucher_id: str, conn: Connection = Depends(get_conn)):
     record = vouchers.get_voucher(conn, parse_id(voucher_id, "Voucher"))
-    return _voucher_out(record, gst_hooks.load_invoice(conn, record.client_id, record.id), tds_hooks.load_tds(conn, record.client_id, record.id))
+    gst = gst_hooks.load_invoice(conn, record.client_id, record.id)
+    if gst is not None:  # Phase 5: the stock effect of each item line (null when the line moves no stock)
+        stock = {s["item_line_no"]: {k: v for k, v in s.items() if k != "item_line_no"}
+                 for s in inventory_hooks.load_stock(conn, record.client_id, record.id) or []}
+        for item in gst["items"]:
+            item["stock"] = stock.get(item["item_line_no"])
+    return _voucher_out(record, gst, tds_hooks.load_tds(conn, record.client_id, record.id))
 
 
 @router.put("/vouchers/{voucher_id}", response_model=VoucherCreated)
@@ -161,3 +180,40 @@ def reverse_voucher(voucher_id: str, body: ReverseIn, conn: Connection = Depends
                     actor: str = Depends(get_actor)):
     reversal = vouchers.reverse(conn, parse_id(voucher_id, "Voucher"), body.reversal_date, body.reason, actor=actor)
     return ReversedOut(reversal_voucher_id=reversal)
+
+
+# ======================================================================================== Phase 5: stock
+
+
+def _issue(e, severity: str) -> dict:
+    return {"rule_id": e.rule_id, "message": e.message, "line_no": e.line_no, "severity": severity}
+
+
+@router.post("/clients/{client_id}/vouchers/stock-preview")
+def stock_preview(client_id: str, body: VoucherIn, conn: Connection = Depends(get_conn)):
+    """The stock movements this invoice would make, S-01 over the whole chronology, stock after the voucher. Nothing is saved."""
+    draft, bad = draft_from_body(parse_id(client_id, "Client"), body)
+    if draft is not None and body.gst is not None:
+        draft, bad = gst_hooks.expand_invoice(conn, draft)
+    if bad or draft is None or body.gst is None:
+        errors = bad or [ValidationError("G-14", "The stock preview needs the invoice block (gst).")]
+        return {"movements": [], "stock_after": [], "errors": [_issue(e, "error") for e in errors], "warnings": []}
+    check = inventory_movements.preview(conn, draft)
+    return {
+        "movements": [
+            {"item_id": m["item_id"], "godown_id": m["godown_id"], "kind": m["kind"], "quantity": f"{m['quantity']:.3f}",
+             "cost": None if m["cost"] is None else money(m["cost"]), "item_line_no": m["item_line_no"]}
+            for m in check.movements
+        ],
+        "stock_after": [{**s, "quantity": f"{s['quantity']:.3f}"} for s in check.stock_after],
+        "errors": [_issue(e, "error") for e in check.errors],
+        "warnings": [_issue(e, "warning") for e in check.warnings],
+    }
+
+
+@router.get("/clients/{client_id}/stock-items/{item_id}/returnable")
+def returnable(client_id: str, item_id: str, on: date | None = None, conn: Connection = Depends(get_conn)):
+    """Sales and purchases of an item that a Credit / Debit Note can name as `original_movement_id`."""
+    rows = inventory_movements.returnable(conn, parse_id(client_id, "Client"), parse_id(item_id, "Item"), on)
+    return [{**r, "movement_id": str(r["movement_id"]), "quantity": f"{r['quantity']:.3f}",
+             "already_returned": f"{r['already_returned']:.3f}", "returnable": f"{r['returnable']:.3f}"} for r in rows]

@@ -6,9 +6,13 @@ Ids are opaque (str, UUID, ...): the engine only compares them for equality.
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from app.engine.gst_types import InvoiceIn, InvoiceResult
 from app.engine.tds_types import TdsItemResult, TdsLineIn
+
+if TYPE_CHECKING:  # inventory_voucher imports this module
+    from app.engine.inventory_voucher import StockLineIn
 
 # An amount "as entered": text from a cell, an int, a Decimal, or nothing (blank = zero).
 # Floats are accepted here only so that validation can reject them (V-03).
@@ -72,6 +76,8 @@ class VoucherDraft:
     # Phase 4 TDS / TCS: the items the accountant marked (inputs) and the engine's results once the tax line is generated
     tds: tuple[TdsLineIn, ...] = ()
     tds_results: tuple[TdsItemResult, ...] = ()
+    # Phase 5 inventory: the optional `stock` blocks of invoice item lines (godown override, original movement of a note)
+    stock: tuple["StockLineIn", ...] = ()
 
 
 @dataclass(frozen=True)

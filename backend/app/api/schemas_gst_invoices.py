@@ -17,6 +17,14 @@ class GstAllocationIn(BaseModel):
     due_date: date | None = None
 
 
+class StockIn(BaseModel):
+    """Optional stock block of an item line (Phase 5): another godown than the item's default, and for a Credit / Debit Note the
+    sale / purchase movement the goods came back from / went back to. Without it a Credit / Debit Note is value-only."""
+
+    godown_id: uuid.UUID | None = None
+    original_movement_id: uuid.UUID | None = None
+
+
 class GstItemIn(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -32,6 +40,7 @@ class GstItemIn(BaseModel):
     itc_category_key: str | None = None
     itc_exception_claimed: bool = False
     itc_exception_note: str | None = None
+    stock: StockIn | None = None
 
 
 class GstIn(BaseModel):

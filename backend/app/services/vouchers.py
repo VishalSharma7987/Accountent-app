@@ -26,7 +26,7 @@ from app.engine.duplicates import duplicate_error, find_possible_duplicate
 from app.engine.models import PeriodInfo, ValidationError, VoucherDraft, VoucherLine
 from app.engine.money import format_inr, parse_amount
 from app.engine.validation import validate_voucher
-from app.services import audit, bills, cash_checks, gst_hooks, tds_hooks
+from app.services import audit, bills, cash_checks, gst_hooks, inventory_hooks, tds_hooks
 from app.services.audit import AuditEntry
 from app.services.errors import ServiceError, VoucherRuleError, require_actor
 
@@ -188,6 +188,7 @@ def _validate_all(
     """Every rule that applies to a draft, ordered: the engine rules plus the duplicate check (V-10)."""
     errors, ctx = _validate(conn, draft)
     errors += bills.draft_errors(conn, draft, ctx, draft_id)  # B-01 .. B-05 (bill-wise party lines)
+    errors += inventory_hooks.validate_stock(conn, draft.client_id, draft)  # Phase 5: S-02, S-03, S-04, S-06, S-07, S-12
     return _order(errors + _check_duplicates(conn, draft, draft_id) + cash_checks.duplicate_payment_errors(conn, draft, draft_id)), ctx
 
 
@@ -223,6 +224,7 @@ def create_draft(conn: Connection, draft: VoucherDraft, *, actor: str) -> DraftR
     voucher_id = _insert_voucher(conn, draft, _financial_year_id(ctx, draft.voucher_date), actor)
     gst_hooks.persist_invoice(conn, draft.client_id, voucher_id, draft, actor)
     tds_hooks.persist_tds(conn, draft.client_id, voucher_id, draft, actor)
+    inventory_hooks.persist_stock(conn, draft.client_id, voucher_id, draft, actor)  # Phase 5
     bills.persist_allocations(conn, voucher_id, draft, ctx)
     audit.log(conn, AuditEntry(draft.client_id, actor, "create", "voucher", voucher_id, new=_snapshot(draft)))
     return DraftResult(voucher_id, [])
@@ -266,6 +268,7 @@ def update_draft(conn: Connection, voucher_id: object, draft: VoucherDraft, *, a
     _insert_lines(conn, record.client_id, record.id, draft)  # deleting the lines cascaded to their allocations
     gst_hooks.persist_invoice(conn, record.client_id, record.id, draft, actor)
     tds_hooks.persist_tds(conn, record.client_id, record.id, draft, actor)
+    inventory_hooks.persist_stock(conn, record.client_id, record.id, draft, actor)  # Phase 5
     bills.persist_allocations(conn, record.id, draft, ctx)
     _log(conn, record, actor, "update", _snapshot(_draft_from(record)), _snapshot(draft))
     return DraftResult(record.id, [])
@@ -290,6 +293,7 @@ def _revalidate(conn: Connection, record: VoucherRecord) -> ValidationContext:
     errors += bills.draft_errors(conn, draft, ctx, record.id, is_reversal=is_reversal)
     errors += gst_hooks.revalidate_invoice(conn, record)  # Phase 3: G-26 (a tampered invoice cannot be approved / posted)
     errors += tds_hooks.revalidate_tds(conn, record)  # Phase 4: T-13 (a tampered TDS working cannot be approved / posted)
+    errors += inventory_hooks.revalidate_stock(conn, record)  # Phase 5: S-01 (no negative stock), S-12 again
     if errors:
         raise VoucherRuleError(_order(errors))
     return ctx
@@ -386,6 +390,7 @@ def post(conn: Connection, voucher_id: object, *, actor: str) -> str:
     number = _post_locked(conn, record, actor)
     gst_hooks.on_post(conn, record.client_id, record.id, actor)  # Phase 3: input-credit entries (package C)
     tds_hooks.on_post(conn, record.client_id, record.id, actor)  # Phase 4
+    inventory_hooks.on_post(conn, record.client_id, record.id, actor)  # Phase 5: stock movements (S-05)
     return number
 
 
@@ -425,6 +430,7 @@ def reverse(conn: Connection, voucher_id: object, reversal_date: date, reason: s
         raise VoucherRuleError(_order(errors))
     reversal_fy = _financial_year_id(ctx, reversal_date)
     cash_checks.raise_if_cash_negative(conn, mirror.client_id, reversal_date, mirror.lines)  # C-01
+    inventory_hooks.check_reverse(conn, original.client_id, original.id, reversal_date)  # Phase 5: S-17, before any write
 
     reversal_id = _insert_voucher(conn, mirror, reversal_fy, actor, reverses_voucher_id=original.id)
     bills.persist_allocations(conn, reversal_id, mirror, ctx)
@@ -444,6 +450,7 @@ def reverse(conn: Connection, voucher_id: object, reversal_date: date, reason: s
     )
     gst_hooks.on_reverse(conn, original.client_id, original.id, reversal_id, actor)  # Phase 3 (package C)
     tds_hooks.on_reverse(conn, original.client_id, original.id, reversal_id, actor)  # Phase 4: T-25 (package C)
+    inventory_hooks.on_reverse(conn, original.client_id, original.id, reversal_id, actor)  # Phase 5: S-17 mirror movements
     return reversal_id
 
 
