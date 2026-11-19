@@ -41,6 +41,15 @@ import InvJournals from './inventory/Journals'
 import InvMasters from './inventory/Masters'
 import InvPolicy from './inventory/Policy'
 import InvRegister from './inventory/Register'
+import FinAdjustments from './final/Adjustments'
+import FinCashFlow from './final/CashFlow'
+import FinClosingStock from './final/ClosingStock'
+import FinExport from './final/Export'
+import FinFixedAssets from './final/FixedAssets'
+import FinPartners from './final/Partners'
+import FinSch3 from './final/Schedule3'
+import FinStatements from './final/Statements'
+import FinYearEnd from './final/YearEnd'
 
 function Shell() {
   const { clients, clientId, setClientId, latestYear } = useClient()
@@ -146,6 +155,15 @@ function Shell() {
           <Route path="/inventory/journals" element={<InvJournals />} />
           <Route path="/inventory/register" element={<InvRegister />} />
           <Route path="/inventory/closing-stock" element={<InvClosingStock />} />
+          <Route path="/final/setup" element={<FinPartners />} />
+          <Route path="/final/adjustments" element={<FinAdjustments />} />
+          <Route path="/final/assets" element={<FinFixedAssets />} />
+          <Route path="/final/closing-stock" element={<FinClosingStock />} />
+          <Route path="/final/statements" element={<FinStatements />} />
+          <Route path="/final/sch3" element={<FinSch3 />} />
+          <Route path="/final/cash-flow" element={<FinCashFlow />} />
+          <Route path="/final/export" element={<FinExport />} />
+          <Route path="/final/close" element={<FinYearEnd />} />
         </Routes>
         </main>
       </div>

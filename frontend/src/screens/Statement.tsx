@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { api } from '../api'
 import { Amount, BalanceText, ErrorBox, Field, LedgerPicker, Page, btn, btnPrimary, input, td, tdR, th, thR } from '../components/ui'
 import { useClient } from '../context'
@@ -11,12 +12,23 @@ import type { LedgerStatement } from '../types'
 export default function Statement() {
   const { clientId, client, latestYear } = useClient()
   const ledgers = useLoad(clientId ? () => api.listLedgers(clientId) : null, `ledgers:${clientId}`)
-  const [ledgerId, setLedgerId] = useState('')
-  const [from, setFrom] = useState('')
-  const [to, setTo] = useState('')
+  // links from the final accounts (drill-down) open this screen as /statement?ledger=&from=&to=
+  const [params] = useSearchParams()
+  const [ledgerId, setLedgerId] = useState(params.get('ledger') ?? '')
+  const [from, setFrom] = useState(params.get('from') ?? '')
+  const [to, setTo] = useState(params.get('to') ?? '')
   const [result, setResult] = useState<LedgerStatement | null>(null)
   const [error, setError] = useState<ApiFailure | null>(null)
   const [busy, setBusy] = useState(false)
+
+  const linked = params.get('ledger')
+  useEffect(() => {
+    if (!linked || !clientId) return
+    api
+      .ledgerStatement(clientId, linked, params.get('from') ?? '', params.get('to') ?? '')
+      .then(setResult)
+      .catch((e: unknown) => setError(asFailure(e)))
+  }, [linked, clientId, params])
 
   if (!clientId) return <Page title="Ledger statement">Select a client first.</Page>
   const fromDate = from || latestYear?.start_date || ''

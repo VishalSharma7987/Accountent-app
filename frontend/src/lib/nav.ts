@@ -109,6 +109,22 @@ export const NAV_GROUPS: NavGroup[] = [
       { to: '/inventory/closing-stock', label: 'Closing stock (NRV)' },
     ],
   },
+  {
+    id: 'final',
+    label: 'Final accounts',
+    icon: 'F',
+    items: [
+      { to: '/final/setup', label: 'Setup: ledgers, partners' },
+      { to: '/final/adjustments', label: 'Year-end adjustments' },
+      { to: '/final/assets', label: 'Fixed assets and depreciation' },
+      { to: '/final/closing-stock', label: 'Closing stock approval' },
+      { to: '/final/statements', label: 'Trading, P&L, Balance Sheet' },
+      { to: '/final/sch3', label: 'Schedule III (company)' },
+      { to: '/final/cash-flow', label: 'Cash Flow Statement' },
+      { to: '/final/export', label: 'Export (Excel / PDF)' },
+      { to: '/final/close', label: 'Year-end close' },
+    ],
+  },
 ]
 
 function matches(item: NavItem, path: string): boolean {
