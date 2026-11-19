@@ -1,0 +1,4 @@
+| date | step | decision | reason |
+| --- | --- | --- | --- |
+| 2026-11-19 | FIFO fix | A reversal_in of a full sale / write-off puts the goods back into the exact FIFO layers they were taken from (a used-up layer is re-opened at its original place in the queue). Sales returns and partial reversals keep the old behaviour (new layer at the end). | Reversing the original purchase after reversing the sale was refused although the stock was on hand; costs and closing values of all existing cases are unchanged. |
+| 2026-11-19 | FIFO fix | Weighted average periodic: when the pool nets to zero quantity (sale reversed and purchase reversed in the same period), sale and its reversal are valued at the average of the inward known-cost movements instead of dividing by zero. Moving average needed no change. | Avoids a crash; closing is 0 / 0.00 and the pair nets off. |

@@ -320,3 +320,44 @@ def test_S19_later_gaps_are_reported_even_when_the_window_ends_before_them():
     r = run(VM.FIFO, OPEN, movs, to=date(2026, 4, 30))
     assert [e.movement_id for e in r.errors] == ["S9"]
     assert (only_row(r).closing_qty, only_row(r).closing_value) == (D("90"), D("900.00"))  # the window itself is still valued
+
+
+# Worked example (hand-derived) for 'purchase, sale, sale reversal, purchase reversal':
+#   buy 10 @ 10.00 = 100.00 (layer P1: 10 / 100.00); sell 4 -> takes 4 from P1 = 40.00 (P1: 6 / 60.00);
+#   reverse the sale -> the 4 units go back INTO P1 (P1: 10 / 100.00), not into a new layer at the end of the queue;
+#   reverse the purchase -> P1 holds 10, so 10 / 100.00 leave: stock 0 / 0.00. Accepted by every method.
+def _buy_sell_reverse_both():
+    return [
+        mv("P1", date(2026, 4, 5), K.PURCHASE, "10", "100.00"),
+        mv("S1", date(2026, 4, 10), K.SALE, "4"),
+        mv("RS", date(2026, 4, 11), K.REVERSAL_IN, "4", ref="S1"),
+        mv("RP", date(2026, 4, 12), K.REVERSAL_OUT, "10", ref="P1"),
+    ]
+
+
+def test_S17_reverse_sale_then_reverse_purchase_is_accepted_all_methods():
+    for method in (VM.FIFO, VM.WA_MOVING, VM.WA_PERIODIC):
+        r = run(method, [], _buy_sell_reverse_both())
+        assert r.errors == [], method
+        assert (only_row(r).closing_qty, only_row(r).closing_value) == (D("0"), D("0.00")), method
+        assert cost_of(r, "RS") == D("40.00") and cost_of(r, "RP") == D("100.00"), method
+
+
+# Two layers: P1 5 @ 10 = 50, P2 5 @ 20 = 100. Sale of 7 takes P1 5 (50.00) + P2 2 (40.00) = 90.00 (P2: 3 / 60.00).
+# Reversing the sale restores P1 5 / 50.00 at the FRONT and P2 5 / 100.00. A later sale of 5 must then cost P1's 50.00,
+# and reversing P1 (5) is fine while it is still whole.
+def test_S17_fifo_sale_reversal_restores_the_exact_layers_in_order():
+    base = [
+        mv("P1", date(2026, 4, 5), K.PURCHASE, "5", "50.00"),
+        mv("P2", date(2026, 4, 6), K.PURCHASE, "5", "100.00"),
+        mv("S1", date(2026, 4, 10), K.SALE, "7"),
+        mv("RS", date(2026, 4, 11), K.REVERSAL_IN, "7", ref="S1"),
+    ]
+    r = run(VM.FIFO, [], base)
+    assert r.errors == [] and cost_of(r, "S1") == D("90.00") and cost_of(r, "RS") == D("90.00")
+    assert (only_row(r).closing_qty, only_row(r).closing_value) == (D("10"), D("150.00"))
+    r2 = run(VM.FIFO, [], [*base, mv("S2", date(2026, 4, 12), K.SALE, "5")])
+    assert cost_of(r2, "S2") == D("50.00")
+    r3 = run(VM.FIFO, [], [*base, mv("RP", date(2026, 4, 12), K.REVERSAL_OUT, "5", ref="P1"),
+                           mv("RQ", date(2026, 4, 13), K.REVERSAL_OUT, "5", ref="P2")])
+    assert r3.errors == [] and (only_row(r3).closing_qty, only_row(r3).closing_value) == (D("0"), D("0.00"))

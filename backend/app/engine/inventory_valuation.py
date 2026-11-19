@@ -114,8 +114,9 @@ class _Run:
         self.outward = (ZERO, MONEY0)
 
 
-def _take(layers: list, qty: Decimal) -> Decimal:
-    """Consume `qty` from the oldest layers (layer = [id, qty, value]); returns the cost."""
+def _take(layers: list, qty: Decimal, used: list | None = None) -> Decimal:
+    """Consume `qty` from the oldest layers (layer = [id, qty, value, order]); returns the cost. `used` (optional) collects
+    (layer id, order, qty, value) of every piece taken, so a reversal can put the goods back where they came from."""
     total = MONEY0
     for layer in list(layers):
         if qty == 0:
@@ -126,27 +127,51 @@ def _take(layers: list, qty: Decimal) -> Decimal:
         layer[2] -= part
         total += part
         qty -= take
+        if used is not None:
+            used.append((layer[0], layer[3], take, part))
         if layer[1] == 0:
             layers.remove(layer)
     return total
 
 
+def _restore(layers: list, used: list) -> None:
+    """Put the pieces of a reversed sale back into the layers they were taken from (a layer that was used up is re-opened
+    at its original place in the queue), so FIFO order and chronology stay as if the sale never happened."""
+    for layer_id, order, qty, value in used:
+        layer = next((x for x in layers if x[0] == layer_id), None)
+        if layer is not None:
+            layer[1] += qty
+            layer[2] += value
+        else:
+            layers.append([layer_id, qty, value, order])
+            layers.sort(key=lambda x: x[3])
+
+
 def _fifo(open_q, open_v, moves, by_id, from_date, run: _Run) -> None:
-    layers = [["opening", open_q, open_v]] if open_q > 0 else []
+    layers = [["opening", open_q, open_v, 0]] if open_q > 0 else []
+    consumed: dict = {}   # sale / write-off movement id -> pieces taken from layers
+    order = 0
     snap = None
     for m in moves:
         if snap is None and m.date >= from_date:
             snap = (sum((x[1] for x in layers), ZERO), sum((x[2] for x in layers), MONEY0))
         if m.kind == K.PURCHASE:
-            layers.append([m.movement_id, m.quantity, m.value])
+            order += 1
+            layers.append([m.movement_id, m.quantity, m.value, order])
             run.cost[m.movement_id] = m.value
         elif m.kind in _BACK_INTO_STOCK:
             ref = _ref(m, by_id)
             value = _prorate(run.cost[ref.movement_id], m.quantity, ref.quantity)
-            layers.append([m.movement_id, m.quantity, value])
+            used = consumed.get(ref.movement_id)
+            if m.kind == K.REVERSAL_IN and used and m.quantity == ref.quantity:
+                _restore(layers, used)     # a reversal undoes the outward: same layers, same costs
+            else:
+                order += 1
+                layers.append([m.movement_id, m.quantity, value, order])
             run.cost[m.movement_id] = value
         elif m.kind in _AVG_KINDS:
-            run.cost[m.movement_id] = _take(layers, m.quantity)
+            consumed[m.movement_id] = []
+            run.cost[m.movement_id] = _take(layers, m.quantity, consumed[m.movement_id])
         else:
             ref = _ref(m, by_id)
             layer = next((x for x in layers if x[0] == ref.movement_id), None)
@@ -209,6 +234,7 @@ def _periodic(open_q, open_v, moves, by_id, run: _Run) -> None:
     in_q, in_v, out_q, out_v = ZERO, MONEY0, ZERO, MONEY0
     avg_moves = []
     avg_net = ZERO  # outward-at-average quantity minus inward-at-average quantity
+    gross_q, gross_v = open_q, open_v   # everything that came in at known cost (no known outward taken off)
     for m in moves:
         value = _known_value(m, by_id)
         if value is None:
@@ -218,6 +244,7 @@ def _periodic(open_q, open_v, moves, by_id, run: _Run) -> None:
         run.cost[m.movement_id] = value
         if m.kind in INWARD_KINDS:
             q, v, in_q, in_v = q + m.quantity, v + value, in_q + m.quantity, in_v + value
+            gross_q, gross_v = gross_q + m.quantity, gross_v + value
         else:
             q, v, out_q, out_v = q - m.quantity, v - value, out_q + m.quantity, out_v + value
     close_q = q - avg_net
@@ -231,7 +258,10 @@ def _periodic(open_q, open_v, moves, by_id, run: _Run) -> None:
     else:
         avg_value = _prorate(v, abs(avg_net), q)
     for m in avg_moves:
-        run.cost[m.movement_id] = _prorate(v, m.quantity, q)
+        if q > 0:
+            run.cost[m.movement_id] = _prorate(v, m.quantity, q)
+        else:   # sale and its reversal net off, and the purchase was reversed too: use the average of what came in
+            run.cost[m.movement_id] = _prorate(gross_v, m.quantity, gross_q)
     if avg_net > 0:
         out_q, out_v, close_v = out_q + avg_net, out_v + avg_value, v - avg_value
     elif avg_net < 0:

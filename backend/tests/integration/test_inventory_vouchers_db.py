@@ -226,12 +226,15 @@ def test_S17_reversal_mirrors_movements_and_is_blocked_when_stock_would_go_negat
     vouchers.reverse(svc_conn, sale, d(11), "wrong buyer", actor="poster")
     mirror = movements(svc_conn, world)[-1]
     assert (mirror.kind.value, mirror.quantity, str(mirror.godown_id), mirror.date) == ("reversal_in", D("4.000"), str(world.main), d(11))
-    # known engine limit (package B): the reversal_in opens a NEW FIFO layer, so the purchase layer stays partly consumed and
-    # reversing the purchase is still refused (conservative, never a wrong cost)
-    with pytest.raises(VoucherRuleError) as e:
-        vouchers.reverse(svc_conn, buy, d(12), "wrong bill", actor="poster")
-    assert [x.rule_id for x in e.value.errors] == ["S-17"]
-    assert [x.kind.value for x in movements(svc_conn, world)] == ["purchase", "sale", "reversal_in"]
+
+
+def test_S17_reverse_sale_then_reverse_purchase_is_allowed(svc_conn, world):
+    buy = post(svc_conn, world, "purchase", "10", d(5))
+    sale = post(svc_conn, world, "sales", "4", d(10), rate="150.00")
+    vouchers.reverse(svc_conn, sale, d(11), "wrong buyer", actor="poster")
+    # the 4 units went back into the purchase layer, so all 10 are on hand and the purchase can be reversed
+    vouchers.reverse(svc_conn, buy, d(12), "wrong bill", actor="poster")
+    assert [x.kind.value for x in movements(svc_conn, world)] == ["purchase", "sale", "reversal_in", "reversal_out"]
 
 
 def test_S12_a_sale_with_a_live_return_cannot_be_reversed(svc_conn, world):
