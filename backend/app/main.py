@@ -10,6 +10,13 @@ from app.api import (
     bills,
     cashbook,
     clients,
+    final_adjustments,
+    final_assets,
+    final_cashflow,
+    final_close,
+    final_export,
+    final_sch3,
+    final_statements,
     groups,
     gst_invoices,
     gst_itc,
@@ -66,6 +73,13 @@ ROUTERS = [
     inventory_masters.router,
     inventory_journals.router,
     inventory_reports.router,
+    final_adjustments.router,
+    final_assets.router,
+    final_statements.router,
+    final_sch3.router,
+    final_cashflow.router,
+    final_export.router,
+    final_close.router,
 ]
 for _router in ROUTERS:
     app.include_router(_router)

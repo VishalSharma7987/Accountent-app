@@ -60,6 +60,8 @@ def test_seeds_are_listed_in_name_order_and_recorded_with_a_prefix():
         "0009_tds_due_dates_interest_forms.sql",
         "0010_tds_owner_verified_values.sql",
         "0011_tds_rent_194ib_interest.sql",
+        "0012_depreciation_rates.sql",
+        "0013_schedule_iii_lines.sql",
     ]
     assert migrate.seed_record_name(seeds[0]) == "seeds/0001_account_groups.sql"
 
