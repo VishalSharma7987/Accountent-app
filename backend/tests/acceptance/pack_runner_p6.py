@@ -508,7 +508,7 @@ class World6:
         self.diff("close", want, got, ("amount",), f"{label} Schedule III profit and loss after the close")
 
     def check_carry(self, label: str, fy) -> None:
-        nxt = self.scalar("SELECT next_financial_year_id FROM year_end_closes WHERE client_id = :c AND financial_year_id = :f", f=fy)
+        nxt = self.scalar("SELECT next_financial_year_id FROM year_end_closes WHERE client_id = :c AND financial_year_id = :f AND status = 'closed'", f=fy)
         rows = self.conn.execute(text("SELECT l.name, o.debit, o.credit FROM opening_balances o JOIN ledgers l ON l.id = o.ledger_id "
                                       "WHERE o.financial_year_id = :f"), {"f": nxt}).all()
         got = {(name,): {"debit": money(dr), "credit": money(cr)} for name, dr, cr in rows}
