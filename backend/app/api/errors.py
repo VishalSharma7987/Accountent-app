@@ -16,6 +16,7 @@ UNPROCESSABLE |= {"no_policy", "period_locked", "negative_stock", "journal_rever
 UNPROCESSABLE |= {"period_invalid", "not_gst_client", "filed_invalid", "working_unsupported", "no_rate_rule"}  # GST returns (E)
 UNPROCESSABLE |= {"closing_stock_missing"}  # Phase 6 (C)
 UNPROCESSABLE |= {"event_order"}  # Fixed asset events (Phase 6, package B)
+UNPROCESSABLE |= {"statement_blocked", "export_blocked"}  # Phase 6 (E): F-50 cash flow, F-71 export
 
 
 def status_for(code: str) -> int:
