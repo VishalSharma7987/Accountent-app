@@ -415,3 +415,5 @@ Anything that touches a legal value, existing data or `docs/REQUIREMENTS.md` is 
 2026-11-16 | 5.5 G | Pack goods HSN 3004 IGST 5%, GST not in cost (S-14); numbers chosen so averages terminate | avoids rounding ambiguity
 2026-11-16 | 5.5 G | Wrong case W4 expects G-17 (GST quantity rule fires before S-02) | tool refuses, rule id attribution only
 
+| 2026-11-19 | 6.0 | PDF export uses `reportlab` (pure Python, no system dependency), added to backend requirements by package E. | Owner asked for PDF export in Phase 6 scope and told us to choose; reportlab is the standard dependency-free choice on Windows. |
+| 2026-11-19 | 6.0 | Year reopen is allowed (owner delegated the choice, CLAUDE.md 6(b)): refused when the next FY has any posted voucher; only the next FY's system-derived carried openings (ledger openings, open bills, stock) are rewritten on re-close, in one transaction, only if total Dr = Cr; closing vouchers are undone by reversal, never deleted; a reason is required and everything is audit-logged. | Safest design: no user-entered data is deleted or rewritten, derived data only, fully reversible and audited. |
