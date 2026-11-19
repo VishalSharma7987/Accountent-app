@@ -21,7 +21,7 @@ from app.engine import reports
 from app.engine.coa_templates import BUSINESS_TYPES, ENTITY_TYPES, default_ledgers
 from app.engine.models import OpeningBalance
 from app.engine.money import MoneyError, format_inr, parse_amount
-from app.services import audit
+from app.services import audit, final_hooks
 from app.services.audit import AuditEntry
 from app.services.errors import ServiceError, require_actor
 
@@ -252,6 +252,8 @@ def set_opening_balance(
     new_debit, new_credit = _amount_or_zero(debit), _amount_or_zero(credit)
     if new_debit > 0 and new_credit > 0:
         raise ServiceError("invalid_amount", "Enter either a Debit or a Credit opening balance, not both.")
+    if final_hooks.year_is_closed(conn, client_id, financial_year_id):  # Phase 6: a closed year's openings are frozen
+        raise ServiceError("year_closed", "This financial year is closed; its opening balances cannot be changed. Reopen the year first.")
     if repo.posted_voucher_exists(conn, client_id, financial_year_id):
         raise ServiceError(
             "opening_locked",

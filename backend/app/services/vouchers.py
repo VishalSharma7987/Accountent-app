@@ -26,7 +26,15 @@ from app.engine.duplicates import duplicate_error, find_possible_duplicate
 from app.engine.models import PeriodInfo, ValidationError, VoucherDraft, VoucherLine
 from app.engine.money import format_inr, parse_amount
 from app.engine.validation import validate_voucher
-from app.services import audit, bills, cash_checks, gst_hooks, inventory_hooks, tds_hooks
+from app.services import (
+    audit,
+    bills,
+    cash_checks,
+    final_hooks,
+    gst_hooks,
+    inventory_hooks,
+    tds_hooks,
+)
 from app.services.audit import AuditEntry
 from app.services.errors import ServiceError, VoucherRuleError, require_actor
 
@@ -397,11 +405,15 @@ def post(conn: Connection, voucher_id: object, *, actor: str) -> str:
 # ================================================================================================== reverse
 
 
-def reverse(conn: Connection, voucher_id: object, reversal_date: date, reason: str, *, actor: str) -> uuid.UUID:
+def reverse(
+    conn: Connection, voucher_id: object, reversal_date: date, reason: str, *, actor: str, _year_end_reopen: bool = False
+) -> uuid.UUID:
     """V-12: post a new voucher of the same type with every line's Dr/Cr swapped, linked both ways, and mark the
     original Reversed. The reversal date must be in an open period. Returns the reversal voucher's id."""
     actor = require_actor(actor)
     original = _lock(conn, voucher_id)
+    if not _year_end_reopen:  # Phase 6 F-64: only the year-end reopen (services/final_close.py) may reverse a closing voucher
+        final_hooks.guard_reverse(conn, original.client_id, original.id)
     if original.status == "reversed":
         by = conn.execute(
             text("SELECT voucher_number FROM vouchers WHERE id = :id"), {"id": original.reversed_by_voucher_id}
