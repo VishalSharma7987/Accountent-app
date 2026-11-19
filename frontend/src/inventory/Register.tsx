@@ -112,7 +112,7 @@ export default function Register() {
             </tr>
           )}
         </tbody>
-        {data && !godownMode && (
+        {data && data.totals && !godownMode && (
           <tfoot>
             <tr className="bg-slate-100 font-semibold">
               <td className={td} colSpan={4}>
@@ -176,7 +176,7 @@ function ItemLedger({ clientId, fyId, row, from, to, godowns, onClose }: { clien
             <tr key={i}>
               <td className={td}>{m.date}</td>
               <td className={td}>{m.kind}</td>
-              <td className={`${td} font-mono`}>{m.voucher_number ?? m.journal_number ?? ''}</td>
+              <td className={`${td} font-mono`}>{m.document_number ?? ''}</td>
               <td className={td}>{gname(m.godown_id)}</td>
               <td className={tdR}>{m.in_qty}</td>
               <td className={tdR}>{m.in_value !== null && <Amount value={m.in_value} />}</td>

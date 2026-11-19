@@ -138,7 +138,7 @@ export interface StockRegister {
   from: string
   to: string
   rows: RegisterRow[]
-  totals: { opening_value: Amount; inward_value: Amount; outward_value: Amount; closing_value: Amount }
+  totals: { opening_value: Amount; inward_value: Amount; outward_value: Amount; closing_value: Amount } | null
   errors: StockIssue[]
   warnings: StockIssue[]
   engine_version?: string
@@ -154,8 +154,7 @@ export interface ItemLedgerRow {
   date: string
   seq: number
   kind: string
-  voucher_number?: string | null
-  journal_number?: string | null
+  document_number?: string | null
   godown_id: string
   in_qty: string
   in_value: Amount | null

@@ -33,6 +33,17 @@ export const SUPPLY_CATEGORIES: { value: string; label: string }[] = [
   { value: 'import_of_service', label: 'Import of service' },
 ]
 
+/** Reasons of a Credit / Debit Note: the backend accepts only these keys (engine NOTE_REASONS). */
+export const NOTE_REASONS: { value: string; label: string }[] = [
+  { value: 'sales_return', label: 'Sales return' },
+  { value: 'post_sale_discount', label: 'Post-sale discount' },
+  { value: 'deficiency_in_services', label: 'Deficiency in services' },
+  { value: 'correction_in_invoice', label: 'Correction in invoice' },
+  { value: 'change_in_pos', label: 'Change in place of supply' },
+  { value: 'provisional_assessment', label: 'Provisional assessment' },
+  { value: 'others', label: 'Others' },
+]
+
 export const RULE_BADGE: Record<RuleWorst, { label: string; cls: string }> = {
   pending: { label: 'Rules pending verification', cls: 'bg-amber-100 text-amber-900 border-amber-400' },
   secondary_verified: { label: 'Rules verified from a secondary source', cls: 'bg-yellow-50 text-yellow-900 border-yellow-300' },
@@ -143,4 +154,15 @@ export function previewBody(base: Omit<GstVoucherBody, 'gst'>, gst: GstIn): GstV
   const items = gst.items.filter(itemReady)
   if (items.length === 0 || items.length !== gst.items.filter((i) => i.description || i.hsn_sac || i.unit_rate || i.ledger_id).length) return null
   return { ...base, gst: { ...gst, items } }
+}
+
+/** An item master body as the server wants it: blank UQC and blank category keys are null (an empty UQC would fail rule G-07). */
+export function cleanItem<T extends { hsn_sac: string; uqc: string | null; name: string }>(item: T): T {
+  const uqc = (item.uqc ?? '').trim().toUpperCase()
+  return { ...item, name: item.name.trim(), hsn_sac: item.hsn_sac.trim(), uqc: uqc === '' ? null : uqc }
+}
+
+/** The server's return_type for a screen kind: the composition screen saves a CMP-08 working. */
+export function returnTypeOf(kind: string): string {
+  return kind === 'composition' ? 'cmp08' : kind
 }

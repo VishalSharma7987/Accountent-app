@@ -79,7 +79,7 @@ function Working({ clientId, fyId, quarter }: { clientId: string; fyId: string; 
       {data && (
         <>
           <div className="text-sm">
-            Form <b>{data.form_no}</b> <span className="text-slate-600">({data.form_status})</span>, TAN <b>{data.tan ?? 'missing'}</b>, period {data.period}
+            Form <b>{data.form_no}</b> <span className="text-slate-600">({data.form_status})</span>, TAN <b>{data.tan ?? 'missing'}</b>, FY {data.financial_year} Q{data.quarter} ({data.period_start} to {data.period_end})
           </div>
           {data.errors.length > 0 && (
             <ul className="list-disc rounded border border-red-300 bg-red-50 py-2 pl-7 pr-3 text-sm text-red-800">

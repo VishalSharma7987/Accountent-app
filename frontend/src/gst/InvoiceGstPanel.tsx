@@ -3,7 +3,7 @@ import { gstApi, type GstIn, type GstPreview, type GstVoucherBody, type Registra
 import { Amount, Field, LedgerPicker, btn, input, td, tdR, th, thR } from '../components/ui'
 import { asFailure } from '../lib/useLoad'
 import type { LedgerRow } from '../types'
-import { blankGstItem, previewBody, SUPPLY_CATEGORIES } from './lib'
+import { blankGstItem, NOTE_REASONS, previewBody, SUPPLY_CATEGORIES } from './lib'
 
 export interface InvoicePanelProps {
   clientId: string
@@ -123,7 +123,14 @@ export function InvoiceGstPanel({ clientId, registrations, ledgers, base, value,
             <input type="date" className={input} disabled={readOnly} value={value.original_invoice_date ?? ''} onChange={(e) => set({ original_invoice_date: e.target.value || null })} />
           </Field>
           <Field label="Reason">
-            <input className={`${input} w-64`} disabled={readOnly} value={value.note_reason ?? ''} onChange={(e) => set({ note_reason: e.target.value || null })} />
+            <select className={`${input} w-64`} disabled={readOnly} value={value.note_reason ?? ''} onChange={(e) => set({ note_reason: e.target.value || null })}>
+              <option value="">(choose)</option>
+              {NOTE_REASONS.map((r) => (
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
+              ))}
+            </select>
           </Field>
         </div>
       )}
@@ -150,7 +157,7 @@ export function InvoiceGstPanel({ clientId, registrations, ledgers, base, value,
           </thead>
           <tbody>
             {value.items.map((it, i) => {
-              const out = preview?.gst.items.find((x) => x.item_line_no === i + 1)
+              const out = preview?.gst?.items.find((x) => x.item_line_no === i + 1)
               const errs = itemErrors(i + 1)
               return (
                 <tr key={i} className={errs.length ? 'bg-red-50' : ''}>
@@ -233,7 +240,7 @@ export function InvoiceGstPanel({ clientId, registrations, ledgers, base, value,
           ))}
         </ul>
       )}
-      {preview && preview.gst.warnings.length > 0 && (
+      {preview?.gst && preview.gst.warnings.length > 0 && (
         <ul className="list-disc rounded border border-amber-300 bg-amber-50 py-1 pl-6 pr-3 text-sm text-amber-900">
           {preview.gst.warnings.map((w, i) => (
             <li key={i}>
@@ -243,7 +250,7 @@ export function InvoiceGstPanel({ clientId, registrations, ledgers, base, value,
           ))}
         </ul>
       )}
-      {preview && (
+      {preview && preview.gst && (
         <div className="space-y-1">
           <h3 className="text-xs font-semibold text-slate-700">
             Ledger lines the server will post (read-only){loading ? ' ...' : ''}

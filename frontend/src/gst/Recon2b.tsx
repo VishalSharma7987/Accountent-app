@@ -29,7 +29,7 @@ export default function Recon2b() {
 
   const imports = useLoad(clientId && regId ? () => gstApi.list2bImports(clientId, regId) : null, `2b-imports:${clientId}:${regId}`)
   const recon = useLoad(clientId && regId && isMonth(period) && tab !== 'import' ? () => gstApi.reconciliation(clientId, regId, period) : null, `2b-recon:${clientId}:${regId}:${period}:${tab === 'import'}`)
-  const docs = useLoad(viewImport ? () => gstApi.list2bDocuments(viewImport) : null, `2b-docs:${viewImport}`)
+  const docs = useLoad(viewImport ? () => gstApi.list2bDocuments(clientId, viewImport) : null, `2b-docs:${viewImport}`)
   const d = recon.data
   const shown = useMemo(() => (d?.rows ?? []).filter((r) => tab === 'all' || r.class === tab), [d, tab])
 

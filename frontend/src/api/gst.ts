@@ -161,7 +161,7 @@ export interface GstOut {
 }
 export interface GstPreview {
   lines: { ledger_id: string; ledger_name: string; debit: Amount; credit: Amount; gst_role: string }[]
-  gst: GstOut
+  gst: GstOut | null
   errors: { rule_id: string; message: string; line_no: number | null; details?: { item_line_no?: number } }[]
 }
 
@@ -353,6 +353,12 @@ export interface ReturnQuery {
   period_kind: 'month' | 'quarter'
 }
 
+/** "2026-04" -> "2026-04-01" (the API takes a date); anything else is passed on unchanged. */
+export function monthStart(period?: string): string | undefined {
+  if (!period) return undefined
+  return /^\d{4}-\d{2}$/.test(period) ? `${period}-01` : period
+}
+
 function url(path: string, query?: Query): string {
   const qs = new URLSearchParams()
   for (const [k, v] of Object.entries(query ?? {})) {
@@ -412,15 +418,15 @@ export const gstApi = {
   listItems: (cl: string, q?: string, kind?: string) => get<GstItem[]>(`${c(cl)}/items`, { q, kind }),
   createItem: (cl: string, b: GstItemBody) => post<{ id: string }>(`${c(cl)}/items`, b),
   updateItem: (cl: string, id: string, b: GstItemBody) => put<{ ok: boolean }>(`${c(cl)}/items/${id}`, b),
-  rateLookup: (hsn: string, kind: 'goods' | 'services', on?: string) =>
-    get<RateLookup>('/gst/rates/lookup', { hsn_sac: hsn, supply_kind: kind, on }),
+  // no GST rate lookup endpoint exists on the server (only GET /gst/rate-slabs); rates are applied server-side per item (G-14)
   ruleTable: (t: RuleTable, on?: string) => get<unknown>(`/gst/${t}`, { on }),
   // invoice mode
   gstPreview: (cl: string, b: GstVoucherBody) => post<GstPreview>(`/clients/${cl}/vouchers/gst-preview`, b),
   createGstVoucher: (cl: string, b: GstVoucherBody) => post<{ voucher_id: string }>(`/clients/${cl}/vouchers`, b),
   // ITC
   listItc: (cl: string, q: { registration_id?: string; status?: string; period?: string; supplier_ledger_id?: string }) =>
-    get<ItcList>(`${c(cl)}/itc`, q),
+    // the server filters by the first day of the month (a date), the screen types YYYY-MM
+    get<ItcList>(`${c(cl)}/itc`, { ...q, period: monthStart(q.period) }),
   itcEvidence: (
     cl: string,
     id: string,
@@ -456,7 +462,7 @@ export const gstApi = {
     )
   },
   list2bImports: (cl: string, registrationId: string) => get<Import2b[]>(`${c(cl)}/2b/imports`, { registration_id: registrationId }),
-  list2bDocuments: (importId: string) => get<Doc2b[]>(`/gst/2b/imports/${importId}/documents`),
+  list2bDocuments: (cl: string, importId: string) => get<Doc2b[]>(`${c(cl)}/2b/imports/${importId}/documents`),
   reconciliation: (cl: string, registrationId: string, period: string) =>
     get<Recon>(`${c(cl)}/2b/reconciliation`, { registration_id: registrationId, period }),
   createLink: (cl: string, b: { document_id: string; voucher_id: string; link_kind: 'manual' | 'accepted_difference'; note: string }) =>

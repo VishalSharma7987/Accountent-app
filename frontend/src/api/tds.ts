@@ -141,7 +141,7 @@ export interface TdsOut {
 }
 export interface TdsPreview {
   lines: { ledger_id: string; ledger_name: string; debit: Amount; credit: Amount; tds_role?: string | null }[]
-  tds: TdsOut
+  tds: TdsOut | null
   errors: { rule_id: string; message: string; line_no: number | null }[]
   rule_status?: RuleStatus
 }
@@ -247,8 +247,9 @@ export interface MatchRow {
 }
 export interface Matching {
   rows: MatchRow[]
-  unallocated_challans: ChallanRow[]
+  unallocated_challans: Partial<ChallanRow>[]
   totals: Record<string, unknown>
+  rule_status?: RuleStatus
 }
 export interface InterestRow {
   item_id: string
@@ -262,11 +263,12 @@ export interface InterestRow {
   due_date: string
   months_late_deposit: number
   interest_late_deposit: Amount
-  rule_status?: RuleStatus
+  rule_status?: string
 }
 export interface Interest {
   rows: InterestRow[]
   totals: Record<string, unknown>
+  rule_status?: RuleStatus
 }
 export interface DueEvent {
   event: string
@@ -283,7 +285,10 @@ export interface ReturnWorking {
   form_no: string
   form_status: string
   tan: string | null
-  period: string
+  financial_year: string
+  quarter: number
+  period_start: string
+  period_end: string
   deductee_rows: Record<string, unknown>[]
   challan_rows: Record<string, unknown>[]
   totals: Record<string, unknown>
@@ -332,9 +337,11 @@ export interface Import26 {
 export interface ReconRow {
   class: ReconClass
   row: Record<string, unknown> | null
-  books: { item_id?: string; voucher_id?: string; deductee_name: string; section_ref: string; event_date: string; payment_amount: Amount; tds_amount: Amount } | null
+  /** on the deductee side the server sends only voucher, date and tax (no name, section or item) */
+  books: { item_id?: string; voucher_id?: string | null; voucher_number?: string | null; deductee_name?: string; section_ref?: string; event_date: string; payment_amount?: Amount; tds_amount: Amount } | null
   difference: Amount | null
   section_mapping_status: string
+  reason?: string | null
 }
 export interface Recon26 {
   tolerance: Amount
@@ -451,7 +458,8 @@ export const tdsApi = {
   autoMatch: (cl: string, b: { financial_year_id: string; quarter: number; kind: string }) =>
     post<{ proposed: { item_id: string; challan_id: string; amount: Amount }[] }>(`${c(cl)}/challan-matching/auto`, b),
   interest: (cl: string, q: { financial_year_id: string; as_on?: string }) => get<Interest>(`${c(cl)}/interest`, q),
-  dueCalendar: (cl: string, fy: string) => get<DueEvent[]>(`${c(cl)}/due-calendar`, { financial_year_id: fy }),
+  // the server wraps the events: { as_on, rows, rule_status }
+  dueCalendar: (cl: string, fy: string) => get<{ rows: DueEvent[] }>(`${c(cl)}/due-calendar`, { financial_year_id: fy }).then((r) => r.rows),
   // returns and certificates
   returnWorking: (cl: string, q: { financial_year_id: string; quarter: number; return_kind: ReturnKind }) => get<ReturnWorking>(`${c(cl)}/return-working`, q),
   saveReturnWorking: (cl: string, b: { financial_year_id: string; quarter: number; return_kind: ReturnKind }) =>

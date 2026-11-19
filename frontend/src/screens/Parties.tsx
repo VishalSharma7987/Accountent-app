@@ -7,6 +7,17 @@ import { groupByArea, type PartyArea } from '../lib/phase2'
 import { asFailure, useLoad } from '../lib/useLoad'
 import type { MsmeActivity, MsmeCategory, Party, PartyBody, PartyNature } from '../types'
 
+/** Values the server accepts for a party's GST registration (engine GST_REGISTRATION_TYPES). */
+const GST_REGISTRATION_TYPES = [
+  { value: 'regular', label: 'Regular' },
+  { value: 'composition', label: 'Composition' },
+  { value: 'unregistered', label: 'Unregistered' },
+  { value: 'sez', label: 'SEZ' },
+  { value: 'overseas', label: 'Overseas' },
+  { value: 'uin_holder', label: 'UIN holder' },
+  { value: 'government', label: 'Government' },
+]
+
 interface Form {
   gstin: string
   pan: string
@@ -19,6 +30,7 @@ interface Form {
   msme_activity: '' | MsmeActivity
   udyam_registration_date: string
   msme_agreed_days: string
+  gst_registration_type: string
 }
 
 const toForm = (p: Party): Form => ({
@@ -33,6 +45,7 @@ const toForm = (p: Party): Form => ({
   msme_activity: p.msme_activity ?? '',
   udyam_registration_date: p.udyam_registration_date ?? '',
   msme_agreed_days: p.msme_agreed_days === null || p.msme_agreed_days === undefined ? '' : String(p.msme_agreed_days),
+  gst_registration_type: p.gst_registration_type ?? '',
 })
 
 const orNull = (s: string) => (s.trim() === '' ? null : s.trim())
@@ -43,6 +56,7 @@ function toBody(f: Form): PartyBody {
   const credit_days = days === '' ? null : Number(days)
   return {
     gstin: orNull(f.gstin),
+    gst_registration_type: orNull(f.gst_registration_type),
     pan: orNull(f.pan),
     state_code: orNull(f.state_code),
     credit_days: credit_days !== null && Number.isNaN(credit_days) ? null : credit_days,
@@ -242,6 +256,18 @@ export default function Parties() {
             <Box area="gstin" errors={by}>
               <Field label="GSTIN">
                 <input className={cls('gstin')} value={form.gstin} onChange={(e) => set({ gstin: e.target.value.toUpperCase() })} />
+              </Field>
+            </Box>
+            <Box area="gstin" errors={by}>
+              <Field label="GST registration type">
+                <select className={cls('gstin')} value={form.gst_registration_type} onChange={(e) => set({ gst_registration_type: e.target.value })}>
+                  <option value="">(not stated)</option>
+                  {GST_REGISTRATION_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
               </Field>
             </Box>
             <Box area="pan" errors={by}>

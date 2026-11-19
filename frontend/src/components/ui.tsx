@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, type ReactNode } from 'react'
-import type { ApiFailure } from '../lib/apiError'
+import { detailLines, lineLabel, type ApiFailure } from '../lib/apiError'
 import { formatBalance, formatInr } from '../lib/money'
 import type { Balance, LedgerRow, VoucherStatus } from '../types'
 
@@ -30,16 +30,26 @@ export function Page({ title, actions, children }: { title: string; actions?: Re
 
 export function ErrorBox({ error }: { error: ApiFailure | null }) {
   if (!error) return null
+  const rows = detailLines(error.details)
   return (
     <div role="alert" className="rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800">
-      <div>{error.message}</div>
+      {error.ruleErrors.length === 0 && <div>{error.message}</div>}
       {error.ruleErrors.length > 0 && (
-        <ul className="mt-1 list-disc pl-5">
+        <ul className="list-disc pl-5">
           {error.ruleErrors.map((e, i) => (
             <li key={i}>
-              <span className="font-mono text-xs">{e.rule_id}</span> {e.message}
+              <span className="font-mono text-xs">{e.rule_id}</span>
+              {lineLabel(e) && <span className="text-xs"> ({lineLabel(e)})</span>} {e.message}
             </li>
           ))}
+        </ul>
+      )}
+      {rows.length > 0 && (
+        <ul className="mt-1 list-disc pl-5">
+          {rows.slice(0, 20).map((r, i) => (
+            <li key={i}>{r}</li>
+          ))}
+          {rows.length > 20 && <li>and {rows.length - 20} more</li>}
         </ul>
       )}
     </div>

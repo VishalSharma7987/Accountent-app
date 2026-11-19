@@ -65,3 +65,16 @@ export function errorsForLine(errors: RuleError[], lineNo: number): RuleError[] 
 export function voucherLevelErrors(errors: RuleError[]): RuleError[] {
   return errors.filter((e) => e.line_no === null)
 }
+
+/** "line 2" for a rule error that belongs to one voucher line, otherwise empty. */
+export function lineLabel(e: Pick<RuleError, 'line_no'>): string {
+  return e.line_no === null || e.line_no === undefined ? '' : `line ${e.line_no}`
+}
+
+/** Row-by-row problems of a rejected file import (details = [{row, message}]), as readable lines; empty for any other details. */
+export function detailLines(details: unknown): string[] {
+  if (!Array.isArray(details)) return []
+  return details
+    .filter((d): d is { row?: unknown; message: string } => !!d && typeof d === 'object' && typeof (d as { message?: unknown }).message === 'string')
+    .map((d) => (d.row === undefined || d.row === null || d.row === 0 ? d.message : `Row ${String(d.row)}: ${d.message}`))
+}

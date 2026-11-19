@@ -24,7 +24,8 @@ export default function Rules() {
   const body = data.data as Record<string, unknown> | unknown[] | null
   // the contract says "the rows in force plus verification_status and source_reference": accept a bare array or an object
   const rows = Array.isArray(body) ? body : body && Array.isArray((body as Record<string, unknown>).rows) ? ((body as Record<string, unknown>).rows as unknown[]) : null
-  const status = body && !Array.isArray(body) ? (body as { rule_status?: import('../api/gst').RuleStatus }).rule_status : undefined
+  // the server sends { on, status: { overall, counts }, rows }
+  const overall = body && !Array.isArray(body) ? (body as { status?: { overall?: string } }).status?.overall : undefined
 
   return (
     <Page title="GST rules (read-only)">
@@ -33,7 +34,7 @@ export default function Rules() {
         <Field label="In force on">
           <input type="date" className={input} value={on} onChange={(e) => setOn(e.target.value)} />
         </Field>
-        {status && <RuleBadge status={status} />}
+        {overall && <RuleBadge worst={overall} />}
       </div>
       <Tabs tabs={TABLES} value={tab} onChange={setTab} />
       <ErrorBox error={data.error} />

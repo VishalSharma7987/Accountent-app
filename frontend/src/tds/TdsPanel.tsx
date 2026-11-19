@@ -74,7 +74,7 @@ export function TdsPanel({ clientId, base, counterLedgerId, natures, items, onCh
   const set = (i: number, patch: Partial<TdsItemIn>) => onChange(items.map((it, k) => (k === i ? { ...it, ...patch } : it)))
   const dedOf = (id: string): Deductee | undefined => deductees.data?.find((d) => d.ledger_id === id)
   const activeDeductees = (deductees.data ?? []).filter((d) => d.is_active)
-  const outOf = (i: number) => preview?.tds.items.find((o) => o.item_no === i + 1)
+  const outOf = (i: number) => preview?.tds?.items.find((o) => o.item_no === i + 1)
   const itemErrors = (i: number) => (preview?.errors ?? []).filter((e) => e.line_no === i + 1)
   const headerErrors = (preview?.errors ?? []).filter((e) => e.line_no === null)
 
@@ -190,7 +190,7 @@ export function TdsPanel({ clientId, base, counterLedgerId, natures, items, onCh
           ))}
         </ul>
       )}
-      {preview && (
+      {preview?.tds && (
         <div className="space-y-2">
           <table className="min-w-full border-collapse">
             <thead>

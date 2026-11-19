@@ -297,6 +297,8 @@ export interface Party {
   msme_activity: MsmeActivity | null
   udyam_registration_date: string | null
   msme_agreed_days: number | null
+  /** how the party is registered for GST (decides B2B / B2C and the supplier kind in the GST workings); null = not stated */
+  gst_registration_type?: string | null
 }
 export type PartyBody = Omit<Party, 'ledger_id' | 'ledger_name' | 'nature'>
 
