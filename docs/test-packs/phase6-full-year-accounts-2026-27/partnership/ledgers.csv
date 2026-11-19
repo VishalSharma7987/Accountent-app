@@ -1,0 +1,20 @@
+ledger_name,group_name,opening_dr,opening_cr
+Cash,Cash-in-hand,0.00,0.00
+HDFC Bank,Bank Accounts,420000.00,0.00
+Client Alpha,Sundry Debtors,110000.00,0.00
+Vendor Z,Sundry Creditors,0.00,30000.00
+Outstanding Expenses,Current Liabilities,0.00,0.00
+Anil Sharma Capital A/c,Capital Account,0.00,300000.00
+Anil Sharma Current A/c,Capital Account,0.00,0.00
+Anil Sharma Drawings,Capital Account,0.00,0.00
+Rakesh Verma Capital A/c,Capital Account,0.00,200000.00
+Rakesh Verma Current A/c,Capital Account,0.00,0.00
+Rakesh Verma Drawings,Capital Account,0.00,0.00
+Service Income,Sales Accounts,0.00,0.00
+Salary,Indirect Expenses,0.00,0.00
+Rent,Indirect Expenses,0.00,0.00
+Electricity,Indirect Expenses,0.00,0.00
+Telephone & Internet,Indirect Expenses,0.00,0.00
+Office Expenses,Indirect Expenses,0.00,0.00
+Printing & Stationery,Indirect Expenses,0.00,0.00
+Audit Fees,Indirect Expenses,0.00,0.00

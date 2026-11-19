@@ -1,0 +1,8 @@
+ref_id,adj_type,as_on_date,amount,debit_ledger,credit_ledger,party_ledger,rate_percent,partner,months,basis_note
+A1,outstanding_expense,2027-03-31,5000.00,Rent,Outstanding Expenses,,,,,Rent for March 2027 not yet paid
+A2,prepaid_expense,2027-03-31,2000.00,Prepaid Expenses,Electricity,,,,,Electricity bill of 10-03-2027 covers 15-03 to 14-04: the April part is prepaid
+A3,accrued_income,2027-03-31,1200.00,Accrued Income,Interest Income,,,,,Interest on fixed deposit earned for the quarter but not yet received
+A4,income_in_advance,2027-03-31,3000.00,Rent Received,Income Received in Advance,,,,,Rent received includes 3000 for April 2027
+A5,bad_debt,2027-03-31,10000.00,,,Chopra Stores,,,,Chopra Stores cheque dishonoured and party untraceable: written off
+A6,provision_doubtful_debts,2027-03-31,,,,,5.0000,,,Provision at 5 percent of closing debtors after the bad debt
+A7,book_depreciation,2027-03-31,,,,,,,,Companies Act depreciation run for the year

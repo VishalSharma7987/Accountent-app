@@ -1,0 +1,5 @@
+# Phase 6 acceptance pack: period-end and final accounts (dummy, synthetic data only).
+# Three full-year clients, each in its own folder with the same file names. Every expected_*.csv value is hand-calculated (WORKING.md).
+# This file is the marker that keeps the Phase 1-5 pack runners away from this folder.
+pack: phase6-full-year-accounts-2026-27
+clients: [proprietor, partnership, company]

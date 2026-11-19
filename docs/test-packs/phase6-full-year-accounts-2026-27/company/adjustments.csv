@@ -1,0 +1,6 @@
+ref_id,adj_type,as_on_date,amount,debit_ledger,credit_ledger,party_ledger,rate_percent,partner,months,basis_note
+A1,outstanding_expense,2026-03-31,3000.00,Rent,Outstanding Expenses,,,,,Rent for March 2026 not yet paid
+A2,book_depreciation,2026-03-31,,,,,,,,Companies Act depreciation run for 2025-26
+B1,outstanding_expense,2027-03-31,3000.00,Rent,Outstanding Expenses,,,,,Rent for March 2027 not yet paid
+B2,prepaid_expense,2027-03-31,2000.00,Prepaid Expenses,Office Expenses,,,,,Office expenses paid on 31-10-2026 include 2000 for April 2027
+B3,book_depreciation,2027-03-31,,,,,,,,Companies Act depreciation run for 2026-27

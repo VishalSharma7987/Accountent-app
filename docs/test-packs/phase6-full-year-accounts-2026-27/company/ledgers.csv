@@ -1,0 +1,23 @@
+ledger_name,group_name,opening_dr,opening_cr
+Cash,Cash-in-hand,0.00,0.00
+HDFC Bank,Bank Accounts,500000.00,0.00
+Share Capital,Capital Account,0.00,500000.00
+Surplus in Profit & Loss,Reserves & Surplus,0.00,0.00
+Opening Stock,Stock-in-hand,0.00,0.00
+Plant & Machinery,Fixed Assets,0.00,0.00
+Delta Retail,Sundry Debtors,0.00,0.00
+Echo Stores,Sundry Debtors,0.00,0.00
+Supplier S1,Sundry Creditors,0.00,0.00
+Term Loan,Loans (Liability),0.00,0.00
+Outstanding Expenses,Current Liabilities,0.00,0.00
+Prepaid Expenses,Current Assets,0.00,0.00
+Purchases,Purchase Accounts,0.00,0.00
+Sales,Sales Accounts,0.00,0.00
+Salary,Indirect Expenses,0.00,0.00
+Rent,Indirect Expenses,0.00,0.00
+Electricity,Indirect Expenses,0.00,0.00
+Telephone & Internet,Indirect Expenses,0.00,0.00
+Office Expenses,Indirect Expenses,0.00,0.00
+Bank Charges,Indirect Expenses,0.00,0.00
+Interest on Term Loan,Indirect Expenses,0.00,0.00
+Interest Income,Indirect Incomes,0.00,0.00

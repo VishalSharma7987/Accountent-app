@@ -1,0 +1,9 @@
+# Ramesh Hardware Traders - trading proprietorship, FY 2026-27 (dummy data only)
+name: Ramesh Hardware Traders
+entity_type: proprietorship
+business_type: trading
+gst_type: regular
+proprietor_name: Ramesh Gupta
+fy_start: 2026-04-01
+years: ["2026-27"]
+close_years: ["2026-27"]

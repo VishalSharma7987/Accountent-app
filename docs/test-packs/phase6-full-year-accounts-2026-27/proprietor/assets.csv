@@ -1,0 +1,4 @@
+asset_no,name,asset_ledger,accum_ledger,it_block,sched2_class,life_years,residual,method,life_override_reason
+FU-1,Office furniture,Furniture & Fixtures,Accumulated Depreciation,furniture_fittings,furniture_fittings,,0.00,slm,
+PM-1,Packing machine,Plant & Machinery,Accumulated Depreciation,plant_machinery_general,plant_machinery_general,,5000.00,slm,
+PM-2,Sealing machine,Plant & Machinery,Accumulated Depreciation,plant_machinery_general,plant_machinery_general,,2500.00,slm,

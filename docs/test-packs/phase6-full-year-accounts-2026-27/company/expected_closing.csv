@@ -1,0 +1,15 @@
+fy,step,ledger_name,debit,credit
+2025-26,trading,Sales,700000.00,0.00
+2025-26,trading,Opening Stock,110000.00,0.00
+2025-26,trading,Purchases,0.00,450000.00
+2025-26,trading,Trading Account,0.00,360000.00
+2025-26,profit_loss,Trading Account,360000.00,0.00
+2025-26,profit_loss,Interest Income,4000.00,0.00
+2025-26,profit_loss,Salary,0.00,120000.00
+2025-26,profit_loss,Rent,0.00,36000.00
+2025-26,profit_loss,Interest on Term Loan,0.00,8000.00
+2025-26,profit_loss,Bank Charges,0.00,1000.00
+2025-26,profit_loss,Depreciation,0.00,14263.01
+2025-26,profit_loss,Profit & Loss Account,0.00,184736.99
+2025-26,appropriation,Profit & Loss Account,184736.99,0.00
+2025-26,appropriation,Surplus in Profit & Loss,0.00,184736.99

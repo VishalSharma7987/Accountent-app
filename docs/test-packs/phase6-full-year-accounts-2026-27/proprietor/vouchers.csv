@@ -1,0 +1,101 @@
+ref_id,date,voucher_type,ledger_name,debit,credit,narration,reference_no,party_ledger
+P01,2026-04-15,purchase,Purchases,300000.00,0.00,Goods bought from Sharma Suppliers,SS/2026/101,Sharma Suppliers
+P01,2026-04-15,purchase,Sharma Suppliers,0.00,300000.00,Goods bought from Sharma Suppliers,SS/2026/101,Sharma Suppliers
+S01,2026-04-20,sales,Anand Traders,200000.00,0.00,Goods sold to Anand Traders,INV/001,Anand Traders
+S01,2026-04-20,sales,Sales,0.00,200000.00,Goods sold to Anand Traders,INV/001,Anand Traders
+D05,2026-05-01,payment,Drawings A/c,25000.00,0.00,Drawings by proprietor for household use,DRW-01,
+D05,2026-05-01,payment,HDFC Bank,0.00,25000.00,Drawings by proprietor for household use,DRW-01,
+S03,2026-05-12,sales,Bhatia & Sons,150000.00,0.00,Goods sold to Bhatia & Sons,INV/005,Bhatia & Sons
+S03,2026-05-12,sales,Sales,0.00,150000.00,Goods sold to Bhatia & Sons,INV/005,Bhatia & Sons
+PY01,2026-05-20,payment,Sharma Suppliers,210000.00,0.00,Part payment to Sharma Suppliers,CHQ10001,Sharma Suppliers
+PY01,2026-05-20,payment,HDFC Bank,0.00,210000.00,Part payment to Sharma Suppliers,CHQ10001,Sharma Suppliers
+CS1,2026-05-30,sales,Cash,50000.00,0.00,Cash sales at the counter,CS-001,
+CS1,2026-05-30,sales,Sales,0.00,50000.00,Cash sales at the counter,CS-001,
+R01,2026-05-31,receipt,HDFC Bank,170000.00,0.00,Receipt from Anand Traders,UTR260531A,Anand Traders
+R01,2026-05-31,receipt,Anand Traders,0.00,170000.00,Receipt from Anand Traders,UTR260531A,Anand Traders
+D01,2026-06-15,payment,Drawings A/c,25000.00,0.00,Drawings by proprietor for household use,DRW-02,
+D01,2026-06-15,payment,HDFC Bank,0.00,25000.00,Drawings by proprietor for household use,DRW-02,
+P03,2026-06-20,purchase,Purchases,150000.00,0.00,Goods bought from Yadav Wholesale,YW/0455,Yadav Wholesale
+P03,2026-06-20,purchase,Yadav Wholesale,0.00,150000.00,Goods bought from Yadav Wholesale,YW/0455,Yadav Wholesale
+S05,2026-06-25,sales,Chopra Stores,150000.00,0.00,Goods sold to Chopra Stores,INV/008,Chopra Stores
+S05,2026-06-25,sales,Sales,0.00,150000.00,Goods sold to Chopra Stores,INV/008,Chopra Stores
+E01,2026-06-30,payment,Salary,30000.00,0.00,Salary for April to June,SAL-Q1,
+E01,2026-06-30,payment,HDFC Bank,0.00,30000.00,Salary for April to June,SAL-Q1,
+E05,2026-06-30,payment,Rent,15000.00,0.00,Rent for April to June,RENT-Q1,
+E05,2026-06-30,payment,HDFC Bank,0.00,15000.00,Rent for April to June,RENT-Q1,
+R03,2026-07-05,receipt,HDFC Bank,160000.00,0.00,Receipt from Bhatia & Sons,UTR260705B,Bhatia & Sons
+R03,2026-07-05,receipt,Bhatia & Sons,0.00,160000.00,Receipt from Bhatia & Sons,UTR260705B,Bhatia & Sons
+P05,2026-07-12,purchase,Purchases,50000.00,0.00,Cash purchase of goods,CP-001,
+P05,2026-07-12,purchase,Cash,0.00,50000.00,Cash purchase of goods,CP-001,
+F01,2026-07-12,payment,Freight Inward,30000.00,0.00,Freight inward paid in cash,FRT-01,
+F01,2026-07-12,payment,Cash,0.00,30000.00,Freight inward paid in cash,FRT-01,
+E11,2026-07-15,payment,Telephone & Internet,6000.00,0.00,Telephone and internet bills,TEL-01,
+E11,2026-07-15,payment,HDFC Bank,0.00,6000.00,Telephone and internet bills,TEL-01,
+PY03,2026-07-30,payment,Yadav Wholesale,95000.00,0.00,Part payment to Yadav Wholesale,CHQ10007,Yadav Wholesale
+PY03,2026-07-30,payment,HDFC Bank,0.00,95000.00,Part payment to Yadav Wholesale,CHQ10007,Yadav Wholesale
+P02,2026-08-10,purchase,Purchases,200000.00,0.00,Goods bought from Sharma Suppliers,SS/2026/188,Sharma Suppliers
+P02,2026-08-10,purchase,Sharma Suppliers,0.00,200000.00,Goods bought from Sharma Suppliers,SS/2026/188,Sharma Suppliers
+R05,2026-08-25,receipt,HDFC Bank,135000.00,0.00,Receipt from Chopra Stores,UTR260825C,Chopra Stores
+R05,2026-08-25,receipt,Chopra Stores,0.00,135000.00,Receipt from Chopra Stores,UTR260825C,Chopra Stores
+E09,2026-08-31,payment,Electricity,10000.00,0.00,Electricity bills,ELEC-01,
+E09,2026-08-31,payment,HDFC Bank,0.00,10000.00,Electricity bills,ELEC-01,
+DN1,2026-09-05,debit_note,Yadav Wholesale,10000.00,0.00,Goods returned to Yadav Wholesale against bill YW/0455,YW/0455,Yadav Wholesale
+DN1,2026-09-05,debit_note,Purchase Returns,0.00,10000.00,Goods returned to Yadav Wholesale against bill YW/0455,YW/0455,Yadav Wholesale
+D02,2026-09-15,payment,Drawings A/c,25000.00,0.00,Drawings by proprietor for household use,DRW-03,
+D02,2026-09-15,payment,HDFC Bank,0.00,25000.00,Drawings by proprietor for household use,DRW-03,
+S02,2026-09-18,sales,Anand Traders,200000.00,0.00,Goods sold to Anand Traders,INV/014,Anand Traders
+S02,2026-09-18,sales,Sales,0.00,200000.00,Goods sold to Anand Traders,INV/014,Anand Traders
+CS2,2026-09-30,sales,Cash,50000.00,0.00,Cash sales at the counter,CS-002,
+CS2,2026-09-30,sales,Sales,0.00,50000.00,Cash sales at the counter,CS-002,
+E02,2026-09-30,payment,Salary,30000.00,0.00,Salary for July to September,SAL-Q2,
+E02,2026-09-30,payment,HDFC Bank,0.00,30000.00,Salary for July to September,SAL-Q2,
+E06,2026-09-30,payment,Rent,15000.00,0.00,Rent for July to September,RENT-Q2,
+E06,2026-09-30,payment,HDFC Bank,0.00,15000.00,Rent for July to September,RENT-Q2,
+P06,2026-10-01,purchase,Plant & Machinery,100000.00,0.00,Packing machine bought from Kay Engineering,KE/2026/77,Kay Engineering
+P06,2026-10-01,purchase,Kay Engineering,0.00,100000.00,Packing machine bought from Kay Engineering,KE/2026/77,Kay Engineering
+CN1,2026-10-10,credit_note,Sales Returns,20000.00,0.00,Sales return from Anand Traders against invoice INV/001,CN/001,Anand Traders
+CN1,2026-10-10,credit_note,Anand Traders,0.00,20000.00,Sales return from Anand Traders against invoice INV/001,CN/001,Anand Traders
+P04,2026-11-05,purchase,Purchases,100000.00,0.00,Goods bought from Yadav Wholesale,YW/0612,Yadav Wholesale
+P04,2026-11-05,purchase,Yadav Wholesale,0.00,100000.00,Goods bought from Yadav Wholesale,YW/0612,Yadav Wholesale
+P07,2026-11-15,purchase,Plant & Machinery,50000.00,0.00,Sealing machine bought from Kay Engineering,KE/2026/91,Kay Engineering
+P07,2026-11-15,purchase,Kay Engineering,0.00,50000.00,Sealing machine bought from Kay Engineering,KE/2026/91,Kay Engineering
+R02,2026-11-30,receipt,HDFC Bank,170000.00,0.00,Receipt from Anand Traders,UTR261130A,Anand Traders
+R02,2026-11-30,receipt,Anand Traders,0.00,170000.00,Receipt from Anand Traders,UTR261130A,Anand Traders
+S04,2026-12-02,sales,Bhatia & Sons,200000.00,0.00,Goods sold to Bhatia & Sons,INV/021,Bhatia & Sons
+S04,2026-12-02,sales,Sales,0.00,200000.00,Goods sold to Bhatia & Sons,INV/021,Bhatia & Sons
+D03,2026-12-15,payment,Drawings A/c,25000.00,0.00,Drawings by proprietor for household use,DRW-04,
+D03,2026-12-15,payment,HDFC Bank,0.00,25000.00,Drawings by proprietor for household use,DRW-04,
+PY02,2026-12-15,payment,Sharma Suppliers,210000.00,0.00,Payment to Sharma Suppliers,CHQ10015,Sharma Suppliers
+PY02,2026-12-15,payment,HDFC Bank,0.00,210000.00,Payment to Sharma Suppliers,CHQ10015,Sharma Suppliers
+PY05,2026-12-20,payment,Kay Engineering,50000.00,0.00,Part payment to Kay Engineering,CHQ10016,Kay Engineering
+PY05,2026-12-20,payment,HDFC Bank,0.00,50000.00,Part payment to Kay Engineering,CHQ10016,Kay Engineering
+E03,2026-12-31,payment,Salary,30000.00,0.00,Salary for October to December,SAL-Q3,
+E03,2026-12-31,payment,HDFC Bank,0.00,30000.00,Salary for October to December,SAL-Q3,
+E07,2026-12-31,payment,Rent,15000.00,0.00,Rent for October to December,RENT-Q3,
+E07,2026-12-31,payment,HDFC Bank,0.00,15000.00,Rent for October to December,RENT-Q3,
+R04,2027-01-12,receipt,HDFC Bank,160000.00,0.00,Receipt from Bhatia & Sons,UTR270112B,Bhatia & Sons
+R04,2027-01-12,receipt,Bhatia & Sons,0.00,160000.00,Receipt from Bhatia & Sons,UTR270112B,Bhatia & Sons
+E12,2027-01-15,payment,Telephone & Internet,6000.00,0.00,Telephone and internet bills,TEL-02,
+E12,2027-01-15,payment,HDFC Bank,0.00,6000.00,Telephone and internet bills,TEL-02,
+S06,2027-01-22,sales,Chopra Stores,150000.00,0.00,Goods sold to Chopra Stores,INV/030,Chopra Stores
+S06,2027-01-22,sales,Sales,0.00,150000.00,Goods sold to Chopra Stores,INV/030,Chopra Stores
+R06,2027-02-15,receipt,HDFC Bank,135000.00,0.00,Receipt from Chopra Stores,UTR270215C,Chopra Stores
+R06,2027-02-15,receipt,Chopra Stores,0.00,135000.00,Receipt from Chopra Stores,UTR270215C,Chopra Stores
+PY04,2027-02-20,payment,Yadav Wholesale,95000.00,0.00,Payment to Yadav Wholesale,CHQ10020,Yadav Wholesale
+PY04,2027-02-20,payment,HDFC Bank,0.00,95000.00,Payment to Yadav Wholesale,CHQ10020,Yadav Wholesale
+CS3,2027-02-27,sales,Cash,50000.00,0.00,Cash sales at the counter,CS-003,
+CS3,2027-02-27,sales,Sales,0.00,50000.00,Cash sales at the counter,CS-003,
+E08,2027-02-28,payment,Rent,10000.00,0.00,Rent for January and February,RENT-Q4,
+E08,2027-02-28,payment,HDFC Bank,0.00,10000.00,Rent for January and February,RENT-Q4,
+E10,2027-03-10,payment,Electricity,10000.00,0.00,Electricity bill covering 15-03-2027 to 14-04-2027,ELEC-02,
+E10,2027-03-10,payment,HDFC Bank,0.00,10000.00,Electricity bill covering 15-03-2027 to 14-04-2027,ELEC-02,
+RR1,2027-03-15,receipt,HDFC Bank,15000.00,0.00,"Rent received for the sublet premises (includes 3,000 for April 2027)",RENT/0327,
+RR1,2027-03-15,receipt,Rent Received,0.00,15000.00,"Rent received for the sublet premises (includes 3,000 for April 2027)",RENT/0327,
+C01,2027-03-20,contra,HDFC Bank,75000.00,0.00,Cash deposited in the bank,DEP-01,
+C01,2027-03-20,contra,Cash,0.00,75000.00,Cash deposited in the bank,DEP-01,
+I01,2027-03-30,receipt,HDFC Bank,5000.00,0.00,Interest received on fixed deposit,INT/FD/01,
+I01,2027-03-30,receipt,Interest Income,0.00,5000.00,Interest received on fixed deposit,INT/FD/01,
+E04,2027-03-31,payment,Salary,30000.00,0.00,Salary for January to March,SAL-Q4,
+E04,2027-03-31,payment,HDFC Bank,0.00,30000.00,Salary for January to March,SAL-Q4,
+E13,2027-03-31,payment,Bank Charges,2000.00,0.00,Bank charges for the year,BC-01,
+E13,2027-03-31,payment,HDFC Bank,0.00,2000.00,Bank charges for the year,BC-01,

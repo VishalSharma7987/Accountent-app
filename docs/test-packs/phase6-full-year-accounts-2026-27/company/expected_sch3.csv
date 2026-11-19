@@ -1,0 +1,60 @@
+fy,statement,label,amount,previous_amount
+2025-26,sch3_balance_sheet,Shareholders' funds,684736.99,
+2025-26,sch3_balance_sheet,Share capital,500000.00,
+2025-26,sch3_balance_sheet,Reserves and surplus,184736.99,
+2025-26,sch3_balance_sheet,Non-current liabilities,200000.00,
+2025-26,sch3_balance_sheet,Long-term borrowings,200000.00,
+2025-26,sch3_balance_sheet,Current liabilities,53000.00,
+2025-26,sch3_balance_sheet,Trade payables,50000.00,
+2025-26,sch3_balance_sheet,Other current liabilities,3000.00,
+2025-26,sch3_balance_sheet,TOTAL EQUITY AND LIABILITIES,937736.99,
+2025-26,sch3_balance_sheet,Non-current assets,285736.99,
+2025-26,sch3_balance_sheet,"Property, plant and equipment",285736.99,
+2025-26,sch3_balance_sheet,Current assets,652000.00,
+2025-26,sch3_balance_sheet,Inventories,110000.00,
+2025-26,sch3_balance_sheet,Trade receivables,50000.00,
+2025-26,sch3_balance_sheet,Cash and cash equivalents,492000.00,
+2025-26,sch3_balance_sheet,TOTAL ASSETS,937736.99,
+2025-26,sch3_profit_loss,Revenue from operations,700000.00,
+2025-26,sch3_profit_loss,Other income,4000.00,
+2025-26,sch3_profit_loss,Total revenue,704000.00,
+2025-26,sch3_profit_loss,Expenses,519263.01,
+2025-26,sch3_profit_loss,Purchases of stock-in-trade,450000.00,
+2025-26,sch3_profit_loss,"Changes in inventories of finished goods, work-in-progress and stock-in-trade",-110000.00,
+2025-26,sch3_profit_loss,Employee benefits expense,120000.00,
+2025-26,sch3_profit_loss,Finance costs,8000.00,
+2025-26,sch3_profit_loss,Depreciation and amortisation expense,14263.01,
+2025-26,sch3_profit_loss,Other expenses,37000.00,
+2025-26,sch3_profit_loss,Total expenses,519263.01,
+2025-26,sch3_profit_loss,Profit / (loss) before tax,184736.99,
+2025-26,sch3_profit_loss,Profit / (loss) for the year,184736.99,
+2026-27,sch3_balance_sheet,Shareholders' funds,810717.54,684736.99
+2026-27,sch3_balance_sheet,Share capital,500000.00,500000.00
+2026-27,sch3_balance_sheet,Reserves and surplus,310717.54,184736.99
+2026-27,sch3_balance_sheet,Non-current liabilities,150000.00,200000.00
+2026-27,sch3_balance_sheet,Long-term borrowings,150000.00,200000.00
+2026-27,sch3_balance_sheet,Current liabilities,103000.00,53000.00
+2026-27,sch3_balance_sheet,Trade payables,100000.00,50000.00
+2026-27,sch3_balance_sheet,Other current liabilities,3000.00,3000.00
+2026-27,sch3_balance_sheet,TOTAL EQUITY AND LIABILITIES,1063717.54,937736.99
+2026-27,sch3_balance_sheet,Non-current assets,384217.54,285736.99
+2026-27,sch3_balance_sheet,"Property, plant and equipment",384217.54,285736.99
+2026-27,sch3_balance_sheet,Current assets,679500.00,652000.00
+2026-27,sch3_balance_sheet,Inventories,125000.00,110000.00
+2026-27,sch3_balance_sheet,Trade receivables,350000.00,50000.00
+2026-27,sch3_balance_sheet,Cash and cash equivalents,202500.00,492000.00
+2026-27,sch3_balance_sheet,Other current assets,2000.00,0.00
+2026-27,sch3_balance_sheet,TOTAL ASSETS,1063717.54,937736.99
+2026-27,sch3_profit_loss,Revenue from operations,1300000.00,700000.00
+2026-27,sch3_profit_loss,Other income,5000.00,4000.00
+2026-27,sch3_profit_loss,Total revenue,1305000.00,704000.00
+2026-27,sch3_profit_loss,Expenses,1179019.45,519263.01
+2026-27,sch3_profit_loss,Purchases of stock-in-trade,900000.00,450000.00
+2026-27,sch3_profit_loss,"Changes in inventories of finished goods, work-in-progress and stock-in-trade",-15000.00,-110000.00
+2026-27,sch3_profit_loss,Employee benefits expense,180000.00,120000.00
+2026-27,sch3_profit_loss,Finance costs,12000.00,8000.00
+2026-27,sch3_profit_loss,Depreciation and amortisation expense,21519.45,14263.01
+2026-27,sch3_profit_loss,Other expenses,80500.00,37000.00
+2026-27,sch3_profit_loss,Total expenses,1179019.45,519263.01
+2026-27,sch3_profit_loss,Profit / (loss) before tax,125980.55,184736.99
+2026-27,sch3_profit_loss,Profit / (loss) for the year,125980.55,184736.99

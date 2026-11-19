@@ -1,0 +1,4 @@
+fy,asset_no,method,wdv_rate_percent,days_used,days_in_year,opening_accumulated,depreciation,closing_accumulated,rule_status
+2026-27,FU-1,slm,,365,365,0.00,10000.00,10000.00,pending
+2026-27,PM-1,slm,,182,365,0.00,3157.99,3157.99,pending
+2026-27,PM-2,slm,,137,365,0.00,1188.58,1188.58,pending

@@ -1,0 +1,9 @@
+# Sharma and Verma Associates - professional (service) partnership, profit ratio 3:2, FY 2026-27 (dummy data only)
+name: Sharma and Verma Associates
+entity_type: partnership
+business_type: service
+gst_type: regular
+partners: [Anil Sharma, Rakesh Verma]
+fy_start: 2026-04-01
+years: ["2026-27"]
+close_years: ["2026-27"]

@@ -1,0 +1,8 @@
+# Orion Trading Company Private Limited - trading company, Schedule III, FY 2025-26 (closed in the pack) and FY 2026-27 (dummy data only)
+name: Orion Trading Company Private Limited
+entity_type: company
+business_type: trading
+gst_type: regular
+fy_start: 2025-04-01
+years: ["2025-26", "2026-27"]
+close_years: ["2025-26"]

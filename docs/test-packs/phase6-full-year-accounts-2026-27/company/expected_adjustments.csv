@@ -1,0 +1,11 @@
+ref_id,ledger_name,debit,credit
+A1,Rent,3000.00,0.00
+A1,Outstanding Expenses,0.00,3000.00
+A2,Depreciation,14263.01,0.00
+A2,Accumulated Depreciation,0.00,14263.01
+B1,Rent,3000.00,0.00
+B1,Outstanding Expenses,0.00,3000.00
+B2,Prepaid Expenses,2000.00,0.00
+B2,Office Expenses,0.00,2000.00
+B3,Depreciation,21519.45,0.00
+B3,Accumulated Depreciation,0.00,21519.45

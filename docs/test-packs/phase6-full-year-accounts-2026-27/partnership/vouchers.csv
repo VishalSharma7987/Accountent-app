@@ -1,0 +1,59 @@
+ref_id,date,voucher_type,ledger_name,debit,credit,narration,reference_no,party_ledger
+F01,2026-04-30,sales,Client Alpha,200000.00,0.00,Professional fees billed to Client Alpha for April to July,FEE/001,Client Alpha
+F01,2026-04-30,sales,Service Income,0.00,200000.00,Professional fees billed to Client Alpha for April to July,FEE/001,Client Alpha
+D01,2026-05-01,payment,Anil Sharma Drawings,20000.00,0.00,Drawings of Anil Sharma,DRW-A1,
+D01,2026-05-01,payment,HDFC Bank,0.00,20000.00,Drawings of Anil Sharma,DRW-A1,
+E01,2026-06-30,payment,Salary,60000.00,0.00,Salary for April to June,SAL-Q1,
+E01,2026-06-30,payment,HDFC Bank,0.00,60000.00,Salary for April to June,SAL-Q1,
+E05,2026-06-30,payment,Rent,30000.00,0.00,Rent for April to June,RENT-Q1,
+E05,2026-06-30,payment,HDFC Bank,0.00,30000.00,Rent for April to June,RENT-Q1,
+F04,2026-06-30,sales,HDFC Bank,100000.00,0.00,Professional fees received directly from walk-in clients,FEE/B01,
+F04,2026-06-30,sales,Service Income,0.00,100000.00,Professional fees received directly from walk-in clients,FEE/B01,
+D03,2026-07-01,payment,Rakesh Verma Drawings,30000.00,0.00,Drawings of Rakesh Verma,DRW-B1,
+D03,2026-07-01,payment,HDFC Bank,0.00,30000.00,Drawings of Rakesh Verma,DRW-B1,
+G01,2026-07-15,receipt,HDFC Bank,305000.00,0.00,Receipt from Client Alpha,UTR260715A,Client Alpha
+G01,2026-07-15,receipt,Client Alpha,0.00,305000.00,Receipt from Client Alpha,UTR260715A,Client Alpha
+V01,2026-07-31,payment,Vendor Z,20000.00,0.00,Payment to Vendor Z,CHQ20001,Vendor Z
+V01,2026-07-31,payment,HDFC Bank,0.00,20000.00,Payment to Vendor Z,CHQ20001,Vendor Z
+F02,2026-08-31,sales,Client Alpha,200000.00,0.00,Professional fees billed to Client Alpha for August to November,FEE/002,Client Alpha
+F02,2026-08-31,sales,Service Income,0.00,200000.00,Professional fees billed to Client Alpha for August to November,FEE/002,Client Alpha
+E09,2026-08-31,payment,Electricity,15000.00,0.00,Electricity bills,ELEC-01,
+E09,2026-08-31,payment,HDFC Bank,0.00,15000.00,Electricity bills,ELEC-01,
+D02,2026-09-01,payment,Anil Sharma Drawings,20000.00,0.00,Drawings of Anil Sharma,DRW-A2,
+D02,2026-09-01,payment,HDFC Bank,0.00,20000.00,Drawings of Anil Sharma,DRW-A2,
+E11,2026-09-15,payment,Telephone & Internet,12000.00,0.00,Telephone and internet bills,TEL-01,
+E11,2026-09-15,payment,HDFC Bank,0.00,12000.00,Telephone and internet bills,TEL-01,
+E02,2026-09-30,payment,Salary,60000.00,0.00,Salary for July to September,SAL-Q2,
+E02,2026-09-30,payment,HDFC Bank,0.00,60000.00,Salary for July to September,SAL-Q2,
+E06,2026-09-30,payment,Rent,30000.00,0.00,Rent for July to September,RENT-Q2,
+E06,2026-09-30,payment,HDFC Bank,0.00,30000.00,Rent for July to September,RENT-Q2,
+H01,2026-10-01,receipt,HDFC Bank,50000.00,0.00,Additional capital introduced by Rakesh Verma,CAP/001,
+H01,2026-10-01,receipt,Rakesh Verma Capital A/c,0.00,50000.00,Additional capital introduced by Rakesh Verma,CAP/001,
+F05,2026-10-31,sales,HDFC Bank,100000.00,0.00,Professional fees received directly from walk-in clients,FEE/B02,
+F05,2026-10-31,sales,Service Income,0.00,100000.00,Professional fees received directly from walk-in clients,FEE/B02,
+E15,2026-11-30,payment,Office Expenses,40000.00,0.00,Office expenses,OFF-01,
+E15,2026-11-30,payment,HDFC Bank,0.00,40000.00,Office expenses,OFF-01,
+F03,2026-12-31,sales,Client Alpha,200000.00,0.00,Professional fees billed to Client Alpha for December to March,FEE/003,Client Alpha
+F03,2026-12-31,sales,Service Income,0.00,200000.00,Professional fees billed to Client Alpha for December to March,FEE/003,Client Alpha
+E03,2026-12-31,payment,Salary,60000.00,0.00,Salary for October to December,SAL-Q3,
+E03,2026-12-31,payment,HDFC Bank,0.00,60000.00,Salary for October to December,SAL-Q3,
+E07,2026-12-31,payment,Rent,30000.00,0.00,Rent for October to December,RENT-Q3,
+E07,2026-12-31,payment,HDFC Bank,0.00,30000.00,Rent for October to December,RENT-Q3,
+D04,2027-01-01,payment,Anil Sharma Drawings,20000.00,0.00,Drawings of Anil Sharma,DRW-A3,
+D04,2027-01-01,payment,HDFC Bank,0.00,20000.00,Drawings of Anil Sharma,DRW-A3,
+G02,2027-01-20,receipt,HDFC Bank,305000.00,0.00,Receipt from Client Alpha,UTR270120A,Client Alpha
+G02,2027-01-20,receipt,Client Alpha,0.00,305000.00,Receipt from Client Alpha,UTR270120A,Client Alpha
+E16,2027-01-31,payment,Printing & Stationery,6000.00,0.00,Printing and stationery,PRT-01,
+E16,2027-01-31,payment,HDFC Bank,0.00,6000.00,Printing and stationery,PRT-01,
+D05,2027-02-01,payment,Rakesh Verma Drawings,30000.00,0.00,Drawings of Rakesh Verma,DRW-B2,
+D05,2027-02-01,payment,HDFC Bank,0.00,30000.00,Drawings of Rakesh Verma,DRW-B2,
+E10,2027-02-28,payment,Electricity,15000.00,0.00,Electricity bills,ELEC-02,
+E10,2027-02-28,payment,HDFC Bank,0.00,15000.00,Electricity bills,ELEC-02,
+F06,2027-02-28,sales,HDFC Bank,100000.00,0.00,Professional fees received directly from walk-in clients,FEE/B03,
+F06,2027-02-28,sales,Service Income,0.00,100000.00,Professional fees received directly from walk-in clients,FEE/B03,
+E12,2027-03-15,payment,Telephone & Internet,12000.00,0.00,Telephone and internet bills,TEL-02,
+E12,2027-03-15,payment,HDFC Bank,0.00,12000.00,Telephone and internet bills,TEL-02,
+E04,2027-03-31,payment,Salary,60000.00,0.00,Salary for January to March,SAL-Q4,
+E04,2027-03-31,payment,HDFC Bank,0.00,60000.00,Salary for January to March,SAL-Q4,
+E08,2027-03-31,payment,Rent,30000.00,0.00,Rent for January to March,RENT-Q4,
+E08,2027-03-31,payment,HDFC Bank,0.00,30000.00,Rent for January to March,RENT-Q4,

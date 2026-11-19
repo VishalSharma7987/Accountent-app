@@ -1,0 +1,7 @@
+ledger_name,line_code,cf_class,note
+Salary,employee_benefits_expense,,Salaries are employee benefits expense
+Depreciation,depreciation_amortisation,,Depreciation of the Companies Act run
+Interest on Term Loan,finance_costs,,Interest on borrowings is a finance cost
+Term Loan,long_term_borrowings,,Term loan repayable beyond twelve months
+Outstanding Expenses,other_current_liabilities,,Expenses payable
+Prepaid Expenses,other_current_assets,,Expenses paid in advance

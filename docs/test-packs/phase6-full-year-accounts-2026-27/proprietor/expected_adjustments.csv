@@ -1,0 +1,15 @@
+ref_id,ledger_name,debit,credit
+A1,Rent,5000.00,0.00
+A1,Outstanding Expenses,0.00,5000.00
+A2,Prepaid Expenses,2000.00,0.00
+A2,Electricity,0.00,2000.00
+A3,Accrued Income,1200.00,0.00
+A3,Interest Income,0.00,1200.00
+A4,Rent Received,3000.00,0.00
+A4,Income Received in Advance,0.00,3000.00
+A5,Bad Debts,10000.00,0.00
+A5,Chopra Stores,0.00,10000.00
+A6,Provision for Doubtful Debts Expense,12000.00,0.00
+A6,Provision for Doubtful Debts,0.00,12000.00
+A7,Depreciation,14346.57,0.00
+A7,Accumulated Depreciation,0.00,14346.57

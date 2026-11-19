@@ -1,0 +1,4 @@
+asset_no,kind,event_date,put_to_use_date,amount,accumulated_dep_bf
+FU-1,opening,2026-04-01,2026-04-01,100000.00,0.00
+PM-1,purchase,2026-10-01,2026-10-01,100000.00,0.00
+PM-2,purchase,2026-11-15,2026-11-15,50000.00,0.00

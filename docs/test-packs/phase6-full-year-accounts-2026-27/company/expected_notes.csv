@@ -1,0 +1,82 @@
+fy,note_no,title,label,amount
+2025-26,1,Share capital,Share Capital,500000.00
+2025-26,1,Share capital,Total (Share capital),500000.00
+2025-26,2,Reserves and surplus,Surplus / (deficit) in the Statement of Profit and Loss for the year,184736.99
+2025-26,2,Reserves and surplus,Total (Reserves and surplus),184736.99
+2025-26,3,Long-term borrowings,Term Loan,200000.00
+2025-26,3,Long-term borrowings,Total (Long-term borrowings),200000.00
+2025-26,4,Trade payables,Supplier S1,50000.00
+2025-26,4,Trade payables,Total (Trade payables),50000.00
+2025-26,5,Other current liabilities,Outstanding Expenses,3000.00
+2025-26,5,Other current liabilities,Total (Other current liabilities),3000.00
+2025-26,6,"Property, plant and equipment",Gross block: opening,0.00
+2025-26,6,"Property, plant and equipment",Additions,300000.00
+2025-26,6,"Property, plant and equipment",Disposals,0.00
+2025-26,6,"Property, plant and equipment",Gross block: closing,300000.00
+2025-26,6,"Property, plant and equipment",Accumulated depreciation: opening,0.00
+2025-26,6,"Property, plant and equipment",Depreciation for the year,14263.01
+2025-26,6,"Property, plant and equipment",On disposals,0.00
+2025-26,6,"Property, plant and equipment",Accumulated depreciation: closing,14263.01
+2025-26,6,"Property, plant and equipment",Net block,285736.99
+2025-26,7,Inventories,Closing stock at cost,120000.00
+2025-26,7,Inventories,Less: write-down to net realisable value (AS 2),-10000.00
+2025-26,7,Inventories,Total (Inventories),110000.00
+2025-26,8,Trade receivables,Echo Stores,50000.00
+2025-26,8,Trade receivables,Total (Trade receivables),50000.00
+2025-26,9,Cash and cash equivalents,HDFC Bank,492000.00
+2025-26,9,Cash and cash equivalents,Total (Cash and cash equivalents),492000.00
+2025-26,10,Revenue from operations,Sales,700000.00
+2025-26,10,Revenue from operations,Total (Revenue from operations),700000.00
+2025-26,11,Other income,Interest Income,4000.00
+2025-26,11,Other income,Total (Other income),4000.00
+2025-26,12,Employee benefits expense,Salary,120000.00
+2025-26,12,Employee benefits expense,Total (Employee benefits expense),120000.00
+2025-26,13,Finance costs,Interest on Term Loan,8000.00
+2025-26,13,Finance costs,Total (Finance costs),8000.00
+2025-26,14,Other expenses,Rent,36000.00
+2025-26,14,Other expenses,Bank Charges,1000.00
+2025-26,14,Other expenses,Total (Other expenses),37000.00
+2026-27,1,Share capital,Share Capital,500000.00
+2026-27,1,Share capital,Total (Share capital),500000.00
+2026-27,2,Reserves and surplus,Surplus in Profit & Loss,184736.99
+2026-27,2,Reserves and surplus,Surplus / (deficit) in the Statement of Profit and Loss for the year,125980.55
+2026-27,2,Reserves and surplus,Total (Reserves and surplus),310717.54
+2026-27,3,Long-term borrowings,Term Loan,150000.00
+2026-27,3,Long-term borrowings,Total (Long-term borrowings),150000.00
+2026-27,4,Trade payables,Supplier S1,100000.00
+2026-27,4,Trade payables,Total (Trade payables),100000.00
+2026-27,5,Other current liabilities,Outstanding Expenses,3000.00
+2026-27,5,Other current liabilities,Total (Other current liabilities),3000.00
+2026-27,6,"Property, plant and equipment",Gross block: opening,300000.00
+2026-27,6,"Property, plant and equipment",Additions,120000.00
+2026-27,6,"Property, plant and equipment",Disposals,0.00
+2026-27,6,"Property, plant and equipment",Gross block: closing,420000.00
+2026-27,6,"Property, plant and equipment",Accumulated depreciation: opening,14263.01
+2026-27,6,"Property, plant and equipment",Depreciation for the year,21519.45
+2026-27,6,"Property, plant and equipment",On disposals,0.00
+2026-27,6,"Property, plant and equipment",Accumulated depreciation: closing,35782.46
+2026-27,6,"Property, plant and equipment",Net block,384217.54
+2026-27,7,Inventories,Closing stock at cost,130000.00
+2026-27,7,Inventories,Less: write-down to net realisable value (AS 2),-5000.00
+2026-27,7,Inventories,Total (Inventories),125000.00
+2026-27,8,Trade receivables,Delta Retail,300000.00
+2026-27,8,Trade receivables,Echo Stores,50000.00
+2026-27,8,Trade receivables,Total (Trade receivables),350000.00
+2026-27,9,Cash and cash equivalents,HDFC Bank,202500.00
+2026-27,9,Cash and cash equivalents,Total (Cash and cash equivalents),202500.00
+2026-27,10,Other current assets,Prepaid Expenses,2000.00
+2026-27,10,Other current assets,Total (Other current assets),2000.00
+2026-27,11,Revenue from operations,Sales,1300000.00
+2026-27,11,Revenue from operations,Total (Revenue from operations),1300000.00
+2026-27,12,Other income,Interest Income,5000.00
+2026-27,12,Other income,Total (Other income),5000.00
+2026-27,13,Employee benefits expense,Salary,180000.00
+2026-27,13,Employee benefits expense,Total (Employee benefits expense),180000.00
+2026-27,14,Finance costs,Interest on Term Loan,12000.00
+2026-27,14,Finance costs,Total (Finance costs),12000.00
+2026-27,15,Other expenses,Rent,36000.00
+2026-27,15,Other expenses,Electricity,24000.00
+2026-27,15,Other expenses,Telephone & Internet,9000.00
+2026-27,15,Other expenses,Office Expenses,10000.00
+2026-27,15,Other expenses,Bank Charges,1500.00
+2026-27,15,Other expenses,Total (Other expenses),80500.00

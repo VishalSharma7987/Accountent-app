@@ -1,0 +1,8 @@
+ref_id,adj_type,as_on_date,amount,debit_ledger,credit_ledger,party_ledger,rate_percent,partner,months,basis_note
+A1,outstanding_expense,2027-03-31,15000.00,Audit Fees,Outstanding Expenses,,,,,Audit fees for the year not yet billed
+A2,interest_on_capital,2027-03-31,,,,,,Anil Sharma,,Interest on capital at the deed rate
+A3,interest_on_capital,2027-03-31,,,,,,Rakesh Verma,,Interest on capital at the deed rate
+A4,interest_on_drawings,2027-03-31,,,,Anil Sharma Drawings,,Anil Sharma,,Interest on drawings at the deed rate
+A5,interest_on_drawings,2027-03-31,,,,Rakesh Verma Drawings,,Rakesh Verma,,Interest on drawings at the deed rate
+A6,partner_remuneration,2027-03-31,,,,,,Anil Sharma,12,Partner remuneration for 12 months
+A7,partner_remuneration,2027-03-31,,,,,,Rakesh Verma,6,Partner remuneration for 6 months (from 01-10-2026)

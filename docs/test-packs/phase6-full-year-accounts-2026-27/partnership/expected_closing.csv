@@ -1,0 +1,18 @@
+fy,step,ledger_name,debit,credit
+2026-27,trading,Service Income,900000.00,0.00
+2026-27,trading,Trading Account,0.00,900000.00
+2026-27,profit_loss,Trading Account,900000.00,0.00
+2026-27,profit_loss,Interest on Drawings,7472.87,0.00
+2026-27,profit_loss,Salary,0.00,240000.00
+2026-27,profit_loss,Rent,0.00,120000.00
+2026-27,profit_loss,Electricity,0.00,30000.00
+2026-27,profit_loss,Telephone & Internet,0.00,24000.00
+2026-27,profit_loss,Office Expenses,0.00,40000.00
+2026-27,profit_loss,Printing & Stationery,0.00,6000.00
+2026-27,profit_loss,Audit Fees,0.00,15000.00
+2026-27,profit_loss,Interest on Capital,0.00,52493.15
+2026-27,profit_loss,Partners Remuneration,0.00,84000.00
+2026-27,profit_loss,Profit & Loss Account,0.00,295979.72
+2026-27,appropriation,Profit & Loss Account,295979.72,0.00
+2026-27,appropriation,Anil Sharma Current A/c,0.00,177587.83
+2026-27,appropriation,Rakesh Verma Current A/c,0.00,118391.89

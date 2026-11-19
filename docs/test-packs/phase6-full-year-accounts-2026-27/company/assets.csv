@@ -1,0 +1,2 @@
+asset_no,name,asset_ledger,accum_ledger,it_block,sched2_class,life_years,residual,method,life_override_reason
+PM-1,Production plant,Plant & Machinery,Accumulated Depreciation,plant_machinery_general,plant_machinery_general,,15000.00,slm,

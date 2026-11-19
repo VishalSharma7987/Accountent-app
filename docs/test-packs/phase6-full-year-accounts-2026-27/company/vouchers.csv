@@ -1,0 +1,78 @@
+ref_id,date,voucher_type,ledger_name,debit,credit,narration,reference_no,party_ledger
+C01,2025-05-01,purchase,Purchases,450000.00,0.00,Goods bought from Supplier S1,S1/25/041,Supplier S1
+C01,2025-05-01,purchase,Supplier S1,0.00,450000.00,Goods bought from Supplier S1,S1/25/041,Supplier S1
+C02,2025-05-15,payment,Supplier S1,400000.00,0.00,Payment to Supplier S1,CHQ4001,Supplier S1
+C02,2025-05-15,payment,HDFC Bank,0.00,400000.00,Payment to Supplier S1,CHQ4001,Supplier S1
+C03,2025-06-01,receipt,HDFC Bank,200000.00,0.00,Term loan received from the bank,TL/0001,
+C03,2025-06-01,receipt,Term Loan,0.00,200000.00,Term loan received from the bank,TL/0001,
+C04,2025-06-01,sales,Delta Retail,400000.00,0.00,Goods sold to Delta Retail,TI/001,Delta Retail
+C04,2025-06-01,sales,Sales,0.00,400000.00,Goods sold to Delta Retail,TI/001,Delta Retail
+C05,2025-07-01,payment,Plant & Machinery,300000.00,0.00,Plant bought and put to use on 01-07-2025,CHQ4002,
+C05,2025-07-01,payment,HDFC Bank,0.00,300000.00,Plant bought and put to use on 01-07-2025,CHQ4002,
+C06,2025-09-01,sales,Echo Stores,300000.00,0.00,Goods sold to Echo Stores,TI/002,Echo Stores
+C06,2025-09-01,sales,Sales,0.00,300000.00,Goods sold to Echo Stores,TI/002,Echo Stores
+C07,2025-09-30,receipt,HDFC Bank,400000.00,0.00,Receipt from Delta Retail,UTR250930D,Delta Retail
+C07,2025-09-30,receipt,Delta Retail,0.00,400000.00,Receipt from Delta Retail,UTR250930D,Delta Retail
+C08,2025-09-30,payment,Salary,60000.00,0.00,Salary for April to September,SAL-H1,
+C08,2025-09-30,payment,HDFC Bank,0.00,60000.00,Salary for April to September,SAL-H1,
+C09,2025-09-30,payment,Rent,18000.00,0.00,Rent for April to September,RENT-H1,
+C09,2025-09-30,payment,HDFC Bank,0.00,18000.00,Rent for April to September,RENT-H1,
+C10,2026-01-31,payment,Rent,15000.00,0.00,Rent for October to February,RENT-H2,
+C10,2026-01-31,payment,HDFC Bank,0.00,15000.00,Rent for October to February,RENT-H2,
+C11,2026-01-31,receipt,HDFC Bank,250000.00,0.00,Receipt from Echo Stores,UTR260131E,Echo Stores
+C11,2026-01-31,receipt,Echo Stores,0.00,250000.00,Receipt from Echo Stores,UTR260131E,Echo Stores
+C12,2026-03-30,receipt,HDFC Bank,4000.00,0.00,Interest received on fixed deposit,INT/FD/25,
+C12,2026-03-30,receipt,Interest Income,0.00,4000.00,Interest received on fixed deposit,INT/FD/25,
+C13,2026-03-31,payment,Salary,60000.00,0.00,Salary for October to March,SAL-H2,
+C13,2026-03-31,payment,HDFC Bank,0.00,60000.00,Salary for October to March,SAL-H2,
+C14,2026-03-31,payment,Interest on Term Loan,8000.00,0.00,Interest on term loan for ten months,TLI-25,
+C14,2026-03-31,payment,HDFC Bank,0.00,8000.00,Interest on term loan for ten months,TLI-25,
+C15,2026-03-31,payment,Bank Charges,1000.00,0.00,Bank charges for the year,BC-25,
+C15,2026-03-31,payment,HDFC Bank,0.00,1000.00,Bank charges for the year,BC-25,
+D01,2026-04-30,payment,Outstanding Expenses,3000.00,0.00,Rent for April to August and the outstanding rent of March 2026,RENT-26A,
+D01,2026-04-30,payment,Rent,15000.00,0.00,Rent for April to August and the outstanding rent of March 2026,RENT-26A,
+D01,2026-04-30,payment,HDFC Bank,0.00,18000.00,Rent for April to August and the outstanding rent of March 2026,RENT-26A,
+D02,2026-05-10,sales,Delta Retail,500000.00,0.00,Goods sold to Delta Retail,TI/101,Delta Retail
+D02,2026-05-10,sales,Sales,0.00,500000.00,Goods sold to Delta Retail,TI/101,Delta Retail
+D03,2026-06-05,purchase,Purchases,500000.00,0.00,Goods bought from Supplier S1,S1/26/031,Supplier S1
+D03,2026-06-05,purchase,Supplier S1,0.00,500000.00,Goods bought from Supplier S1,S1/26/031,Supplier S1
+D04,2026-07-15,receipt,HDFC Bank,300000.00,0.00,Receipt from Delta Retail,UTR260715D,Delta Retail
+D04,2026-07-15,receipt,Delta Retail,0.00,300000.00,Receipt from Delta Retail,UTR260715D,Delta Retail
+D05,2026-07-30,payment,Supplier S1,450000.00,0.00,Payment to Supplier S1,CHQ4101,Supplier S1
+D05,2026-07-30,payment,HDFC Bank,0.00,450000.00,Payment to Supplier S1,CHQ4101,Supplier S1
+D06,2026-08-31,payment,Electricity,12000.00,0.00,Electricity bills,ELEC-A,
+D06,2026-08-31,payment,HDFC Bank,0.00,12000.00,Electricity bills,ELEC-A,
+D07,2026-09-10,sales,Echo Stores,400000.00,0.00,Goods sold to Echo Stores,TI/112,Echo Stores
+D07,2026-09-10,sales,Sales,0.00,400000.00,Goods sold to Echo Stores,TI/112,Echo Stores
+D08,2026-09-30,payment,Salary,90000.00,0.00,Salary for April to September,SAL-H1B,
+D08,2026-09-30,payment,HDFC Bank,0.00,90000.00,Salary for April to September,SAL-H1B,
+D09,2026-10-30,receipt,HDFC Bank,400000.00,0.00,Receipt from Echo Stores,UTR261030E,Echo Stores
+D09,2026-10-30,receipt,Echo Stores,0.00,400000.00,Receipt from Echo Stores,UTR261030E,Echo Stores
+D10,2026-10-31,payment,Office Expenses,12000.00,0.00,Office expenses,OFF-26,
+D10,2026-10-31,payment,HDFC Bank,0.00,12000.00,Office expenses,OFF-26,
+D11,2026-11-10,purchase,Purchases,400000.00,0.00,Goods bought from Supplier S1,S1/26/077,Supplier S1
+D11,2026-11-10,purchase,Supplier S1,0.00,400000.00,Goods bought from Supplier S1,S1/26/077,Supplier S1
+D12,2026-12-01,payment,Plant & Machinery,120000.00,0.00,Additional plant bought and put to use on 01-12-2026,CHQ4102,
+D12,2026-12-01,payment,HDFC Bank,0.00,120000.00,Additional plant bought and put to use on 01-12-2026,CHQ4102,
+D13,2026-12-15,receipt,HDFC Bank,300000.00,0.00,Receipt from Delta Retail,UTR261215D,Delta Retail
+D13,2026-12-15,receipt,Delta Retail,0.00,300000.00,Receipt from Delta Retail,UTR261215D,Delta Retail
+D14,2026-12-31,payment,Rent,18000.00,0.00,Rent for September to February,RENT-26B,
+D14,2026-12-31,payment,HDFC Bank,0.00,18000.00,Rent for September to February,RENT-26B,
+D15,2027-01-10,sales,Delta Retail,400000.00,0.00,Goods sold to Delta Retail,TI/120,Delta Retail
+D15,2027-01-10,sales,Sales,0.00,400000.00,Goods sold to Delta Retail,TI/120,Delta Retail
+D16,2027-01-30,payment,Supplier S1,400000.00,0.00,Payment to Supplier S1,CHQ4103,Supplier S1
+D16,2027-01-30,payment,HDFC Bank,0.00,400000.00,Payment to Supplier S1,CHQ4103,Supplier S1
+D17,2027-01-31,payment,Telephone & Internet,9000.00,0.00,Telephone and internet bills,TEL-26,
+D17,2027-01-31,payment,HDFC Bank,0.00,9000.00,Telephone and internet bills,TEL-26,
+D18,2027-02-28,payment,Electricity,12000.00,0.00,Electricity bills,ELEC-B,
+D18,2027-02-28,payment,HDFC Bank,0.00,12000.00,Electricity bills,ELEC-B,
+D19,2027-03-30,receipt,HDFC Bank,5000.00,0.00,Interest received on fixed deposit,INT/FD/26,
+D19,2027-03-30,receipt,Interest Income,0.00,5000.00,Interest received on fixed deposit,INT/FD/26,
+D20,2027-03-31,payment,Salary,90000.00,0.00,Salary for October to March,SAL-H2B,
+D20,2027-03-31,payment,HDFC Bank,0.00,90000.00,Salary for October to March,SAL-H2B,
+D21,2027-03-31,payment,Interest on Term Loan,12000.00,0.00,Interest on term loan for the year,TLI-26,
+D21,2027-03-31,payment,HDFC Bank,0.00,12000.00,Interest on term loan for the year,TLI-26,
+D22,2027-03-31,payment,Bank Charges,1500.00,0.00,Bank charges for the year,BC-26,
+D22,2027-03-31,payment,HDFC Bank,0.00,1500.00,Bank charges for the year,BC-26,
+D23,2027-03-31,payment,Term Loan,50000.00,0.00,Repayment of term loan instalment,TL/REP-1,
+D23,2027-03-31,payment,HDFC Bank,0.00,50000.00,Repayment of term loan instalment,TL/REP-1,

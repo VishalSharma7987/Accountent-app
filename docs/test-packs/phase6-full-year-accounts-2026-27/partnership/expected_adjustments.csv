@@ -1,0 +1,15 @@
+ref_id,ledger_name,debit,credit
+A1,Audit Fees,15000.00,0.00
+A1,Outstanding Expenses,0.00,15000.00
+A2,Interest on Capital,30000.00,0.00
+A2,Anil Sharma Current A/c,0.00,30000.00
+A3,Interest on Capital,22493.15,0.00
+A3,Rakesh Verma Current A/c,0.00,22493.15
+A4,Anil Sharma Current A/c,4188.49,0.00
+A4,Interest on Drawings,0.00,4188.49
+A5,Rakesh Verma Current A/c,3284.38,0.00
+A5,Interest on Drawings,0.00,3284.38
+A6,Partners Remuneration,60000.00,0.00
+A6,Anil Sharma Current A/c,0.00,60000.00
+A7,Partners Remuneration,24000.00,0.00
+A7,Rakesh Verma Current A/c,0.00,24000.00
