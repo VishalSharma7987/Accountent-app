@@ -77,7 +77,7 @@ def _drill_is_obvious(line: dict) -> bool:
 
 
 def _side_balance(value: Any) -> str:
-    d = _dec(value) or Decimal("0")
+    d = _dec(value) or Decimal(0)
     return "" if d == 0 else (f"{format_inr(abs(d))} Dr" if d > 0 else f"{format_inr(abs(d))} Cr")
 
 
@@ -385,7 +385,7 @@ _GRID = [("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#999999")), ("BACKGRO
 
 
 def _statement_table(statement: dict, st: dict[str, ParagraphStyle]) -> list:
-    head = lambda t: Paragraph(t, st["bold"])  # noqa: E731
+    head = lambda t: Paragraph(t, st["bold"])
     if _is_horizontal(statement):
         data = [[head("Particulars"), head("Amount"), head("Particulars"), head("Amount")]]
         for left, right in _pair_rows(statement):
