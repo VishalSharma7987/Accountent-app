@@ -167,10 +167,13 @@ function ReconLine({ r, clientId, onChanged }: { r: ReconRow; clientId: string; 
       <tr className={CLASS_CLS[r.class] ?? ''}>
         <td className={td}>{CLASS_LABEL[r.class] ?? r.class}</td>
         <td className={td}>{rowText(r.row)}</td>
-        <td className={td}>{r.books ? `${r.books.deductee_name} ${r.books.section_ref} ${r.books.event_date}` : '-'}</td>
+        <td className={td}>{r.books ? [r.books.deductee_name, r.books.section_ref, r.books.event_date].filter(Boolean).join(' ') || '-' : '-'}</td>
         <td className={tdR}>{r.books ? <Amount value={r.books.tds_amount} /> : ''}</td>
         <td className={tdR}>{r.difference ? <Amount value={r.difference} /> : ''}</td>
-        <td className={td}>{r.section_mapping_status}</td>
+        <td className={td}>
+          {r.section_mapping_status}
+          {r.reason && <div className="text-xs text-slate-600">{r.reason}</div>}
+        </td>
         <td className={td}>
           {rowId && r.class !== 'matched' && (
             <button className={btn} onClick={() => setOpen(!open)}>

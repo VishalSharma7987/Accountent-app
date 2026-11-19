@@ -360,7 +360,7 @@ function InterestTab({ clientId, fyId }: { clientId: string; fyId: string }) {
         <Field label="Undeposited tax counted up to">
           <input type="date" className={input} value={asOn} onChange={(e) => setAsOn(e.target.value)} />
         </Field>
-        {data.data?.rows[0]?.rule_status && <RuleBadge status={data.data.rows[0].rule_status} />}
+        {data.data?.rule_status && <RuleBadge status={data.data.rule_status} />}
       </Row>
       <p className="text-xs text-slate-600">Interest is a working shown for the accountant; it is not posted to the books. Part of a month counts as a full month.</p>
       <ErrorBox error={data.error} />

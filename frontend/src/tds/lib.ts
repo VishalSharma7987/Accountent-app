@@ -17,18 +17,19 @@ export const PAN_STATUSES = [
   { value: 'invalid', label: 'PAN invalid' },
   { value: 'applied_for', label: 'Applied for' },
 ]
-export const DEDUCTEE_TYPES = ['individual', 'huf', 'company', 'firm', 'llp', 'aop', 'society', 'trust', 'local_authority', 'other']
+export const DEDUCTEE_TYPES = ['individual', 'huf', 'company', 'firm', 'llp', 'aop_boi', 'co_operative_society', 'trust', 'local_authority', 'other']
 export const LEDGER_ROLES = [
   { value: 'tds_payable', label: 'TDS payable' },
   { value: 'tcs_payable', label: 'TCS payable' },
   { value: 'tds_receivable', label: 'TDS receivable' },
   { value: 'tcs_receivable', label: 'TCS receivable' },
-  { value: 'interest', label: 'Interest on TDS' },
-  { value: 'late_fee', label: 'Late fee' },
+  { value: 'interest_expense', label: 'Interest on TDS (expense)' },
+  { value: 'late_fee_expense', label: 'Late fee (expense)' },
 ]
 export const CERT_KINDS = [
-  { value: 'form_16a', label: 'Form 16A (TDS other than salary)' },
-  { value: 'form_27d', label: 'Form 27D (TCS)' },
+  { value: 'non_salary', label: 'Form 16A (TDS other than salary)' },
+  { value: 'tcs', label: 'Form 27D (TCS)' },
+  { value: 'salary', label: 'Form 16 (salary)' },
 ]
 
 /** "2026-04-01" -> "2026-27" (Indian financial year label). */

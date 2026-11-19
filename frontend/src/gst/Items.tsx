@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { api } from '../api'
-import { gstApi, type GstItem, type GstItemBody, type RateLookup } from '../api/gst'
+import { gstApi, type GstItem, type GstItemBody } from '../api/gst'
 import { ErrorBox, Field, LedgerPicker, Notice, Page, btn, btnPrimary, input, td, th } from '../components/ui'
 import { useClient } from '../context'
 import type { ApiFailure } from '../lib/apiError'
 import { asFailure, useLoad } from '../lib/useLoad'
-import { RuleBadge } from './common'
+import { cleanItem } from './lib'
 
 const blank = (): GstItemBody => ({
   name: '',
@@ -27,7 +27,6 @@ export default function Items() {
   const ledgers = useLoad(clientId ? () => api.listLedgers(clientId) : null, `ledgers:${clientId}`)
   const [form, setForm] = useState<GstItemBody | null>(null)
   const [editId, setEditId] = useState('')
-  const [rate, setRate] = useState<RateLookup | null>(null)
   const [error, setError] = useState<ApiFailure | null>(null)
   const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
@@ -46,16 +45,13 @@ export default function Items() {
       setBusy(false)
     }
   }
-  const lookup = (hsn: string, itemKind: GstItemBody['item_kind']) =>
-    act(async () => setRate(await gstApi.rateLookup(hsn.trim(), itemKind === 'goods' ? 'goods' : 'services')))
   const save = () =>
     act(async () => {
       if (!form) return
-      if (editId) await gstApi.updateItem(clientId, editId, form)
-      else await gstApi.createItem(clientId, form)
+      if (editId) await gstApi.updateItem(clientId, editId, cleanItem(form))
+      else await gstApi.createItem(clientId, cleanItem(form))
       setForm(null)
       setEditId('')
-      setRate(null)
       setNotice('Item saved.')
       items.reload()
     })
@@ -64,7 +60,6 @@ export default function Items() {
     const { id: _id, ...rest } = i
     void _id
     setForm(rest)
-    setRate(null)
   }
   const set = (patch: Partial<GstItemBody>) => setForm((f) => (f ? { ...f, ...patch } : f))
 
@@ -77,8 +72,7 @@ export default function Items() {
           onClick={() => {
             setEditId('')
             setForm(blank())
-            setRate(null)
-          }}
+                }}
         >
           Add item
         </button>
@@ -115,11 +109,8 @@ export default function Items() {
               <input className={`${input} w-28 font-mono`} value={form.hsn_sac} onChange={(e) => set({ hsn_sac: e.target.value })} />
             </Field>
             <Field label="UQC">
-              <input className={`${input} w-20 uppercase`} value={form.uqc} onChange={(e) => set({ uqc: e.target.value.toUpperCase() })} />
+              <input className={`${input} w-20 uppercase`} value={form.uqc ?? ''} onChange={(e) => set({ uqc: e.target.value.toUpperCase() })} />
             </Field>
-            <button className={btn} disabled={busy || !form.hsn_sac.trim()} onClick={() => lookup(form.hsn_sac, form.item_kind)}>
-              Look up rate
-            </button>
             <label className="flex items-center gap-1 text-xs text-slate-600">
               <input type="checkbox" checked={form.is_active} onChange={(e) => set({ is_active: e.target.checked })} /> Active
             </label>
@@ -138,16 +129,6 @@ export default function Items() {
               <input className={input} value={form.default_rcm_category_key ?? ''} onChange={(e) => set({ default_rcm_category_key: e.target.value || null })} />
             </Field>
           </div>
-          {rate && (
-            <div className="rounded border border-slate-200 bg-slate-50 p-2 text-sm">
-              Rate in force: <b>{rate.treatment}</b>, GST {rate.rate}%, cess {rate.cess_rate}%{' '}
-              {rate.is_default && <span className="text-amber-800">(default rate: no rule for this HSN, confirm it)</span>}{' '}
-              {rate.is_example && <span className="text-amber-800">(example data)</span>}
-              <div className="text-xs text-slate-600">
-                Rule {rate.rule_key} / {rate.verification_status} / {rate.source_reference} <RuleBadge worst={rate.verification_status} />
-              </div>
-            </div>
-          )}
           <div className="flex gap-2">
             <button className={btnPrimary} disabled={busy} onClick={save}>
               Save

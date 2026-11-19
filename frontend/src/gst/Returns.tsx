@@ -5,7 +5,7 @@ import { useClient } from '../context'
 import type { ApiFailure } from '../lib/apiError'
 import { asFailure, useLoad } from '../lib/useLoad'
 import { DataView, MonthInput, RegistrationSelect, RuleBadge, Warnings, useRegistrations } from './common'
-import { isQuarterly, returnQuery } from './lib'
+import { isQuarterly, returnQuery, returnTypeOf } from './lib'
 
 type Kind = 'gstr1' | 'gstr3b' | 'tie-out' | 'composition'
 const TITLE: Record<Kind, string> = {
@@ -55,7 +55,7 @@ export default function Returns({ kind }: { kind: Kind }) {
     setError(null)
     setNotice('')
     try {
-      const out = await gstApi.saveWorking(clientId, { registration_id: q.registration_id, return_type: kind, period_start: q.period_start, period_kind: q.period_kind })
+      const out = await gstApi.saveWorking(clientId, { registration_id: q.registration_id, return_type: returnTypeOf(kind), period_start: q.period_start, period_kind: q.period_kind })
       setNotice(`Saved as draft version ${out.version}. Finalise it under GST / Workings.`)
     } catch (e) {
       setError(asFailure(e))
