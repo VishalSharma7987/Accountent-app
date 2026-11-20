@@ -125,6 +125,21 @@ export const NAV_GROUPS: NavGroup[] = [
       { to: '/final/close', label: 'Year-end close' },
     ],
   },
+  {
+    id: 'ai',
+    label: 'Documents & AI',
+    icon: 'A',
+    items: [
+      { to: '/ai/queue', label: 'Approval queue' },
+      { to: '/ai/documents', label: 'Documents' },
+      { to: '/ai/extraction', label: 'Extraction' },
+      { to: '/ai/narration', label: 'Narration suggestions' },
+      { to: '/ai/mappings', label: 'Mappings' },
+      { to: '/ai/tally-import', label: 'Tally import' },
+      { to: '/ai/tally-export', label: 'Tally export' },
+      { to: '/ai/settings', label: 'AI settings' },
+    ],
+  },
 ]
 
 function matches(item: NavItem, path: string): boolean {

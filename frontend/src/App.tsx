@@ -50,6 +50,14 @@ import FinPartners from './final/Partners'
 import FinSch3 from './final/Schedule3'
 import FinStatements from './final/Statements'
 import FinYearEnd from './final/YearEnd'
+import AiApprovalQueue from './ai/ApprovalQueue'
+import AiDocuments from './ai/Documents'
+import AiExtraction from './ai/Extraction'
+import AiMappings from './ai/Mappings'
+import AiNarration from './ai/Narration'
+import AiSettings from './ai/AiSettings'
+import AiTallyExport from './ai/TallyExport'
+import AiTallyImport from './ai/TallyImport'
 
 function Shell() {
   const { clients, clientId, setClientId, latestYear } = useClient()
@@ -164,6 +172,14 @@ function Shell() {
           <Route path="/final/cash-flow" element={<FinCashFlow />} />
           <Route path="/final/export" element={<FinExport />} />
           <Route path="/final/close" element={<FinYearEnd />} />
+          <Route path="/ai/queue" element={<AiApprovalQueue />} />
+          <Route path="/ai/documents" element={<AiDocuments />} />
+          <Route path="/ai/extraction" element={<AiExtraction />} />
+          <Route path="/ai/narration" element={<AiNarration />} />
+          <Route path="/ai/mappings" element={<AiMappings />} />
+          <Route path="/ai/tally-import" element={<AiTallyImport />} />
+          <Route path="/ai/tally-export" element={<AiTallyExport />} />
+          <Route path="/ai/settings" element={<AiSettings />} />
         </Routes>
         </main>
       </div>
