@@ -1,0 +1,32 @@
+section,key,value
+import_a,counts,groups=1;ledgers=10;stock_items=0;vouchers=7
+import_a,opening_balances_not_applied,true
+import_a,opening_reported,HDFC Bank=-5000.00;Gamma Retail=-12000.00
+import_a,by_type,Sales=2;Payment=1;Purchase=1;Journal=1;Stock Journal=1;Receipt=1
+import_a,drafted_later,4
+import_a,skipped,R-1:D-36;SJ-1:D-34;T-S-2:D-36
+import_a,bill_allocations_not_imported,0
+import_a,early_queue_refused,masters_not_ready
+import_a,confirmed_exact,8
+import_a,ledgers_created,2
+import_a,queued,4
+import_a,drafted,2
+import_a,needs_review,2
+import_a,second_run_queued,0
+import_a,second_run_skipped,D-34;D-36;D-36;D-37;D-37;D-37;D-37
+import_b,counts,groups=1;ledgers=4;stock_items=0;vouchers=2
+import_b,opening_reported,Gamma Retail=-2000.00
+import_b,by_type,Receipt=1;Journal=1
+import_b,drafted_later,2
+import_b,confirmed_exact,3
+import_b,queued,2
+import_b,drafted,1
+import_b,needs_review,1
+import_c,error_code,invalid_tally_file
+import_c,error_rule,D-30
+export_a,voucher_count,10
+export_a,ledger_count,15
+export_b,voucher_count,1
+export_b,ledger_count,2
+export_a,debit_balances_equal_expected,true
+export_b,debit_balances_equal_expected,true

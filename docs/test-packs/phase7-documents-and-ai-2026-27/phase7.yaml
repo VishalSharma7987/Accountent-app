@@ -1,0 +1,99 @@
+# Phase 7 acceptance pack: documents, fake language model, bank narrations, Tally files. SYNTHETIC data only.
+# This file is also the marker that tells the Phase 1-6 runners to leave this folder alone.
+pack: phase7-documents-and-ai-2026-27
+description: Sample invoices and statements where extraction errors are caught by the engine or the review queue and nothing wrong is ever posted.
+
+client:
+  name: Pack Traders
+  entity_type: proprietorship
+  business_type: trading
+  gst_type: regular
+  proprietor: Ramesh Kumar
+  fy_start: 2026-04-01
+  gst_effective_from: 2026-04-01
+  gstin: 27AAAPL1234C1ZE
+  data_class: synthetic
+  ai_note: synthetic data only
+actors:
+  clerk: clerk          # creates the drafts / queue items
+  accountant: acc       # edits, accepts, rejects
+  partner: partner      # approves and posts
+
+# ledgers added to the client's standard chart (name, group code of the seeded groups); Purchases, Sales Returns, Cash, Repairs & Maintenance are standard
+ledgers:
+  - {name: Shree Traders, group: sundry_creditors}
+  - {name: Kumar Electricals, group: sundry_creditors}
+  - {name: Verma Cooling Solutions, group: sundry_creditors}
+  - {name: Gamma Retail, group: sundry_debtors}
+  - {name: Tea Expense, group: indirect_expenses}
+  - {name: Staff Welfare, group: indirect_expenses}
+  - {name: HDFC Bank, group: bank_accounts}
+  - {name: Output CGST, group: duties_taxes, role: output_cgst}
+  - {name: Output SGST, group: duties_taxes, role: output_sgst}
+  - {name: Output IGST, group: duties_taxes, role: output_igst}
+  - {name: Input CGST, group: duties_taxes, role: input_cgst}
+  - {name: Input SGST, group: duties_taxes, role: input_sgst}
+  - {name: Input IGST, group: duties_taxes, role: input_igst}
+  - {name: RCM CGST Payable, group: duties_taxes, role: rcm_cgst}
+  - {name: RCM SGST Payable, group: duties_taxes, role: rcm_sgst}
+  - {name: RCM IGST Payable, group: duties_taxes, role: rcm_igst}
+
+# party masters (GSTIN and state of the party ledger)
+parties:
+  - {ledger: Shree Traders, gstin: 27CCCPM4321E1ZZ, state_code: "27"}
+  - {ledger: Kumar Electricals, gstin: 29AAAPK5678F1ZH, state_code: "29"}
+  - {ledger: Verma Cooling Solutions, gstin: 27BBBPV9012G1ZK, state_code: "27"}
+  - {ledger: Gamma Retail, gstin: 27DDDPG3456H1ZL, state_code: "27"}
+
+# mappings the accountant saved before the first document (Verma Cooling Solutions is deliberately NOT mapped; HSN 9403 has no ledger)
+party_mappings:
+  - {gstin: 27CCCPM4321E1ZZ, ledger: Shree Traders}
+  - {gstin: 29AAAPK5678F1ZH, ledger: Kumar Electricals}
+  - {gstin: 27DDDPG3456H1ZL, ledger: Gamma Retail}
+line_mappings:
+  - {hsn: "8415", ledger: Purchases}
+  - {hsn: "1701", ledger: Purchases}
+  - {hsn: "851712", ledger: Purchases}
+  - {hsn: "9983", ledger: Repairs & Maintenance}
+  - {hsn: "3004", ledger: Sales Returns}
+
+bank:
+  ledger: HDFC Bank
+  file: bank/statement_june_2026.csv
+  opening_balance: "50000.00"
+  closing_balance: "47800.00"
+  mapping:
+    header_row: 1
+    date_col: Date
+    date_format: "%d/%m/%Y"
+    description_col: Narration
+    reference_col: Ref
+    debit_col: Withdrawal
+    credit_col: Deposit
+    balance_col: Balance
+  seeded_rules_file: narration_rules.csv
+
+# a second client: Tally company B, and the client whose AI switch is OFF (no client_ai_settings row = off)
+client_b:
+  name: Pack Co B
+  entity_type: proprietorship
+  business_type: trading
+  gst_type: regular
+  proprietor: Suresh Rao
+  fy_start: 2026-04-01
+  ledgers:
+    - {name: Gamma Retail, group: sundry_debtors}
+    - {name: Staff Welfare, group: indirect_expenses}
+
+# what the whole run must show (typed by hand; see WORKING.md section 9)
+headline:
+  queue_items_total: 18
+  accepted: 11
+  rejected: 5
+  pending: 2
+  vouchers_posted: 11
+  approve_refused_before_accept: 12     # a draft exists and approve is tried before the item is accepted: service refuses, database refuses
+  llm_calls_invoice_extraction_ok: 14   # 13 invoice documents (P7-01 twice) + the bank statement text
+  llm_calls_narration_ok: 3
+  llm_calls_blocked_switch_off: 1
+  model_requests_total: 17              # what the fake model saw (14 + 3); the switch-off client made none

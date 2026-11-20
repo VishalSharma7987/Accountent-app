@@ -1,0 +1,38 @@
+item,ledger,debit,credit
+P7-01,Purchases,2450.00,0.00
+P7-01,Input CGST,191.25,0.00
+P7-01,Input SGST,191.25,0.00
+P7-01,Shree Traders,0.00,2832.50
+P7-02,Purchases,10000.00,0.00
+P7-02,Input IGST,1800.00,0.00
+P7-02,Kumar Electricals,0.00,11800.00
+P7-03,Repairs & Maintenance,4000.00,0.00
+P7-03,Input CGST,360.00,0.00
+P7-03,Input SGST,360.00,0.00
+P7-03,Shree Traders,0.00,4720.00
+P7-04,Purchases,20000.00,0.00
+P7-04,Input CGST,1800.00,0.00
+P7-04,Input SGST,1800.00,0.00
+P7-04,Shree Traders,0.00,23600.00
+P7-07,Purchases,3500.00,0.00
+P7-07,Input CGST,87.50,0.00
+P7-07,Input SGST,87.50,0.00
+P7-07,Shree Traders,0.00,3675.00
+P7-08,Purchases,10000.00,0.00
+P7-08,Input CGST,900.00,0.00
+P7-08,Input SGST,900.00,0.00
+P7-08,Shree Traders,0.00,11800.00
+P7-11,Purchases,30000.00,0.00
+P7-11,Input CGST,2700.00,0.00
+P7-11,Input SGST,2700.00,0.00
+P7-11,Verma Cooling Solutions,0.00,35400.00
+P7-12,Sales Returns,5000.00,0.00
+P7-12,Output CGST,125.00,0.00
+P7-12,Output SGST,125.00,0.00
+P7-12,Gamma Retail,0.00,5250.00
+TA-2,Rent Paid,3000.00,0.00
+TA-2,HDFC Bank,0.00,3000.00
+TA-3,Purchases,5000.00,0.00
+TA-3,Tally New Vendor,0.00,5000.00
+TB-1,Cash,2000.00,0.00
+TB-1,Gamma Retail,0.00,2000.00

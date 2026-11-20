@@ -1,0 +1,7 @@
+step,line_no,status,source,ledger,model_called,decision,rule_count_after,detail
+1,1,suggested,llm,Tea Expense,1,accept,1,Model fallback; accepting teaches the rule
+2,2,suggested,rule,Tea Expense,0,accept,2,Same payee with other reference numbers: the learned rule answers and the model is not called
+3,3,ambiguous,,,0,none,,Tea Expense:3|Staff Welfare:1
+4,4,none,,,1,none,,not in the client
+5,5,suggested,llm,Staff Welfare,1,reject,,A rejected model suggestion teaches nothing
+6,6,llm_blocked,,,0,none,,switched off

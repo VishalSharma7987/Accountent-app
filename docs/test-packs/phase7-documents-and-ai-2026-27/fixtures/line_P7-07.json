@@ -1,0 +1,56 @@
+{
+ "description": {
+  "value": "Sugar M-30 grade C",
+  "page": 1,
+  "bbox": null,
+  "confidence": 1
+ },
+ "hsn_sac": {
+  "value": "1701",
+  "page": 1,
+  "bbox": null,
+  "confidence": 1
+ },
+ "quantity": {
+  "value": "25",
+  "page": 1,
+  "bbox": null,
+  "confidence": 1
+ },
+ "unit": {
+  "value": "KGS",
+  "page": 1,
+  "bbox": null,
+  "confidence": 1
+ },
+ "unit_rate": {
+  "value": "20.00",
+  "page": 1,
+  "bbox": null,
+  "confidence": 1
+ },
+ "taxable_value": {
+  "value": "500.00",
+  "page": 1,
+  "bbox": null,
+  "confidence": 1
+ },
+ "gst_rate": {
+  "value": "5",
+  "page": 1,
+  "bbox": null,
+  "confidence": 1
+ },
+ "cgst": {
+  "value": "12.50",
+  "page": 1,
+  "bbox": null,
+  "confidence": 1
+ },
+ "sgst": {
+  "value": "12.50",
+  "page": 1,
+  "bbox": null,
+  "confidence": 1
+ }
+}

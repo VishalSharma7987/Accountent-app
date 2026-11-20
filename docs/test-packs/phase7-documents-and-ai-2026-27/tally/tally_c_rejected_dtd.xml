@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ENVELOPE [<!ENTITY bomb "AAAAAAAAAAAAAAAAAAAA">]>
+<!-- SYNTHETIC hostile file: a DTD with an entity. The import must refuse it (D-30), never expand it. -->
+<ENVELOPE>
+ <HEADER><TALLYREQUEST>Import Data</TALLYREQUEST></HEADER>
+ <BODY><IMPORTDATA><REQUESTDATA><TALLYMESSAGE>
+  <LEDGER NAME="&bomb;" ACTION="Create"><PARENT>Sundry Debtors</PARENT></LEDGER>
+ </TALLYMESSAGE></REQUESTDATA></IMPORTDATA></BODY>
+</ENVELOPE>

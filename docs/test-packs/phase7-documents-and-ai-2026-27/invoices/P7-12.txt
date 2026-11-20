@@ -1,0 +1,19 @@
+CREDIT NOTE
+Pack Traders
+5 Station Road, Pune
+GSTIN: 27AAAPL1234C1ZE
+Invoice No: CN/26/001        Date: 10-07-2026
+Against Invoice No: INV/26/014 dated 20-06-2026
+Bill to: Gamma Retail, 9 Lake View, Pune
+Buyer GSTIN: 27DDDPG3456H1ZL
+Place of supply: 27-Maharashtra
+
+Sl  Description          HSN     Qty   Unit  Rate       Disc    Taxable      GST%  CGST       SGST
+1   Paracetamol tablets 3004    100   STRP  50.00      0.00    5,000.00     5     125.00     125.00
+
+Total taxable value: 5,000.00
+CGST: 125.00
+SGST: 125.00
+Round off: 0.00
+Total credited: 5,250.00
+Goods returned by the customer.

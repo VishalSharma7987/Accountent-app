@@ -1,0 +1,2354 @@
+{
+ "P7-01": [
+  {
+   "document_kind": {
+    "value": "Tax Invoice",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_name": {
+    "value": "Shree Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_gstin": {
+    "value": "[GSTIN_1]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_name": {
+    "value": "Pack Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_gstin": {
+    "value": "[GSTIN_2]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_no": {
+    "value": "SH/0101",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_date": {
+    "value": "10-05-2026",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "place_of_supply": {
+    "value": "27-Maharashtra",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "lines": [
+    {
+     "description": {
+      "value": "Air conditioner",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "hsn_sac": {
+      "value": "8415",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "quantity": {
+      "value": "2",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit": {
+      "value": "NOS",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit_rate": {
+      "value": "1,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "taxable_value": {
+      "value": "2,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "gst_rate": {
+      "value": "18",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "cgst": {
+      "value": "180.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "sgst": {
+      "value": "180.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    },
+    {
+     "description": {
+      "value": "Sugar M-30",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "hsn_sac": {
+      "value": "1701",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "quantity": {
+      "value": "10",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit": {
+      "value": "KGS",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit_rate": {
+      "value": "50.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "discount": {
+      "value": "50.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "taxable_value": {
+      "value": "450.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "gst_rate": {
+      "value": "5",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "cgst": {
+      "value": "11.25",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "sgst": {
+      "value": "11.25",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    }
+   ],
+   "totals": {
+    "taxable_total": {
+     "value": "2,450.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "cgst_total": {
+     "value": "191.25",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "sgst_total": {
+     "value": "191.25",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "round_off": {
+     "value": "0.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "grand_total": {
+     "value": "2,832.50",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    }
+   },
+   "currency": "INR",
+   "notes": [],
+   "amount_in_words": {
+    "value": "Rupees two thousand eight hundred thirty two and fifty paise",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   }
+  },
+  {
+   "document_kind": {
+    "value": "Tax Invoice",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_name": {
+    "value": "Shree Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_gstin": {
+    "value": "[GSTIN_1]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_name": {
+    "value": "Pack Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_gstin": {
+    "value": "[GSTIN_2]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_no": {
+    "value": "SH/0101",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_date": {
+    "value": "10-05-2026",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "place_of_supply": {
+    "value": "27-Maharashtra",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "lines": [
+    {
+     "description": {
+      "value": "Air conditioner",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "hsn_sac": {
+      "value": "8415",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "quantity": {
+      "value": "2",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit": {
+      "value": "NOS",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit_rate": {
+      "value": "1,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "taxable_value": {
+      "value": "2,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "gst_rate": {
+      "value": "18",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "cgst": {
+      "value": "180.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "sgst": {
+      "value": "180.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    },
+    {
+     "description": {
+      "value": "Sugar M-30",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "hsn_sac": {
+      "value": "1701",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "quantity": {
+      "value": "10",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit": {
+      "value": "KGS",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit_rate": {
+      "value": "50.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "discount": {
+      "value": "50.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "taxable_value": {
+      "value": "450.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "gst_rate": {
+      "value": "5",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "cgst": {
+      "value": "11.25",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "sgst": {
+      "value": "11.25",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    }
+   ],
+   "totals": {
+    "taxable_total": {
+     "value": "2,450.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "cgst_total": {
+     "value": "191.25",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "sgst_total": {
+     "value": "191.25",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "round_off": {
+     "value": "0.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "grand_total": {
+     "value": "2,832.50",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    }
+   },
+   "currency": "INR",
+   "notes": []
+  }
+ ],
+ "P7-02": [
+  {
+   "document_kind": {
+    "value": "Tax Invoice",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_name": {
+    "value": "Kumar Electricals",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_gstin": {
+    "value": "[GSTIN_1]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_name": {
+    "value": "Pack Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_gstin": {
+    "value": "[GSTIN_2]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_no": {
+    "value": "KE/26/0457",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_date": {
+    "value": "20-05-2026",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "place_of_supply": {
+    "value": "27-Maharashtra",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "lines": [
+    {
+     "description": {
+      "value": "Mobile phone",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "hsn_sac": {
+      "value": "851712",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "quantity": {
+      "value": "5",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit": {
+      "value": "NOS",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit_rate": {
+      "value": "2,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "taxable_value": {
+      "value": "10,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "gst_rate": {
+      "value": "18",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "igst": {
+      "value": "1,800.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    }
+   ],
+   "totals": {
+    "taxable_total": {
+     "value": "10,000.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "igst_total": {
+     "value": "1,800.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "round_off": {
+     "value": "0.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "grand_total": {
+     "value": "11,800.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    }
+   },
+   "currency": "INR",
+   "notes": []
+  }
+ ],
+ "P7-03": [
+  {
+   "document_kind": {
+    "value": "Tax Invoice",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_name": {
+    "value": "Shree Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_gstin": {
+    "value": "[GSTIN_1]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_name": {
+    "value": "Pack Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_gstin": {
+    "value": "[GSTIN_2]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_no": {
+    "value": "SH/0102",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_date": {
+    "value": "05-06-2026",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.6
+   },
+   "place_of_supply": {
+    "value": "27-Maharashtra",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "lines": [
+    {
+     "description": {
+      "value": "AC annual maintenance",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "hsn_sac": {
+      "value": "9983",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "quantity": {
+      "value": "1",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit": {
+      "value": "NOS",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit_rate": {
+      "value": "4,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "taxable_value": {
+      "value": "4,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "gst_rate": {
+      "value": "18",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "cgst": {
+      "value": "360.50",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "sgst": {
+      "value": "360.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    }
+   ],
+   "totals": {
+    "taxable_total": {
+     "value": "4,000.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "cgst_total": {
+     "value": "360.50",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "sgst_total": {
+     "value": "360.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "round_off": {
+     "value": "0.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "grand_total": {
+     "value": "4,720.50",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    }
+   },
+   "currency": "INR",
+   "notes": []
+  }
+ ],
+ "P7-04": [
+  {
+   "document_kind": {
+    "value": "Tax Invoice",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_name": {
+    "value": "Shree Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_gstin": {
+    "value": "[GSTIN_1]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_name": {
+    "value": "Pack Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_gstin": {
+    "value": "[GSTIN_2]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_no": {
+    "value": "SH/0103",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_date": {
+    "value": "12-06-2026",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "place_of_supply": {
+    "value": "27-Maharashtra",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "lines": [
+    {
+     "description": {
+      "value": "Air conditioner",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "hsn_sac": {
+      "value": "8415",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "quantity": {
+      "value": "1",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit": {
+      "value": "NOS",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit_rate": {
+      "value": "20,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "taxable_value": {
+      "value": "20,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "gst_rate": {
+      "value": "18",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "cgst": {
+      "value": "1,900.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "sgst": {
+      "value": "1,800.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    }
+   ],
+   "totals": {
+    "taxable_total": {
+     "value": "20,000.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "cgst_total": {
+     "value": "1,900.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "sgst_total": {
+     "value": "1,800.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "round_off": {
+     "value": "0.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "grand_total": {
+     "value": "23,700.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    }
+   },
+   "currency": "INR",
+   "notes": []
+  }
+ ],
+ "P7-05": [
+  {
+   "document_kind": {
+    "value": "Tax Invoice",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_name": {
+    "value": "Shree Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_gstin": {
+    "value": "[GSTIN_1]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_name": {
+    "value": "Pack Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_gstin": {
+    "value": "[GSTIN_2]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_no": {
+    "value": "SH/0104",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_date": {
+    "value": "15-06-2026",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "place_of_supply": {
+    "value": "27-Maharashtra",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "lines": [
+    {
+     "description": {
+      "value": "Sugar M-30",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "hsn_sac": {
+      "value": "1701",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "quantity": {
+      "value": "4",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit": {
+      "value": "KGS",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit_rate": {
+      "value": "1,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "taxable_value": {
+      "value": "4,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "gst_rate": {
+      "value": "12",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "cgst": {
+      "value": "240.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "sgst": {
+      "value": "240.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    },
+    {
+     "description": {
+      "value": "Office table",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "hsn_sac": {
+      "value": "9403",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "quantity": {
+      "value": "2",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit": {
+      "value": "NOS",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit_rate": {
+      "value": "7,500.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "taxable_value": {
+      "value": "15,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "gst_rate": {
+      "value": "18",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "cgst": {
+      "value": "1,350.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "sgst": {
+      "value": "1,350.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    }
+   ],
+   "totals": {
+    "taxable_total": {
+     "value": "19,000.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "cgst_total": {
+     "value": "1,450.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "sgst_total": {
+     "value": "1,450.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "round_off": {
+     "value": "0.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "grand_total": {
+     "value": "21,900.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    }
+   },
+   "currency": "INR",
+   "notes": []
+  }
+ ],
+ "P7-06": [
+  {
+   "document_kind": {
+    "value": "Tax Invoice",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_name": {
+    "value": "Shree Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_gstin": {
+    "value": "[GSTIN_1]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_name": {
+    "value": "Pack Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_gstin": {
+    "value": "[GSTIN_2]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_no": {
+    "value": "SH/0105",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_date": {
+    "value": "20-06-2026",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "place_of_supply": {
+    "value": "27-Maharashtra",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "lines": [
+    {
+     "description": {
+      "value": "Sugar M-30",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "hsn_sac": {
+      "value": "1701",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "quantity": {
+      "value": "2",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit": {
+      "value": "KGS",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit_rate": {
+      "value": "1,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "taxable_value": {
+      "value": "2,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "gst_rate": {
+      "value": "5",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "igst": {
+      "value": "100.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    }
+   ],
+   "totals": {
+    "taxable_total": {
+     "value": "2,000.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "igst_total": {
+     "value": "100.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "round_off": {
+     "value": "0.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "grand_total": {
+     "value": "2,100.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    }
+   },
+   "currency": "INR",
+   "notes": []
+  }
+ ],
+ "P7-07": [
+  {
+   "document_kind": {
+    "value": "Tax Invoice",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_name": {
+    "value": "Shree Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_gstin": {
+    "value": "[GSTIN_1]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_name": {
+    "value": "Pack Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_gstin": {
+    "value": "[GSTIN_2]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_no": {
+    "value": "SH/0106",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_date": {
+    "value": "25-06-2026",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "place_of_supply": {
+    "value": "27-Maharashtra",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "lines": [
+    {
+     "description": {
+      "value": "Sugar M-30 grade A",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "hsn_sac": {
+      "value": "1701",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "quantity": {
+      "value": "100",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit": {
+      "value": "KGS",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit_rate": {
+      "value": "20.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "taxable_value": {
+      "value": "2,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "gst_rate": {
+      "value": "5",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "cgst": {
+      "value": "50.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "sgst": {
+      "value": "50.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    },
+    {
+     "description": {
+      "value": "Sugar M-30 grade B",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "hsn_sac": {
+      "value": "1701",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "quantity": {
+      "value": "50",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit": {
+      "value": "KGS",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit_rate": {
+      "value": "20.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "taxable_value": {
+      "value": "1,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "gst_rate": {
+      "value": "5",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "cgst": {
+      "value": "25.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "sgst": {
+      "value": "25.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    }
+   ],
+   "totals": {
+    "taxable_total": {
+     "value": "3,500.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "cgst_total": {
+     "value": "87.50",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "sgst_total": {
+     "value": "87.50",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "round_off": {
+     "value": "0.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "grand_total": {
+     "value": "3,675.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    }
+   },
+   "currency": "INR",
+   "notes": []
+  }
+ ],
+ "P7-08": [
+  {
+   "document_kind": {
+    "value": "Tax Invoice",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_name": {
+    "value": "Shree Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_gstin": {
+    "value": "[GSTIN_1]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_name": {
+    "value": "Pack Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_gstin": {
+    "value": "[GSTIN_2]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_no": {
+    "value": "SH/0107",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_date": {
+    "value": "01-07-2026",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "place_of_supply": {
+    "value": "27-Maharashtra",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "lines": [
+    {
+     "description": {
+      "value": "Air conditioner",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "hsn_sac": {
+      "value": "8415",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "quantity": {
+      "value": "1",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit": {
+      "value": "NOS",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit_rate": {
+      "value": "10,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "taxable_value": {
+      "value": "10,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "gst_rate": {
+      "value": "18",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "cgst": {
+      "value": "900.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "sgst": {
+      "value": "900.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    }
+   ],
+   "totals": {
+    "taxable_total": {
+     "value": "10,000.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "cgst_total": {
+     "value": "900.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "sgst_total": {
+     "value": "900.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "round_off": {
+     "value": "0.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "grand_total": {
+     "value": "11,800.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    }
+   },
+   "currency": "INR",
+   "notes": []
+  }
+ ],
+ "P7-09": [
+  {
+   "document_kind": {
+    "value": "Tax Invoice",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_name": {
+    "value": "Shree Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_gstin": {
+    "value": "[GSTIN_1]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_name": {
+    "value": "Pack Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_gstin": {
+    "value": "[GSTIN_2]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_no": {
+    "value": null,
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.3
+   },
+   "invoice_date": {
+    "value": "15-03-2026",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "place_of_supply": {
+    "value": "27-Maharashtra",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "lines": [
+    {
+     "description": {
+      "value": "Sugar M-30",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "hsn_sac": {
+      "value": "1701",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "quantity": {
+      "value": "1",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit": {
+      "value": "KGS",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit_rate": {
+      "value": "1,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "taxable_value": {
+      "value": "1,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "gst_rate": {
+      "value": "5",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "cgst": {
+      "value": "25.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "sgst": {
+      "value": "25.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    }
+   ],
+   "totals": {
+    "taxable_total": {
+     "value": "1,000.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "cgst_total": {
+     "value": "25.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "sgst_total": {
+     "value": "25.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "round_off": {
+     "value": "0.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "grand_total": {
+     "value": "1,050.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    }
+   },
+   "currency": "INR",
+   "notes": []
+  }
+ ],
+ "P7-10": [
+  {
+   "document_kind": {
+    "value": "Tax Invoice",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_name": {
+    "value": "Shree Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_gstin": {
+    "value": "[GSTIN_1]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_name": {
+    "value": "Pack Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_gstin": {
+    "value": "[GSTIN_2]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_no": {
+    "value": "SH/0101",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_date": {
+    "value": "10-05-2026",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "place_of_supply": {
+    "value": "27-Maharashtra",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "lines": [
+    {
+     "description": {
+      "value": "Air conditioner",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "hsn_sac": {
+      "value": "8415",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "quantity": {
+      "value": "2",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit": {
+      "value": "NOS",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit_rate": {
+      "value": "1,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "taxable_value": {
+      "value": "2,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "gst_rate": {
+      "value": "18",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "cgst": {
+      "value": "180.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "sgst": {
+      "value": "180.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    },
+    {
+     "description": {
+      "value": "Sugar M-30",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "hsn_sac": {
+      "value": "1701",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "quantity": {
+      "value": "10",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit": {
+      "value": "KGS",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit_rate": {
+      "value": "50.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "discount": {
+      "value": "50.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "taxable_value": {
+      "value": "450.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "gst_rate": {
+      "value": "5",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "cgst": {
+      "value": "11.25",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "sgst": {
+      "value": "11.25",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    }
+   ],
+   "totals": {
+    "taxable_total": {
+     "value": "2,450.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "cgst_total": {
+     "value": "191.25",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "sgst_total": {
+     "value": "191.25",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "round_off": {
+     "value": "0.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "grand_total": {
+     "value": "2,832.50",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    }
+   },
+   "currency": "INR",
+   "notes": []
+  }
+ ],
+ "P7-11": [
+  {
+   "document_kind": {
+    "value": "Tax Invoice",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_name": {
+    "value": "Verma Cooling Solutions",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_gstin": {
+    "value": "[GSTIN_1]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_name": {
+    "value": "Pack Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_gstin": {
+    "value": "[GSTIN_2]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_no": {
+    "value": "VC/26/55",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_date": {
+    "value": "02-07-2026",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "place_of_supply": {
+    "value": "27-Maharashtra",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "lines": [
+    {
+     "description": {
+      "value": "Split AC 1.5 ton",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "hsn_sac": {
+      "value": "8415",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "quantity": {
+      "value": "1",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit": {
+      "value": "NOS",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit_rate": {
+      "value": "30,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "taxable_value": {
+      "value": "30,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "gst_rate": {
+      "value": "18",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "cgst": {
+      "value": "2,700.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "sgst": {
+      "value": "2,700.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    }
+   ],
+   "totals": {
+    "taxable_total": {
+     "value": "30,000.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "cgst_total": {
+     "value": "2,700.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "sgst_total": {
+     "value": "2,700.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "round_off": {
+     "value": "0.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "grand_total": {
+     "value": "35,040.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    }
+   },
+   "currency": "INR",
+   "notes": []
+  }
+ ],
+ "P7-12": [
+  {
+   "document_kind": {
+    "value": "Credit Note",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_name": {
+    "value": "Pack Traders",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "supplier_gstin": {
+    "value": "[GSTIN_1]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_name": {
+    "value": "Gamma Retail",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "buyer_gstin": {
+    "value": "[GSTIN_2]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_no": {
+    "value": "CN/26/001",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "invoice_date": {
+    "value": "10-07-2026",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "place_of_supply": {
+    "value": "27-Maharashtra",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "lines": [
+    {
+     "description": {
+      "value": "Paracetamol tablets",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "hsn_sac": {
+      "value": "3004",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "quantity": {
+      "value": "100",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit": {
+      "value": "STRP",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "unit_rate": {
+      "value": "50.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "taxable_value": {
+      "value": "5,000.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "gst_rate": {
+      "value": "5",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "cgst": {
+      "value": "125.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "sgst": {
+      "value": "125.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    }
+   ],
+   "totals": {
+    "taxable_total": {
+     "value": "5,000.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "cgst_total": {
+     "value": "125.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "sgst_total": {
+     "value": "125.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "round_off": {
+     "value": "0.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    },
+    "grand_total": {
+     "value": "5,250.00",
+     "page": 1,
+     "bbox": null,
+     "confidence": 0.95
+    }
+   },
+   "currency": "INR",
+   "notes": [],
+   "original_invoice_no": {
+    "value": "INV/26/014",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   }
+  }
+ ],
+ "P7-B1": [
+  {
+   "bank_name": {
+    "value": "HDFC Bank",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "account_ref": {
+    "value": "[ACCOUNT_1]",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "period_from": {
+    "value": "01-06-2026",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "period_to": {
+    "value": "30-06-2026",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "opening_balance": {
+    "value": "50,000.00",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "closing_balance": {
+    "value": "53,850.00",
+    "page": 1,
+    "bbox": null,
+    "confidence": 0.95
+   },
+   "lines": [
+    {
+     "date": {
+      "value": "02-06-2026",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "narration": {
+      "value": "Payment to Joshi Sweets",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "reference": {
+      "value": "004501",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "balance": {
+      "value": "49,880.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "debit": {
+      "value": "120.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "credit": {
+      "value": null,
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    },
+    {
+     "date": {
+      "value": "05-06-2026",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "narration": {
+      "value": "NEFT from Gamma Retail",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "reference": {
+      "value": "N1001",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "balance": {
+      "value": "55,130.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "debit": {
+      "value": null,
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "credit": {
+      "value": "5,250.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    },
+    {
+     "date": {
+      "value": "09-06-2026",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "narration": {
+      "value": "Cheque to Gupta",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "reference": {
+      "value": "004512",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "balance": {
+      "value": "54,320.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "debit": {
+      "value": "900.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "credit": {
+      "value": null,
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    },
+    {
+     "date": {
+      "value": "12-06-2026",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "narration": {
+      "value": "Payment to Mehta Hardware",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "reference": {
+      "value": "004513",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "balance": {
+      "value": "53,850.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "debit": {
+      "value": "380.00",
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     },
+     "credit": {
+      "value": null,
+      "page": 1,
+      "bbox": null,
+      "confidence": 0.95
+     }
+    }
+   ],
+   "currency": "INR",
+   "notes": []
+  }
+ ]
+}

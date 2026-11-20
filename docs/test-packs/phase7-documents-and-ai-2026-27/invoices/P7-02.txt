@@ -1,0 +1,20 @@
+TAX INVOICE
+Kumar Electricals
+44 MG Road, Bengaluru, Karnataka
+GSTIN: 29AAAPK5678F1ZH
+Invoice No: KE/26/0457        Date: 20-05-2026
+Bill to: Pack Traders, 5 Station Road, Pune
+Buyer GSTIN: 27AAAPL1234C1ZE
+Place of supply: 27-Maharashtra
+
+Sl  Description          HSN     Qty   Unit  Rate       Disc    Taxable      GST%  CGST       SGST       IGST
+1   Mobile phone          851712  5     NOS   2,000.00   0.00    10,000.00    18    0.00       0.00       1,800.00
+
+Total taxable value: 10,000.00
+IGST: 1,800.00
+Round off: 0.00
+Grand total: 11,800.00
+Bank: HDFC Bank, A/c No. 50100123456789, IFSC HDFC0001234
+Supplier PAN: AAAPK5678F
+Authorised signatory Aadhaar: 2345 6789 0123
+Subject to Bengaluru jurisdiction.

@@ -1,0 +1,13 @@
+HDFC BANK - STATEMENT OF ACCOUNT
+Pack Traders, 5 Station Road, Pune
+Account No: 50100123456789
+Statement period: 01-06-2026 to 30-06-2026
+Opening balance: 50,000.00
+
+Date         Narration                  Ref      Withdrawal   Deposit     Balance
+02-06-2026   Payment to Joshi Sweets    004501   120.00                   49,880.00
+05-06-2026   NEFT from Gamma Retail     N1001                 5,250.00    55,130.00
+09-06-2026   Cheque to Gupta            004512   900.00                   54,230.00
+12-06-2026   Payment to Mehta Hardware  004513   380.00                   53,850.00
+
+Closing balance: 53,850.00
