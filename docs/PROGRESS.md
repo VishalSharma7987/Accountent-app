@@ -248,3 +248,150 @@ Tests: unit green; P5 runner 21 sections run once (all ok except W4 rule id, sin
 Known issue (not fixed): B's FIFO reversal_in opens a new layer, so reversing the original purchase is still refused S-17.
 Decisions: docs/decisions_parts/G5.md
 
+
+<!-- Phase 7 package status (folded from progress_parts) -->
+<!-- progress_parts/A6.md -->
+Step 6.1 package A (adjustments + partners), branch p6-a.
+Done: engine/final_adjustments.py (F-01..F-11 builders and pure calculations), services/final_adjustments.py (ledger roles, setup-ledgers, partners, deed terms, helper -> DRAFT journal through the voucher service, auto-reversal, delete while draft), db/repositories_final_adjustments.py, api/final_adjustments.py + schemas_final_adjustments.py.
+Tests: tests/unit/engine/test_final_adjustments.py (55, hand-typed) and tests/integration/test_final_adjustments_db.py (see commit message / report for the DB run result).
+Commit: on branch p6-a (not merged).
+Decisions added: docs/decisions_parts/A6.md (12 rows).
+
+<!-- progress_parts/A7.md -->
+Step 7.A (documents, branch p7-a): upload with content-type sniffing, SHA-256 duplicate check, private store, text reading, OCR adapters, voucher links, download endpoint.
+Done: engine/doc_files.py, ai/storage.py, ai/ocr.py, services/documents.py, db/repositories_documents.py, api/documents.py + schemas_documents.py, 503 mapping in api/errors.py.
+Tests: tests/unit/test_documents_intake.py (30 + 1 skipped symlink) and tests/integration/test_documents_service.py (see final report for the locked run).
+Commit: on branch p7-a (not merged).
+Decisions added: docs/decisions_parts/A7.md (9 rows); owner: set DOCUMENT_STORE_DIR; install an OCR engine only for scanned documents.
+
+<!-- progress_parts/B6.md -->
+Step 6.1 package B (fixed assets + depreciation, branch p6-b): engines final_assets.py and final_it_depreciation.py (F-20..F-34), repository, service, router and schemas written.
+Done: register, events, Companies Act run -> ONE draft Journal through the voucher service, IT block working with the half-rate rule, flags, finalise; rate/life rows read from the seeded tables, `pending` shown on lines and the working.
+Tests: unit tests/unit/test_final_assets_engine.py + test_final_it_depreciation_engine.py (43); integration tests/integration/test_final_assets_db.py (7, one locked run).
+Commit: on branch p6-b (not merged). Shared file touched: api/errors.py (one line, event_order).
+Decisions added: docs/decisions_parts/B6.md (12 rows); plan arithmetic for the package-B examples re-derived by hand: no error found.
+
+<!-- progress_parts/B7.md -->
+Phase 7 package B (Tally XML import / export), 2026-11-20
+Step: 7.1 B. Done: strict reader (importers/tally_xml.py, defusedxml), mapping rules (engine/tally_map.py), export text (engine/tally_export.py), services tally_import / tally_export, repositories_tally, api/tally.py + schemas_tally.py.
+Tests: 43 unit (parser 18, mapping 18, export 7) plus 3 integration in tests/integration/test_tally_import_db.py (one locked run); ruff clean.
+Commit: branch p7-b (not merged). Decisions added: 17 rows in decisions_parts/B7.md.
+Open: needs a real Tally export sample (schema unverified); plain-lines GST vouchers are invisible to GST returns (warning added); contract updated for new endpoint / codes.
+
+<!-- progress_parts/C6.md -->
+Step 6.1 package C (branch p6-c): closing stock approval + Trading A/c, P&L, Balance Sheet (vertical / horizontal), appropriation, ledger positions.
+Done: engine/final_statements.py (F-40..F-43, F-44b, F-48, F-61, F-62), services/final_closing_stock.py, services/final_statements.py, db/repositories_final_statements.py, api/final_statements.py + schemas, one line in api/errors.py.
+Tests: tests/unit/engine/test_final_statements.py (25) and tests/integration/test_final_statements_db.py (7); results in the final report.
+Commit: on branch p6-c (not merged).
+Decisions added: docs/decisions_parts/C6.md (12 rows; one plan arithmetic error: the 1,00,001.00 split example).
+
+<!-- progress_parts/C7.md -->
+Step 7.1 package C (branch p7-c): masking engine, OpenRouter client, AI switch service + API, llm gateway with call log and rate / cost guard.
+Done: engine/doc_mask.py, ai/openrouter.py, db/repositories_ai.py, services/ai_settings.py, services/llm_gateway.py, api/ai_settings.py (4 routes under /clients/{id}/ai), api/schemas_ai.py.
+Tests: unit tests/unit/engine/test_doc_mask.py, test_openrouter_client.py (httpx.MockTransport only), test_llm_gateway_pure.py; integration tests/integration/test_ai_gateway_db.py (one locked run).
+Commit: on branch p7-c (not merged).
+Decisions added: docs/decisions_parts/C7.md (13 rows).
+
+<!-- progress_parts/D6.md -->
+Step 6.1 package D (Schedule III) - branch p6-d.
+Done: engine/final_sch3.py (classify F-44, Balance Sheet / P&L / notes F-44b F-45 F-46, PPE register rows), repositories_final_sch3, services/final_sch3 (classification CRUD with audit, comparatives, rule status), api/final_sch3 + schemas (5 endpoints).
+Tests: tests/unit/engine/test_final_sch3.py (22), tests/integration/test_final_sch3_db.py (1 end-to-end).
+Commit: see git log on p6-d.
+Decisions added: docs/decisions_parts/D6.md.
+
+<!-- progress_parts/D7.md -->
+Phase 7 package D (extraction schemas, prompts, engine checks, extraction service and API), branch p7-d
+Done: ai/schemas.py (invoice + bank, Pydantic v2 strict, extra=forbid), ai/prompts.py (versioned, document as data), engine/doc_check.py (D-03, D-05..D-17), engine/doc_bank.py (D-18, D-19), db/repositories_extractions.py, services/extractions.py, api/extractions.py + api/schemas_extractions.py
+Tests: tests/unit/test_doc_schemas.py, tests/unit/engine/test_doc_check.py (unit); tests/integration/test_extractions_service.py (database, scripted FakeLlmClient answers with wrong total / tax / GSTIN / missing field / low confidence / invalid JSON / extra key)
+Commit: see git log of p7-d
+Decisions added: docs/decisions_parts/D7.md
+
+<!-- progress_parts/E6.md -->
+Step 6.E (package E): cash flow statement (F-49, F-50) and Excel / PDF export (F-70, F-71).
+Done: engine/final_cashflow.py, services/final_cashflow.py, services/final_export.py + final_export_render.py, routers final_cashflow / final_export, reportlab dependency.
+Tests: tests/unit/engine/test_final_cashflow.py (10), tests/unit/test_final_export_render.py (7), tests/integration/test_final_export_db.py (1, one batched run).
+Commit: branch p6-e (not merged). Company cash flow was not exercised against the database (unit only).
+Decisions added: docs/decisions_parts/E6.md. Plan arithmetic for the cash flow mini-example re-derived: correct (1,50,000 / 55,000 / 2,05,000).
+
+<!-- progress_parts/E7.md -->
+Step 7.1 package E (branch p7-e): saved party / line mappings with CRUD + audit + API, and the GST invoice-mode draft builder (D-20..D-25, D-27).
+Done: engine/doc_map.py, engine/doc_build.py, services/doc_mappings.py, services/doc_drafts.py, db/repositories_doc_mappings.py, api/doc_mappings.py + schemas_doc_mappings.py (routes under /clients/{id}/mappings/... and /documents/{id}/build-draft).
+Tests: tests/unit/engine/test_doc_map_build.py (24 unit); tests/integration/test_doc_drafts_db.py (one locked run, incl. the vouchers_ai_queue_guard gate through the real voucher service).
+Commit: on branch p7-e (not merged). Depends on package D only for the injected checker (services.extractions.check) used by the API route.
+Decisions added: docs/decisions_parts/E7.md (9 rows).
+
+<!-- progress_parts/F6.md -->
+Step 6.2 package F (branch p6-f): year-end close and reopen (F-60..F-67).
+Done: engine/final_close.py, services/final_close.py, db/repositories_final_close.py, api/final_close.py + schemas, hooks in vouchers.py / client_setup.py / api/errors.py.
+Tests: tests/unit/engine/test_final_close.py (25), tests/integration/test_final_close_db.py (3); results in the final report.
+Commit: on branch p6-f (not merged).
+Decisions added: docs/decisions_parts/F6.md.
+
+<!-- progress_parts/F7.md -->
+Phase 7 package F (approval queue backend, narration suggestions, voucher guard hooks), branch p7-f
+Done: engine/narration.py (D-40..D-43), engine/queue_edit.py (D-61), services/approval_queue.py (list, detail, claim/release, edit, accept, accept-clean, reject, audit, learning), services/narration.py, services/queue_guard.py, db/repositories_queue.py, api/approval_queue.py, api/narration.py, api/schemas_queue.py; hook lines in services/vouchers.py (approve, post, delete_draft).
+Tests: tests/unit/test_narration_engine.py, tests/unit/test_queue_edit_engine.py; tests/integration/test_approval_queue_db.py (wrong extraction via the fake LLM can never be accepted / approved / posted until fixed; correct one posts only after accept + approve + post; Tally items; narration; API). Updated one assertion of package E's test_doc_drafts_db.py (the voucher service now refuses first with queue_not_accepted; the DB trigger is asserted by a direct UPDATE).
+Commit: see git log of p7-f (not merged)
+Decisions added: docs/decisions_parts/F7.md
+
+<!-- progress_parts/G6.md -->
+Step 6.3 package G (branch p6-g): Phase 6 acceptance pack and runner.
+Done: docs/test-packs/phase6-full-year-accounts-2026-27 (proprietor, partnership, company; WORKING.md, SIGNOFF.md, VERIFICATION_SHEET.xlsx), pack_loader_p6.py, pack_runner_p6.py, test_pack_runner_p6.py, test_pack_p6_selfcheck.py, scripts/build_verification_sheet_p6.py, PHASE6_SIGNOFF.md, one skip line in test_pack_runner.py.
+Tests: unit self-check (35) and ruff green; the pack runner was run once through scripts/dbrun.sh (result in the final report).
+Commit: on branch p6-g (not merged).
+Decisions added: docs/decisions_parts/G6.md.
+
+<!-- progress_parts/G7.md -->
+Phase 7 package G (acceptance pack and runner), branch p7-g
+Done: docs/test-packs/phase7-documents-and-ai-2026-27/ (12 synthetic invoices as txt + pdf, scripted fake-model answers, bank statement text + CSV with narration script, 3 Tally XML files, expected_*.csv, WORKING.md, SIGNOFF.md, VERIFICATION_SHEET.xlsx); scripts/build_pack_p7_inputs.py, scripts/build_verification_sheet_p7.py; tests/acceptance/pack_loader_p7.py, pack_runner_p7.py, test_pack_runner_p7.py, test_pack_p7_selfcheck.py; one-line skip in test_pack_runner.py.
+Tests: selfcheck 21 unit tests pass, ruff clean; runner via dbrun.sh once: 13 of 14 passed, 1 difference (TB-2 final finding path) re-derived by hand and corrected in expected_findings.csv (not re-run).
+Commit: see git log of p7-g (not merged)
+Decisions added: docs/decisions_parts/G7.md
+
+<!-- progress_parts/P6.md -->
+Step 6.0 (planner, branch p6-plan): plan, API contract and legal values written (docs/PHASE6_PLAN.md, PHASE6_API_CONTRACT.md, PHASE6_LEGAL_VALUES.md).
+Done: migration 0017 (20 tables, guards, RLS, closed grants), seeds 0012 / 0013, engine/final_types.py, services/final_hooks.py, 7 empty routers registered, unit lists updated.
+Tests: unit 1299+ passed with ruff clean; integration test_final_accounts_schema.py 9 passed (0017 and seeds applied to the TEST schema only; dev not touched).
+Commit: on branch p6-plan (not merged). A one-function hotfix (final_append_only_guard) was applied to the test schema by CREATE OR REPLACE and is already in the 0017 file.
+Decisions added: docs/decisions_parts/P6.md (14 rows); owner questions: PDF library, legal values (PHASE6_LEGAL_VALUES.md section 5).
+
+<!-- progress_parts/P7.md -->
+Step 7.0 (planner, branch p7-plan): plan and API contract written (docs/PHASE7_PLAN.md, PHASE7_API_CONTRACT.md); 50 rules D-01..D-64 catalogued in engine/doc_types.py.
+Done: migration 0018 (14 tables, guards incl. vouchers_ai_queue_guard, RLS, closed grants), engine/doc_types.py, ai/llm.py + ai/fake.py, services/ai_hooks.py, 7 empty routers registered, config getters, .env.example, pyproject (pypdf, defusedxml, httpx; OCR extras).
+Tests: see the final report of the planner (unit + ruff, then 0018 applied to the TEST schema only and tests/integration/test_documents_schema.py run once).
+Commit: on branch p7-plan (not merged).
+Decisions added: docs/decisions_parts/P7.md (17 rows); owner items: .env values (DOCUMENT_STORE_DIR, OPENROUTER_API_KEY, LLM_MODEL), pip install, OCR engine choice, tolerance and confidence defaults.
+
+<!-- progress_parts/SYNC7.md -->
+- Step: SYNC7, Phase 7 UI sync (api/ai.ts and ai/* screens vs the real routers and schemas).
+- Done: narration GET sends X-User; Tally imports list uses `id`; export list typed; queue history uses `at`; queue_blocked shows unacknowledged warnings; note_reason / original_invoice_date rows for credit/debit notes; Tally group picker (groups API exposes ids); loading/empty states; UNVERIFIED markers removed.
+- Tests: vitest 132 passed (lib.test.ts extended), `npm run build` ok, pytest tests/unit/test_groups_api_ids.py 1 passed, ruff clean. No DB tests run.
+- Commit: branch p7-sync (not merged).
+- Decisions added: docs/decisions_parts/SYNC7.md (3 rows).
+
+<!-- progress_parts/UI.md -->
+# UI audit (branch ui-audit) - fixes (2026-11-19)
+
+Static audit of frontend/src/api/{gst,tds,inventory}.ts and api.ts against the real FastAPI routers and pydantic schemas (OpenAPI dump plus the services). 17 mismatches found, 16 fixed in the frontend, 1 reported (see decisions_parts/UI.md).
+
+- GST: 2B documents URL needed the client (`/clients/{id}/gst/2b/imports/{import}/documents`); ITC register `period` is now sent as a date (YYYY-MM becomes YYYY-MM-01, was a 422); Rules screen read `rule_status` but the server sends `status.overall`; composition "Save as working" sent return_type `composition` (server: `cmp08`); Credit/Debit Note reason was free text (server accepts 7 keys), now a select; item master sent UQC `''` (fails G-07), now null via `cleanItem`; removed the "Look up rate" button (no such endpoint); preview `gst` can be null on rule errors (screen crashed), now guarded.
+- TDS: certificate kinds were form_16a/form_27d (server: non_salary/salary/tcs); ledger roles interest/late_fee are interest_expense/late_fee_expense; deductee types aop/society replaced by aop_boi/co_operative_society (trust kept); due-calendar response is `{rows}` not a bare array; interest and challan-matching rule status read from the wrong place; return working showed `undefined` for the period (now financial_year, quarter, dates); preview `tds` null guarded; 26AS books side tolerates the deductee side (no name or section) and shows the server's `reason`.
+- Inventory: item ledger document number is `document_number` (screen read voucher_number/journal_number); stock register `totals` is null with a godown filter, guarded.
+- Parties: GST registration type could not be set from the UI (saving a party sent none); added the field with the server's 7 values.
+- Forms: ErrorBox no longer repeats each rule message twice, shows `(line N)` per rule error and the row-by-row details of a rejected import file.
+- Tests: frontend/src/lib/uiAudit.test.ts (10 tests: enum keys typed from the backend, cleanItem, monthStart, lineLabel, detailLines, every sidebar link has a route). vitest 102 passed, `npm run build` ok.
+
+<!-- progress_parts/UI6.md -->
+Step UI6 (Phase 6 UI package, branch p6-ui)
+Done: api/final.ts; final/ screens (setup+partners, adjustments, fixed assets, closing stock, statements, Schedule III, cash flow, export, year-end close); Final accounts nav group + routes.
+Tests: vitest 116 passed (final/lib.test.ts added); npm run build ok.
+Commit: on p6-ui, not merged.
+Decisions added: docs/decisions_parts/UI6.md
+
+<!-- progress_parts/UI7.md -->
+Step: Phase 7 UI package (branch p7-ui).
+Done: api/ai.ts; screens in frontend/src/ai (queue, documents, extraction, narration, mappings, Tally import / export, AI settings); nav group "Documents & AI" and 8 routes (append-only).
+Tests: vitest 126 passed (ai/lib.test.ts adds 12); `npm run build` clean.
+Commit: see git log of p7-ui.
+Decisions added: docs/decisions_parts/UI7.md (7 rows); queue and narration endpoints unverified against package F.
+

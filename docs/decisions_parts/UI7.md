@@ -1,9 +1,0 @@
-| date | step | decision | reason |
-| --- | --- | --- | --- |
-| 2026-11-20 | 7 UI | Documents are shown through `fetchDocumentBlob` (authenticated fetch with X-User, blob URL, revoked on change); no document URL is ever put in the page | The download endpoint needs the actor header and the files are private |
-| 2026-11-20 | 7 UI | Accept in the queue is enabled only when the server's latest findings hold no `error` / `review` and every `warning` is ticked as acknowledged, and no field edit is waiting to be re-checked; the browser only reads severities, it computes nothing | Mirrors D-60 / plan severity rules; the server still refuses with `queue_blocked` |
-| 2026-11-20 | 7 UI | Queue field edits are sent as `{field_path, value}` for changed fields only, on leaving a field; paths follow the engine (`lines[0].taxable_value`, 0-based) | Contract `PUT /queue/{id}/fields`; engine `doc_check.py` path format |
-| 2026-11-20 | 7 UI | Usage vs limits: the server has no usage or limit endpoint, so the AI settings screen counts calls and tokens from the call log (last 200) and says no limit is published | No invented figures |
-| 2026-11-20 | 7 UI | Tally master decisions send only the server's suggested `target_group_id` (kept from the master row) or a chosen existing ledger; there is no group picker | The groups API returns group codes, not the UUIDs that `PUT /tally/masters/{id}` needs; gap listed for the owner |
-| 2026-11-20 | 7 UI | Narration suggestions are fetched per line on click (not for the whole statement) and accepting only records the rule; booking stays in the bank flow | The GET creates a suggestion row; avoids one model call per line |
-| 2026-11-20 | 7 UI | Package F routes (queue, narration) are coded to the contract and marked UNVERIFIED in `api/ai.ts` | `p7-f` had no routes committed when this was built |
