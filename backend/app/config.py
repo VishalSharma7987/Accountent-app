@@ -39,3 +39,32 @@ def cors_origins() -> list[str]:
 
 def test_database_url() -> str | None:
     return _sqlalchemy_url(os.environ.get("TEST_DATABASE_URL"))
+
+
+# ---- Phase 7 (documents and AI). None of these has a silent default that could expose data or spend money. ----
+
+
+def document_store_dir() -> Path | None:
+    """Folder for uploaded files (DOCUMENT_STORE_DIR). Must be an absolute path OUTSIDE the repository and outside any web root;
+    None = uploads are refused with a clear message. Files are only ever served through the API, never by a public URL."""
+    value = os.environ.get("DOCUMENT_STORE_DIR", "").strip()
+    return Path(value) if value else None
+
+
+def max_upload_bytes() -> int:
+    return int(os.environ.get("MAX_UPLOAD_BYTES", str(15 * 1024 * 1024)))
+
+
+def openrouter_api_key() -> str | None:
+    """OPENROUTER_API_KEY. Never logged, never stored, never put in an error message."""
+    return os.environ.get("OPENROUTER_API_KEY", "").strip() or None
+
+
+def llm_model() -> str | None:
+    """LLM_MODEL (an OpenRouter model name). None = no model configured, so no call can be made."""
+    return os.environ.get("LLM_MODEL", "").strip() or None
+
+
+def ai_min_confidence() -> str:
+    """Fields read with a confidence below this are flagged (D-05). Text, parsed to Decimal by the engine."""
+    return os.environ.get("AI_MIN_CONFIDENCE", "0.85").strip()

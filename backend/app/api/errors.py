@@ -18,6 +18,7 @@ UNPROCESSABLE |= {"closing_stock_missing"}  # Phase 6 (C)
 UNPROCESSABLE |= {"close_blocked", "next_year_missing", "reopen_blocked"}  # Year-end close (Phase 6, package F)
 UNPROCESSABLE |= {"event_order"}  # Fixed asset events (Phase 6, package B)
 UNPROCESSABLE |= {"statement_blocked", "export_blocked"}  # Phase 6 (E): F-50 cash flow, F-71 export
+UNPROCESSABLE |= {"queue_blocked", "extraction_invalid", "mapping_missing", "file_rejected"}  # Phase 7 intake / queue
 
 
 def status_for(code: str) -> int:

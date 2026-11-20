@@ -5,11 +5,16 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app import config
 from app.api import (
+    ai_settings,
+    approval_queue,
     audit,
     bank,
     bills,
     cashbook,
     clients,
+    doc_mappings,
+    documents,
+    extractions,
     final_adjustments,
     final_assets,
     final_cashflow,
@@ -29,10 +34,12 @@ from app.api import (
     inventory_reports,
     ledgers,
     msme,
+    narration,
     parties,
     periods,
     reconciliation,
     reports,
+    tally,
     tds_challans,
     tds_deduction,
     tds_masters,
@@ -80,6 +87,13 @@ ROUTERS = [
     final_cashflow.router,
     final_export.router,
     final_close.router,
+    documents.router,
+    tally.router,
+    ai_settings.router,
+    extractions.router,
+    doc_mappings.router,
+    approval_queue.router,
+    narration.router,
 ]
 for _router in ROUTERS:
     app.include_router(_router)

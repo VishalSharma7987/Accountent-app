@@ -18,6 +18,9 @@ dependencies = [
     "reportlab",
     "python-multipart",
     "pandas",
+    "pypdf",
+    "defusedxml",
+    "httpx",
 ]
 
 [project.optional-dependencies]
@@ -25,9 +28,11 @@ dev = [
     "pytest",
     "pytest-cov",
     "ruff",
-    "httpx",
     "pyyaml",
 ]
+# OCR for scanned PDFs / photos is OPTIONAL (docs/PHASE7_PLAN.md section 6): install one of these, plus its binary, only if you need it.
+ocr-tesseract = ["pytesseract", "Pillow", "pypdfium2"]   # also needs the Tesseract program (see plan)
+ocr-paddle = ["paddleocr", "paddlepaddle", "pypdfium2"]  # heavy (hundreds of MB); no separate program
 
 [tool.setuptools.packages.find]
 include = ["app*"]
