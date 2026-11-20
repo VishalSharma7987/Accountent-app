@@ -403,7 +403,22 @@ def check_a14(facts: BooksFacts, params: AuditParams, rules: Sequence[LimitRule]
     return CheckResult("A-14", tuple(findings), tuple(v.id for v in pool), sum((v.total for v in pool), ZERO), tuple(notes))
 
 
-CHECKS: dict = {
+def _for_registry(check):
+    """The registry passes its `AuditFacts` (ledgers, vouchers, extra); the books loader's extras are in `facts.extra["books"]`.
+    A bare `BooksFacts` (the direct unit tests) is passed through unchanged."""
+
+    def run(facts, params, rules):
+        if isinstance(facts, BooksFacts):
+            return check(facts, params, rules)
+        own = BooksFacts(vouchers=tuple(facts.vouchers), ledgers=tuple(facts.ledgers.values()), **facts.extra.get("books", {}))
+        return check(own, params, rules)
+
+    run.__name__ = check.__name__
+    run.__doc__ = check.__doc__
+    return run
+
+
+CHECKS: dict = {k: _for_registry(fn) for k, fn in {
     "A-01": check_a01, "A-02": check_a02, "A-03": check_a03, "A-04": check_a04, "A-05": check_a05, "A-06": check_a06,
     "A-12": check_a12, "A-13": check_a13, "A-14": check_a14,
-}
+}.items()}

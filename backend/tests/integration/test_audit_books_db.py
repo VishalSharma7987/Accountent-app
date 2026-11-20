@@ -66,7 +66,8 @@ def test_A01_to_A14_loader_and_checks_on_real_rows(svc_conn):
     assert [(x.finding_key[:5], x.amount, x.disallowance_amount) for x in cash_f.findings] == [("A-05:", D("11000.00"), D("11000.00"))]
     assert len(b.CHECKS["A-03"](facts, PARAMS, ()).findings) == 2          # no document linked to either payment
     assert len(b.CHECKS["A-13"](facts, PARAMS, ()).findings) == 2          # both on the listed holiday
-    assert b.CHECKS["A-14"](facts, PARAMS, ()).findings == ()              # posted before the lock and well inside 30 days
+    late = b.CHECKS["A-14"](facts, PARAMS, ()).findings       # dated 14-08-2026, posted today: more than 30 days after the period end
+    assert len(late) == 2 and all("days_after_period_end" in x.evidence and "lock_audit_log_id" not in x.evidence for x in late)
 
     doc_id = uuid.uuid4()
     f.conn.execute(

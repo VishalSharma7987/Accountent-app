@@ -209,3 +209,12 @@ def test_A14_voucher_outside_every_period_is_noted_not_guessed():
     v = pur("p1", date(2026, 7, 10), "1.00", "a", posted_at=datetime(2026, 12, 1, 9, 0, tzinfo=UTC))
     r = b.CHECKS["A-14"](facts([v], periods=(PERIOD,)), PARAMS, ())
     assert r.findings == () and any("no period" in n for n in r.notes)
+
+
+def test_registry_path_builds_books_facts_from_audit_facts_and_extra():
+    from app.engine.audit_registry import AuditFacts, all_checks
+
+    vs = (pur("p1", date(2026, 5, 1), "5000.00", "A1"),)
+    af = AuditFacts({ln.id: ln for ln in LEDGERS}, vs, {"books": {"document_voucher_ids": frozenset({"p1"})}})
+    assert all_checks()["A-03"](af, PARAMS, ()).findings == ()
+    assert len(all_checks()["A-03"](AuditFacts({ln.id: ln for ln in LEDGERS}, vs, {}), PARAMS, ()).findings) == 1
