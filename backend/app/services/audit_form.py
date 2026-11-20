@@ -20,6 +20,13 @@ from app.services.errors import ServiceError, require_actor
 FORM_NOT_VERIFIED = "not verified against the official form"
 
 
+
+def _rule_status(evidence) -> str | None:
+    """The status of the rule row a finding used. The checks write it as `rule.verification_status` or `rule.status`
+    (same as services/audit_report.rule_status_of)."""
+    rule = (evidence or {}).get("rule") or {}
+    return rule.get("verification_status") or rule.get("status")
+
 def _year(conn: Connection, client_id: Any, fy_id: Any) -> dict:
     row = conn.execute(text("SELECT id, start_date, end_date FROM financial_years WHERE id = :f AND client_id = :c"),
                        {"f": fy_id, "c": client_id}).mappings().first()
@@ -126,7 +133,7 @@ def derive(conn: Connection, client_id: Any, set_id: Any, run_id: Any, *, actor:
     rows = conn.execute(text("SELECT id, check_id, amount, disallowance_amount, evidence FROM audit_findings WHERE run_id = :r AND client_id = :c"),
                         {"r": run_id, "c": client_id}).mappings().all()
     findings = [engine.FindingRow(str(r["id"]), r["check_id"], r["amount"], r["disallowance_amount"],
-                                  ((r["evidence"] or {}).get("rule") or {}).get("verification_status")) for r in rows]
+                                  _rule_status(r["evidence"])) for r in rows]
     result = engine.derive(_clauses(conn, s["form_key"]), findings, list(run["check_ids"]), failed, clause_nos)
 
     existing = {(e["clause_no"], e["field_key"]): e for e in _entries(conn, set_id)}

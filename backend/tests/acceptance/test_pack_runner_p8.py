@@ -21,9 +21,7 @@ pytestmark = pytest.mark.integration
 PACK = Path(__file__).resolve().parents[3] / "docs" / "test-packs" / "phase8-audit-checks-2026-27"
 
 # Sections where the tool disagrees with the hand workings and the owner has not decided yet (reason = the finding).
-FINDINGS: dict[str, str] = {
-    "form": "TOOL BUG: audit_form.derive reads evidence.rule.verification_status but the A-05 / A-06 findings (package B) write evidence.rule.status, so clause 21 loses its legal_rule_status (pending). Fix: read both keys (see audit_report.rule_status_of).",
-}
+FINDINGS: dict[str, str] = {}  # (the one tool bug found by the pack was fixed: audit_form now reads rule.status as well)
 
 
 @pytest.fixture(scope="module")
