@@ -16,9 +16,11 @@ UNPROCESSABLE |= {"no_policy", "period_locked", "negative_stock", "journal_rever
 UNPROCESSABLE |= {"period_invalid", "not_gst_client", "filed_invalid", "working_unsupported", "no_rate_rule"}  # GST returns (E)
 UNPROCESSABLE |= {"closing_stock_missing"}  # Phase 6 (C)
 UNPROCESSABLE |= {"close_blocked", "next_year_missing", "reopen_blocked"}  # Year-end close (Phase 6, package F)
+UNPROCESSABLE |= {"invalid_run", "invalid_entry"}  # Audit tax-audit data (Phase 8, package F)
 UNPROCESSABLE |= {"event_order"}  # Fixed asset events (Phase 6, package B)
 UNPROCESSABLE |= {"statement_blocked", "export_blocked"}  # Phase 6 (E): F-50 cash flow, F-71 export
 UNPROCESSABLE |= {"queue_blocked", "extraction_invalid", "mapping_missing", "file_rejected"}  # Phase 7 intake / queue
+UNPROCESSABLE |= {"unknown_check", "no_period", "decision_reason_required", "sample_invalid"}  # Phase 8 audit (A, E)
 
 
 def status_for(code: str) -> int:
