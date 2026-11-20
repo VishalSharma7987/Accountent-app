@@ -1,0 +1,45 @@
+ref,fy,type,date,number,party,reference_no,document,posted_at,narration
+V-01,F26,receipt,2026-04-06,REC/2026-27/0001,Gamma Retail,,no,,Cash received from Gamma Retail
+V-02,F26,sales,2026-04-08,SAL/2026-27/0001,Gamma Retail,S-2601,no,,Goods sold to Gamma Retail
+V-03,F26,purchase,2026-04-10,PUR/2026-27/0001,Kumar Steel,KS-1001,yes,,Steel purchased from Kumar Steel
+V-04,F26,purchase,2026-05-12,PUR/2026-27/0002,Kumar Steel,INV-17,yes,,Steel purchased from Kumar Steel
+V-05,F26,purchase,2026-05-14,PUR/2026-27/0003,Kumar Steel,inv 17 ,yes,,Steel purchased from Kumar Steel
+V-06,F26,purchase,2026-05-18,PUR/2026-27/0004,Sharma Traders,INV-17,yes,,Goods purchased from Sharma Traders
+V-07,F26,purchase,2026-05-20,PUR/2026-27/0005,Kumar Steel,INV-18,yes,,Steel purchased from Kumar Steel
+V-08,F26,purchase,2026-05-26,PUR/2026-27/0006,Kumar Steel,INV-21,no,,Steel purchased from Kumar Steel
+V-09,F26,sales,2026-06-02,SAL/2026-27/0002,Gamma Retail,S-2602,no,,Goods sold to Gamma Retail
+V-10,F26,sales,2026-06-09,SAL/2026-27/0004,Gamma Retail,S-2603,no,,Goods sold to Gamma Retail
+V-11,F26,payment,2026-06-10,PAY/2026-27/0001,Raj Contractors,,yes,,Paid to Raj Contractors for site work
+V-12,F26,payment,2026-06-12,PAY/2026-27/0002,Dutta Associates,,yes,,"Paid to Dutta Associates for site work, tax deducted"
+V-13,F26,payment,2026-06-15,PAY/2026-27/0003,Mehta Builders,,yes,,"Paid to Mehta Builders for site work, tax deducted"
+V-14,F26,payment,2026-06-17,PAY/2026-27/0004,Bose Contractors,,yes,,"Paid to Bose Contractors for site work, tax deducted"
+V-15,F26,payment,2026-06-18,PAY/2026-27/0005,Desai Services,,yes,,Paid to Desai Services for minor work
+V-16,F26,payment,2026-07-03,PAY/2026-27/0006,Verma Cooling Solutions,,yes,,Paid to Verma Cooling Solutions
+V-17,F26,payment,2026-07-06,PAY/2026-27/0007,Verma Cooling Solutions,,yes,,Paid to Verma Cooling Solutions
+V-18,F26,sales,2026-07-07,SAL/2026-27/0005,Gamma Retail,S-2604,no,,Goods sold to Gamma Retail
+V-19,F26,purchase,2026-07-15,PUR/2026-27/0007,Gupta Enterprises,GE/771,yes,,Goods purchased from Gupta Enterprises
+V-20,F26,purchase,2026-07-20,PUR/2026-27/0008,Kumar Steel,KS-1010,yes,2026-08-12T12:00:00+05:30,Steel purchased from Kumar Steel
+V-21,F26,payment,2026-07-27,PAY/2026-27/0008,Verma Cooling Solutions,,yes,,Paid to Verma Cooling Solutions
+V-22,F26,payment,2026-07-28,PAY/2026-27/0009,Gupta Enterprises,,yes,,Paid to Gupta Enterprises against GE/771
+V-23,F26,receipt,2026-08-03,REC/2026-27/0002,Gamma Retail,,no,,Received from Gamma Retail by bank transfer
+V-24,F26,payment,2026-08-14,PAY/2026-27/0010,Sharma Traders,,yes,,Cash paid to Sharma Traders
+V-25,F26,payment,2026-08-14,PAY/2026-27/0011,Sharma Traders,,yes,,Cash paid to Sharma Traders
+V-26,F26,payment,2026-08-14,PAY/2026-27/0012,Sharma Traders,,yes,,Paid to Sharma Traders by bank
+V-27,F26,payment,2026-08-17,PAY/2026-27/0013,Sharma Traders,,yes,,Cash paid to Sharma Traders
+V-28,F26,purchase,2026-08-25,PUR/2026-27/0009,Reliable Repairs,RR-2026-08,yes,,Repair work billed by Reliable Repairs
+V-29,F26,purchase,2026-09-01,PUR/2026-27/0010,Gupta Enterprises,GE/884,yes,,Goods purchased from Gupta Enterprises
+V-30,F26,receipt,2026-09-03,REC/2026-27/0003,Mehta & Co,,no,,Cash received from Mehta & Co
+V-31,F26,receipt,2026-09-03,REC/2026-27/0004,Mehta & Co,,no,,Cash received from Mehta & Co
+V-32,F26,receipt,2026-09-04,REC/2026-27/0005,Gamma Retail,,no,,Cash received from Gamma Retail
+V-33,F26,journal,2026-09-06,JRN/2026-27/0001,,,no,,Mobile bill of August accrued
+V-34,F26,payment,2026-09-08,PAY/2026-27/0014,,,yes,,"Tea, stationery and courier paid from petty cash"
+V-35,F26,contra,2026-09-10,CON/2026-27/0001,,,no,,Petty cash refilled from cash
+V-36,F26,journal,2026-09-15,JRN/2026-27/0002,,,no,,Rent for September payable to Singh Brothers
+V-37,F26,journal,2026-10-05,JRN/2026-27/0003,,,no,,Electricity bill of September accrued
+V-38,F26,journal,2026-10-07,JRN/2026-27/0004,,,no,,Stationery accrued
+V-39,F26,payment,2026-10-12,PAY/2026-27/0015,Singh Brothers,,yes,,Paid to Singh Brothers
+V-40,F26,journal,2026-10-20,JRN/2026-27/0005,,,no,,Stationery accrued
+V-41,F26,purchase,2026-10-21,PUR/2026-27/0011,Patel Plastics,PP/310,yes,,Goods purchased from Patel Plastics
+P-01,F25,purchase,2025-08-12,PUR/2025-26/0001,Reliable Repairs,RR-2025-08,yes,,Repair work billed by Reliable Repairs
+P-02,F25,payment,2025-09-15,PAY/2025-26/0001,Sharma Traders,,yes,,Cash paid to Sharma Traders
+P-03,F25,payment,2025-10-10,PAY/2025-26/0002,Reliable Repairs,,yes,,Paid to Reliable Repairs

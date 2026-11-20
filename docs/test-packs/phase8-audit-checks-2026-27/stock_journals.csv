@@ -1,0 +1,3 @@
+journal,number,date,item,godown,quantity,reason_code,reason_note
+SJ-1,SJ/2026-27/0001,2026-08-20,Copper Wire 2.5mm,Main Godown,5.000,damage,Damaged in transit
+SJ-2,SJ/2026-27/0002,2026-09-15,Steel Rod 12mm,Main Godown,12.000,loss,Rods written off after stock count

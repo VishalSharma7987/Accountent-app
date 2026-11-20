@@ -1,0 +1,3 @@
+period_start,action,at,actor,reason
+2026-07-01,lock,2026-08-05T10:00:00+05:30,ca,
+2026-07-01,unlock,2026-08-10T11:00:00+05:30,ca,Late bill received from supplier

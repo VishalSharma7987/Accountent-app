@@ -1,0 +1,44 @@
+# Phase 8 acceptance pack: audit checks A-01 .. A-18 with one injected error each, clean controls, working paper, sampling, Form 3CD data and an AI summary.
+# SYNTHETIC data only. This file is also the marker that tells the Phase 1-7 runners to leave this folder alone.
+pack: phase8-audit-checks-2026-27
+description: A trading business whose books hold one injected error per audit check; every one must appear in the audit report with its evidence and no clean control may be flagged.
+
+client:
+  name: Sunrise Audit Traders
+  entity_type: proprietorship
+  business_type: trading
+  gst_type: regular
+  proprietor: Anil Verma
+  fy_start: 2026-04-01
+  previous_fy_start: 2025-04-01
+  gstin: 27AAAPL1234C1ZE
+  gst_effective_from: 2026-09-01
+  godown: Main Godown
+actors:
+  setup: setup
+  auditor: auditor
+  reviewer: reviewer
+  partner: partner
+  owner: owner
+
+# the audit of FY 2026-27 up to 31-10-2026 (as_on dates of the bill and deposit checks are the end of this window: the run date is later)
+run_fy26:
+  from_date: 2026-04-01
+  to_date: 2026-10-31
+  params:
+    variance_min_amount: "500000.00"     # judgement parameter chosen for this pack (default 100000.00): see WORKING.md section 4
+run_fy25:
+  checks: [A-05, A-06, A-07, A-08, A-09, A-10, A-11, A-18]
+
+# what the whole run must show (typed by hand; see WORKING.md)
+headline:
+  findings_fy26: 21
+  injected_checks: 18
+  by_severity: {error: 10, warning: 4, review: 2, info: 5}
+  disallowance_total: "11000.00"
+  pending_rule_keys: [cash_payment_daily_limit, cash_payment_daily_limit_transport, cash_receipt_limit]
+  report_sheets: 19
+  vouchers_fy26: 41
+  vouchers_fy25: 3
+  findings_fy25: 1
+  model_requests: 2

@@ -1,0 +1,33 @@
+id,check_id,kind,target,why
+C-01,A-01,voucher,V-06,Same bill number INV-17 but a different supplier: not a duplicate
+C-02,A-01,voucher,V-07,Same supplier but a different bill number
+C-03,A-02,voucher,V-21,Same party and amount as V-16 / V-17 but 21 days later: outside the 7-day window
+C-04,A-03,voucher,V-03,Purchase with its supporting document linked
+C-05,A-04,text,purchase,Purchase / payment / receipt / journal / contra numbers run without a gap and agree with their counters
+C-06,A-05,voucher,V-26,Bank payment of 20150.00 to Sharma Traders the same day: only cash counts
+C-07,A-05,voucher,V-27,Cash payment of exactly 10000.00 the next working day: at the limit is not above it
+C-08,A-05,voucher,V-34,Small cash payment from petty cash
+C-09,A-06,voucher,V-32,Cash receipt of 199999.99: below the limit of 200000.00
+C-10,A-06,voucher,V-01,Small cash receipt
+C-11,A-06,voucher,V-23,Large receipt by bank: only cash counts
+C-12,A-07,ledger,Patel Plastics,Small supplier bill 10 days old: not yet past the 15 legal days
+C-13,A-07,text,GE/771,MSME bill that was paid in full inside the legal days
+C-14,A-08,text,2026-09-01,September 2026: nil GSTR-1 filed and nothing in the books: ties
+C-15,A-09,voucher,V-12,Tax deducted at the correct amount
+C-16,A-09,voucher,V-15,Payment of 22750.00 is below the contractor threshold: no tax due
+C-17,A-10,voucher,V-14,Tax deducted at the correct amount
+C-18,A-10,voucher,V-15,Below the threshold: nothing to short-deduct
+C-19,A-11,voucher,V-13,Deposited on 06-07-2026 before the due date of 07-07-2026
+C-20,A-11,voucher,V-14,Deposited on 06-07-2026 before the due date of 07-07-2026
+C-21,A-12,voucher,V-37,Total 25000.50 is not a multiple of 1000
+C-22,A-12,voucher,V-38,Total 9000.00 is below the minimum of 10000.00
+C-23,A-13,voucher,V-41,Posted on Wednesday 21-10-2026 the day after the holiday
+C-24,A-14,voucher,V-19,Same period as V-20 but posted in July before the lock
+C-25,A-14,voucher,V-21,Same period as V-20 but posted in July before the lock
+C-26,A-14,voucher,V-22,Same period as V-20 but posted in July before the lock
+C-27,A-15,ledger,Cash,Moved 428849.99 more than last year: below the minimum change of 500000.00
+C-28,A-15,ledger,HDFC Bank,Moved 230341.10 more than last year: below the minimum change
+C-29,A-15,ledger,Sharma Traders,Changed by 90.80 percent but only 11350.00 in amount
+C-30,A-16,ledger,Cash,The main cash book never goes below zero
+C-31,A-17,text,Copper Wire 2.5mm,Write-off of 5 from a stock of 20: stays positive
+C-32,A-18,ledger,Gamma Retail,Not flagged as a related party: its postings are not listed
