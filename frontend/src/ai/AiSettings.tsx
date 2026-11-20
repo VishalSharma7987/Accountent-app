@@ -22,6 +22,7 @@ export default function AiSettings() {
   return (
     <Page title="AI settings">
       <ErrorBox error={settings.error} />
+      {settings.loading && !settings.data && <div className="text-sm text-slate-500">Loading the AI settings...</div>}
       {settings.data && <Switch key={settings.data.enabled_at ?? 'off'} clientId={clientId} s={settings.data} onSaved={() => { settings.reload(); calls.reload() }} />}
       <div className="rounded border border-slate-300 bg-white p-3 text-sm">
         <div className="mb-1 font-semibold">Usage (counted from the last 200 calls in the log)</div>
@@ -69,6 +70,13 @@ export default function AiSettings() {
               </td>
             </tr>
           ))}
+          {calls.loading && !calls.data && (
+            <tr>
+              <td className={td} colSpan={9}>
+                Loading the call log...
+              </td>
+            </tr>
+          )}
           {calls.data?.length === 0 && (
             <tr>
               <td className={td} colSpan={9}>
@@ -138,7 +146,7 @@ function Switch({ clientId, s, onSaved }: { clientId: string; s: Settings; onSav
 function CallDetail({ clientId, id }: { clientId: string; id: string }) {
   const call = useLoad(() => aiApi.getCall(clientId, id), `ai-call:${clientId}:${id}`)
   const c = call.data
-  if (!c) return <ErrorBox error={call.error} />
+  if (!c) return call.error ? <ErrorBox error={call.error} /> : <div className="text-sm text-slate-500">Loading the call...</div>
   return (
     <div className="space-y-2 rounded border border-slate-300 bg-white p-3 text-sm">
       <div>

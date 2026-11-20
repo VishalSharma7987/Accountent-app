@@ -1,6 +1,7 @@
 // Pure helpers for the Documents & AI screens. No accounting maths: statuses and findings come from the server,
 // these only sort, label and shape what the server sent.
-import type { Acknowledge, DocFinding, ExPayload, LlmCall } from '../api/ai'
+import type { Acknowledge, DocFinding, ExPayload, LlmCall, QueueHistory } from '../api/ai'
+import type { GroupNode } from '../types'
 
 export const DOC_TYPES: { value: string; label: string }[] = [
   { value: 'purchase_invoice', label: 'Purchase invoice' },
@@ -204,4 +205,42 @@ export function buildInvoicePayload(header: Record<string, string>, lines: Recor
     currency: 'INR',
     notes: [],
   }
+}
+
+// ---- approval queue: credit / debit note pseudo fields ----
+/** Edit paths that are not in the extraction: the server keeps them in `_note` (engine NOTE_REASONS; the date is YYYY-MM-DD). */
+export const NOTE_REASONS = ['sales_return', 'post_sale_discount', 'deficiency_in_services', 'correction_in_invoice', 'change_in_pos', 'provisional_assessment', 'others']
+const NOTE_PATHS: [string, string][] = [
+  ['note_reason', `Credit / debit note reason (${NOTE_REASONS.join(', ')})`],
+  ['original_invoice_date', 'Original invoice date (YYYY-MM-DD)'],
+]
+/** The two editable rows of a credit / debit note invoice item (shown for notes, or when a finding points at them). */
+export function noteFieldRows(payload: ExPayload | null | undefined, kind: string, findings: DocFinding[] | undefined | null): FieldRow[] {
+  if (kind !== 'invoice' || !payload) return []
+  const docKind = (payload.document_kind as { value?: string | null } | undefined)?.value ?? ''
+  const pointed = (findings ?? []).some((f) => NOTE_PATHS.some(([p]) => p === f.field_path))
+  if (!/credit_note|debit_note/.test(docKind) && !pointed) return []
+  const note = (payload._note && typeof payload._note === 'object' ? payload._note : {}) as Record<string, unknown>
+  return NOTE_PATHS.map(([path, label]) => ({ path, label, value: typeof note[path] === 'string' ? (note[path] as string) : '', boxed: false }))
+}
+
+/** Findings carried in the details of a queue_blocked error: blocking ones (`findings`) or the warnings still to acknowledge. */
+export function blockedFindings(details: unknown): DocFinding[] {
+  const d = (details && typeof details === 'object' ? details : {}) as { findings?: DocFinding[]; unacknowledged?: DocFinding[] }
+  return [...(d.findings ?? []), ...(d.unacknowledged ?? [])]
+}
+
+export function historyLine(h: QueueHistory): string {
+  return [h.at ? h.at.slice(0, 19).replace('T', ' ') : '', h.actor, statusLabel(h.action.replace(/^queue_item_/, ''))].filter(Boolean).join(' ')
+}
+
+// ---- Tally group picker ----
+export interface GroupChoice {
+  id: string
+  code: string
+  label: string
+}
+/** All groups of the tree in display order, children labelled with their parent: "Current Assets > Bank Accounts". */
+export function flattenGroups(nodes: GroupNode[], parents: string[] = []): GroupChoice[] {
+  return nodes.flatMap((n) => [{ id: n.id, code: n.code, label: [...parents, n.name].join(' > ') }, ...flattenGroups(n.children, [...parents, n.name])])
 }

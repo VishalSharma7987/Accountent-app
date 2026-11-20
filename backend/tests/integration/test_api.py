@@ -122,8 +122,10 @@ def test_groups_tree_nests_children_under_the_primary_groups_in_display_order(ap
     assert [c["name"] for c in by_name["Capital Account"]["children"]] == ["Reserves & Surplus"]
     assert [c["name"] for c in by_name["Current Assets"]["children"]] == [
         "Bank Accounts", "Cash-in-hand", "Deposits (Asset)", "Loans & Advances (Asset)", "Stock-in-hand", "Sundry Debtors"]
-    assert by_name["Sales Accounts"] == {"code": "sales_accounts", "name": "Sales Accounts", "nature": "income",
-                                         "report": "trading", "is_system": True, "children": []}
+    sales = dict(by_name["Sales Accounts"])
+    assert sales.pop("id")  # the group id (a UUID string) is exposed for pickers
+    assert sales == {"code": "sales_accounts", "name": "Sales Accounts", "nature": "income",
+                     "report": "trading", "is_system": True, "children": []}
 
 
 # ================================================================================================== ledgers

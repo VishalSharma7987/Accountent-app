@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { DocFinding, LlmCall } from '../api/ai'
-import { acknowledgements, canAccept, changedEdits, fileSize, flattenPayload, groupByRule, hasBlocking, maskingSummary, usageFromCalls } from './lib'
+import type { GroupNode } from '../types'
+import { acknowledgements, blockedFindings, canAccept, changedEdits, fileSize, flattenGroups, flattenPayload, groupByRule, hasBlocking, historyLine, maskingSummary, noteFieldRows, usageFromCalls } from './lib'
 
 const f = (rule_id: string, severity: DocFinding['severity'], field_path: string | null = null): DocFinding => ({ rule_id, severity, message: 'm', field_path })
 
@@ -67,5 +68,49 @@ describe('display helpers', () => {
   it('masking summary shows counts only', () => {
     expect(maskingSummary({ data_class: 'real_acknowledged', counts: { PAN: 2, GSTIN: 0, AADHAAR: 1 } })).toBe('2 PAN, 1 AADHAAR')
     expect(maskingSummary(null)).toBe('nothing masked')
+  })
+})
+
+describe('queue pseudo fields and server details', () => {
+  const note = { document_kind: { value: 'credit_note' }, _note: { note_reason: 'sales_return' } }
+  it('a credit note shows note_reason and original_invoice_date rows with the stored values', () => {
+    expect(noteFieldRows(note, 'invoice', [])).toEqual([
+      { path: 'note_reason', label: expect.stringContaining('reason'), value: 'sales_return', boxed: false },
+      { path: 'original_invoice_date', label: expect.stringContaining('Original invoice date'), value: '', boxed: false },
+    ])
+  })
+  it('a plain invoice or a Tally voucher shows none, unless a finding points at the pseudo path', () => {
+    expect(noteFieldRows({ document_kind: { value: 'purchase_invoice' } }, 'invoice', [])).toEqual([])
+    expect(noteFieldRows(note, 'tally_voucher', [])).toEqual([])
+    expect(noteFieldRows({ document_kind: { value: 'purchase_invoice' } }, 'invoice', [f('D-25', 'review', 'note_reason')])).toHaveLength(2)
+  })
+  it('edits of the pseudo rows are sent under their own path; blank becomes null', () => {
+    const rows = noteFieldRows(note, 'invoice', [])
+    expect(changedEdits(rows, { original_invoice_date: '2026-04-01', note_reason: ' ' })).toEqual([
+      { field_path: 'original_invoice_date', value: '2026-04-01' },
+      { field_path: 'note_reason', value: null },
+    ])
+  })
+  it('queue_blocked details give the blocking findings or the unacknowledged warnings', () => {
+    expect(blockedFindings({ findings: [f('D-05', 'error')] })).toHaveLength(1)
+    expect(blockedFindings({ unacknowledged: [f('D-12', 'warning')] })[0].rule_id).toBe('D-12')
+    expect(blockedFindings(null)).toEqual([])
+  })
+  it('history rows use the server field `at`', () => {
+    expect(historyLine({ id: 1, actor: 'asha', action: 'queue_item_claimed', old: null, new: null, at: '2026-11-12T10:30:00+00:00' })).toBe('2026-11-12 10:30:00 asha Claimed')
+  })
+})
+
+describe('flattenGroups (Tally group picker)', () => {
+  const tree: GroupNode[] = [
+    { id: 'g1', code: 'current_assets', name: 'Current Assets', nature: 'asset', report: 'balance_sheet', is_system: true, children: [{ id: 'g2', code: 'bank_accounts', name: 'Bank Accounts', nature: 'asset', report: 'balance_sheet', is_system: true, children: [] }] },
+    { id: 'g3', code: 'sales_accounts', name: 'Sales Accounts', nature: 'income', report: 'trading', is_system: true, children: [] },
+  ]
+  it('lists parents before children with the path as label and keeps the ids', () => {
+    expect(flattenGroups(tree)).toEqual([
+      { id: 'g1', code: 'current_assets', label: 'Current Assets' },
+      { id: 'g2', code: 'bank_accounts', label: 'Current Assets > Bank Accounts' },
+      { id: 'g3', code: 'sales_accounts', label: 'Sales Accounts' },
+    ])
   })
 })

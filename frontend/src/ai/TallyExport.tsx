@@ -101,24 +101,36 @@ export default function TallyExport() {
           </tr>
         </thead>
         <tbody>
-          {(past.data ?? []).map((x, i) => {
-            const docId = typeof x.document_id === 'string' ? x.document_id : ''
-            return (
-              <tr key={i}>
-                <td className={td}>{String(x.kind ?? x.export_id ?? x.id ?? '')}</td>
-                <td className={td}>{String(x.created_at ?? '').slice(0, 19).replace('T', ' ')}</td>
-                <td className={td}>{String(x.master_count ?? '')}</td>
-                <td className={td}>{String(x.voucher_count ?? '')}</td>
-                <td className={td}>
-                  {docId && (
-                    <button className={btn} onClick={() => run(() => saveDocument(clientId, docId, `tally-export-${docId.slice(0, 8)}.xml`))}>
-                      Download
-                    </button>
-                  )}
-                </td>
-              </tr>
-            )
-          })}
+          {(past.data ?? []).map((x) => (
+            <tr key={x.id}>
+              <td className={td}>
+                {x.kind}
+                {x.from_date || x.to_date ? ` (${x.from_date ?? ''} to ${x.to_date ?? ''})` : ''}
+              </td>
+              <td className={td}>{x.created_at.slice(0, 19).replace('T', ' ')}</td>
+              <td className={td}>{x.master_count}</td>
+              <td className={td}>{x.voucher_count}</td>
+              <td className={td}>
+                <button className={btn} onClick={() => run(() => saveDocument(clientId, x.document_id, `tally-export-${x.document_id.slice(0, 8)}.xml`))}>
+                  Download
+                </button>
+              </td>
+            </tr>
+          ))}
+          {past.loading && !past.data && (
+            <tr>
+              <td className={td} colSpan={5}>
+                Loading earlier exports...
+              </td>
+            </tr>
+          )}
+          {past.data?.length === 0 && (
+            <tr>
+              <td className={td} colSpan={5}>
+                No exports yet.
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </Page>

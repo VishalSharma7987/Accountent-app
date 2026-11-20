@@ -1,8 +1,8 @@
 // Typed client for docs/PHASE7_API_CONTRACT.md (package UI7). Same conventions as ./gst.ts and ./final.ts:
 // amounts are decimal strings, reads send no actor, writes send X-User. Nothing is calculated here:
 // every finding, status and recomputed value comes from the server.
-// Package F routes (approval queue, narration) were not committed when this was written: they follow the contract
-// (docs/PHASE7_API_CONTRACT.md, sections Approval queue and Narration suggestions) and are marked UNVERIFIED below.
+// Checked call by call against backend/app/api/{documents,extractions,tally,ai_settings,doc_mappings,approval_queue,narration}.py
+// and their schemas (docs/progress_parts/SYNC7.md lists what was found and changed).
 
 import { getUser } from '../api'
 import { mapApiError } from '../lib/apiError'
@@ -209,6 +209,17 @@ export interface TallyImportCreated {
   company_name: string | null
   report: TallyReport
 }
+/** GET /tally/imports rows: the stored row (id, not import_id; no report). */
+export interface TallyImportListRow {
+  id: string
+  status: string
+  company_name: string | null
+  document_id: string
+  created_by: string
+  created_at: string
+  counts: Record<string, number> | null
+}
+/** GET /tally/imports/{id}. */
 export interface TallyImportRow {
   import_id: string
   status: string
@@ -237,6 +248,17 @@ export interface MasterDecisionBody {
   target_item_id?: string | null
   accept_nature_change?: boolean
 }
+export interface TallyExportRow {
+  id: string
+  document_id: string
+  kind: string
+  from_date: string | null
+  to_date: string | null
+  master_count: number
+  voucher_count: number
+  created_by: string
+  created_at: string
+}
 export interface QueueVouchersResult {
   queued: number
   drafted: number
@@ -258,12 +280,12 @@ export interface TallyExportResult {
   warnings: string[]
 }
 
-// ---- approval queue (package F, UNVERIFIED: contract only) ----
+// ---- approval queue ----
 export interface QueueRow {
   id: string
   kind: string
   status: string
-  document_id: string | null
+  document_id: string
   document_name: string | null
   summary: { party?: string | null; reference_no?: string | null; date?: string | null; total?: string | null } | null
   blocking_count: number
@@ -279,7 +301,17 @@ export interface DraftVoucher {
   voucher_date: string
   reference_no: string | null
   narration: string | null
-  lines: { ledger_id?: string; ledger_name?: string; debit?: string; credit?: string; [k: string]: unknown }[]
+  voucher_number: string | null
+  lines: { line_no: number; ledger_id: string; ledger_name: string; debit: string; credit: string }[]
+}
+/** One audit row of the item (the server sends `at`, not created_at). */
+export interface QueueHistory {
+  id: number
+  actor: string
+  action: string
+  old: unknown
+  new: unknown
+  at: string | null
 }
 export interface QueueDetail extends QueueRow {
   document: { id: string; content_type: string; page_count: number | null; download_url: string } | null
@@ -287,8 +319,13 @@ export interface QueueDetail extends QueueRow {
   current: ExPayload
   findings: DocFinding[]
   draft_voucher: DraftVoucher | null
-  acknowledged: { rule_id: string; field_path: string | null }[]
-  history: Record<string, unknown>[]
+  acknowledged: { rule_id: string; field_path: string | null; by?: string }[]
+  history: QueueHistory[]
+  accepted_by: string | null
+  accepted_at: string | null
+  rejected_by: string | null
+  rejected_at: string | null
+  reject_reason: string | null
 }
 export interface FieldEdit {
   field_path: string
@@ -304,12 +341,13 @@ export interface Acknowledge {
   field_path: string | null
 }
 
-// ---- narration (package F, UNVERIFIED: contract only) ----
+// ---- narration ----
 export interface NarrationSuggestion {
   line_id: string
   suggestion: { id: string; source: 'rule' | 'llm'; ledger_id: string; ledger_name: string; reason: string; confidence: string | null } | null
   ambiguous: { ledger_id: string; ledger_name: string; count: number }[]
   status: 'none' | 'suggested' | 'ambiguous' | 'llm_blocked'
+  message: string | null
 }
 export interface NarrationRule {
   id: string
@@ -426,7 +464,7 @@ export const aiApi = {
   deleteLineMapping: (cl: string, id: string) => del<Ok>(`${c(cl)}/mappings/lines/${id}`),
   // Tally
   createImport: (cl: string, document_id: string) => post<TallyImportCreated>(`${c(cl)}/tally/imports`, { document_id }),
-  listImports: (cl: string) => get<TallyImportRow[]>(`${c(cl)}/tally/imports`),
+  listImports: (cl: string) => get<TallyImportListRow[]>(`${c(cl)}/tally/imports`),
   getImport: (cl: string, id: string) => get<TallyImportRow>(`${c(cl)}/tally/imports/${id}`),
   listMasters: (cl: string, q: { kind?: string; decision?: string } = {}) => get<TallyMaster[]>(`${c(cl)}/tally/masters`, q),
   decideMaster: (cl: string, id: string, b: MasterDecisionBody) => put<Ok>(`${c(cl)}/tally/masters/${id}`, b),
@@ -435,20 +473,20 @@ export const aiApi = {
   queueVouchers: (cl: string, importId: string, financial_year_id?: string) =>
     post<QueueVouchersResult>(`${c(cl)}/tally/imports/${importId}/queue-vouchers`, financial_year_id ? { financial_year_id } : {}),
   exportTally: (cl: string, b: TallyExportBody) => post<TallyExportResult>(`${c(cl)}/tally/export`, b),
-  listExports: (cl: string) => get<Record<string, unknown>[]>(`${c(cl)}/tally/exports`),
-  // approval queue (UNVERIFIED: package F)
+  listExports: (cl: string) => get<TallyExportRow[]>(`${c(cl)}/tally/exports`),
+  // approval queue
   listQueue: (cl: string, q: { status?: string; kind?: string; has_blocking?: boolean } = {}) => get<QueueRow[]>(`${c(cl)}/queue`, q),
   getQueueItem: (cl: string, id: string) => get<QueueDetail>(`${c(cl)}/queue/${id}`),
   claim: (cl: string, id: string) => post<Ok>(`${c(cl)}/queue/${id}/claim`),
   release: (cl: string, id: string) => post<Ok>(`${c(cl)}/queue/${id}/release`),
   editFields: (cl: string, id: string, edits: FieldEdit[]) => put<QueueEditResult>(`${c(cl)}/queue/${id}/fields`, { edits }),
   accept: (cl: string, id: string, acknowledge: Acknowledge[], learn: boolean) =>
-    post<{ ok: boolean; draft_voucher_id: string | null }>(`${c(cl)}/queue/${id}/accept`, { acknowledge, learn }),
+    post<{ ok: boolean; draft_voucher_id: string; learned: Record<string, unknown> }>(`${c(cl)}/queue/${id}/accept`, { acknowledge, learn }),
   reject: (cl: string, id: string, reason: string) => post<Ok>(`${c(cl)}/queue/${id}/reject`, { reason }),
   acceptClean: (cl: string, ids: string[]) => post<{ accepted: string[]; refused: { id: string; reason: string }[] }>(`${c(cl)}/queue/accept-clean`, { ids }),
-  // narration (UNVERIFIED: package F)
-  suggestion: (cl: string, lineId: string) => get<NarrationSuggestion>(`${c(cl)}/bank/lines/${lineId}/suggestion`),
-  acceptSuggestion: (cl: string, id: string) => post<Ok>(`${c(cl)}/bank/suggestions/${id}/accept`),
+  // narration (the suggestion is a GET but needs X-User: it may log a model call)
+  suggestion: (cl: string, lineId: string) => request<NarrationSuggestion>('GET', `${c(cl)}/bank/lines/${lineId}/suggestion`, { write: true }),
+  acceptSuggestion: (cl: string, id: string) => post<Ok & { learned: boolean }>(`${c(cl)}/bank/suggestions/${id}/accept`),
   rejectSuggestion: (cl: string, id: string) => post<Ok>(`${c(cl)}/bank/suggestions/${id}/reject`),
   listNarrationRules: (cl: string) => get<NarrationRule[]>(`${c(cl)}/ai/narration-rules`),
   setNarrationRule: (cl: string, id: string, is_active: boolean) => put<Ok>(`${c(cl)}/ai/narration-rules/${id}`, { is_active }),

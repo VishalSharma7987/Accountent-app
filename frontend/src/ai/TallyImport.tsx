@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
 import { aiApi, type QueueVouchersResult, type TallyMaster, type TallyReport } from '../api/ai'
@@ -8,9 +8,9 @@ import { useClient } from '../context'
 import type { ApiFailure } from '../lib/apiError'
 import { formatInr } from '../lib/money'
 import { asFailure, useLoad } from '../lib/useLoad'
-import type { LedgerRow } from '../types'
+import type { GroupNode, LedgerRow } from '../types'
 import { DocSelect, NoClient, useDocuments } from './common'
-import { statusLabel } from './lib'
+import { flattenGroups, statusLabel, type GroupChoice } from './lib'
 
 export default function TallyImport() {
   const { clientId, client, latestYear } = useClient()
@@ -26,6 +26,8 @@ export default function TallyImport() {
   const [busy, setBusy] = useState(false)
   const masters = useLoad(clientId && importId ? () => aiApi.listMasters(clientId) : null, `ai-masters:${clientId}:${importId}`)
   const ledgers = useLoad<LedgerRow[]>(clientId ? () => api.listLedgers(clientId) : null, `ai-tally-ledgers:${clientId}`)
+  const groupTree = useLoad<GroupNode[]>(clientId ? () => api.listGroups(clientId) : null, `ai-tally-groups:${clientId}`)
+  const groups = useMemo(() => flattenGroups(groupTree.data ?? []), [groupTree.data])
   if (!clientId)
     return (
       <Page title="Tally import">
@@ -51,7 +53,7 @@ export default function TallyImport() {
       setReport(row.report)
       setQueued(null)
     })
-  const existingImport = error?.code === 'import_exists' ? imports.data?.find((i) => i.document_id === docId) : undefined
+  const existingId = error?.code === 'import_exists' ? ((error.details as { import_id?: string } | null)?.import_id ?? imports.data?.find((i) => i.document_id === docId)?.id) : undefined
   return (
     <Page title="Tally import">
       <div className="flex flex-wrap items-end gap-2">
@@ -76,7 +78,7 @@ export default function TallyImport() {
           <select className={input} value={importId} onChange={(e) => e.target.value && open(e.target.value)}>
             <option value="">(choose)</option>
             {(imports.data ?? []).map((i) => (
-              <option key={i.import_id} value={i.import_id}>
+              <option key={i.id} value={i.id}>
                 {i.company_name ?? 'Tally file'} {i.created_at.slice(0, 10)} ({statusLabel(i.status)})
               </option>
             ))}
@@ -84,10 +86,10 @@ export default function TallyImport() {
         </Field>
       </div>
       <ErrorBox error={error} />
-      {existingImport && (
+      {existingId && (
         <div className="text-sm">
           This file was imported before.{' '}
-          <button className="text-blue-700 underline" onClick={() => open(existingImport.import_id)}>
+          <button className="text-blue-700 underline" onClick={() => open(existingId)}>
             Open that import
           </button>
         </div>
@@ -130,6 +132,7 @@ export default function TallyImport() {
             clientId={clientId}
             masters={masters.data ?? []}
             ledgers={ledgers.data ?? []}
+            groups={groups}
             run={run}
             reload={masters.reload}
           />
@@ -207,15 +210,17 @@ function Skipped({ rows, title }: { rows: { type: string; date: string; number: 
   )
 }
 
-function Masters({ clientId, masters, ledgers, run, reload }: { clientId: string; masters: TallyMaster[]; ledgers: LedgerRow[]; run: (fn: () => Promise<void>) => Promise<void>; reload: () => void }) {
+function Masters({ clientId, masters, ledgers, groups, run, reload }: { clientId: string; masters: TallyMaster[]; ledgers: LedgerRow[]; groups: GroupChoice[]; run: (fn: () => Promise<void>) => Promise<void>; reload: () => void }) {
   const [filter, setFilter] = useState('')
   const [acceptNature, setAcceptNature] = useState(false)
   const shown = masters.filter((m) => (filter ? m.decision === filter : true))
+  // the group picked in a row is kept here until a decision button is pressed (nothing is decided by choosing a group)
+  const [picked, setPicked] = useState<Record<string, string>>({})
   const decide = (m: TallyMaster, decision: 'confirmed' | 'create' | 'skip', extra: { target_group_id?: string | null; target_ledger_id?: string | null } = {}) =>
     run(async () => {
       await aiApi.decideMaster(clientId, m.id, {
         decision,
-        target_group_id: extra.target_group_id ?? m.target_group_id,
+        target_group_id: extra.target_group_id ?? (picked[m.id] || m.target_group_id),
         target_ledger_id: extra.target_ledger_id ?? m.target_ledger_id,
         target_item_id: m.target_item_id,
         accept_nature_change: acceptNature,
@@ -248,11 +253,19 @@ function Masters({ clientId, masters, ledgers, run, reload }: { clientId: string
             <th className={th}>Tally name</th>
             <th className={th}>Parent</th>
             <th className={th}>Decision</th>
+            <th className={th}>Target group</th>
             <th className={th}>Target ledger</th>
             <th className={th}></th>
           </tr>
         </thead>
         <tbody>
+          {shown.length === 0 && (
+            <tr>
+              <td className={td} colSpan={7}>
+                No masters for this filter.
+              </td>
+            </tr>
+          )}
           {shown.map((m) => (
             <tr key={m.id}>
               <td className={td}>{m.kind}</td>
@@ -263,8 +276,26 @@ function Masters({ clientId, masters, ledgers, run, reload }: { clientId: string
                 {m.reason ? ` (${m.reason})` : ''}
               </td>
               <td className={td}>
+                {(m.kind === 'group' || m.kind === 'ledger') && (
+                  <select
+                    className={input}
+                    aria-label={`Group for ${m.source_name}`}
+                    value={picked[m.id] ?? m.target_group_id ?? ''}
+                    disabled={m.kind === 'ledger' && m.target_ledger_id !== null && m.decision !== 'create'}
+                    onChange={(e) => setPicked({ ...picked, [m.id]: e.target.value })}
+                  >
+                    <option value="">(choose group)</option>
+                    {groups.map((g) => (
+                      <option key={g.id} value={g.id}>
+                        {g.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </td>
+              <td className={td}>
                 {m.kind === 'ledger' && <LedgerSelect ledgers={ledgers} value={m.target_ledger_id ?? ''} blank="(existing ledger)" onChange={(id) => decide(m, 'confirmed', { target_ledger_id: id })} />}
-                {m.kind !== 'ledger' && (m.target_group_id ? 'suggested group kept' : '')}
+                
               </td>
               <td className={td}>
                 <button className={btn} onClick={() => decide(m, 'confirmed')}>

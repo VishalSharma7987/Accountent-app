@@ -7,7 +7,7 @@ import type { ApiFailure } from '../lib/apiError'
 import { formatInr } from '../lib/money'
 import { asFailure, useLoad } from '../lib/useLoad'
 import { DocFindings, DocumentViewer, NoClient, SeverityBadge } from './common'
-import { QUEUE_STATUSES, acknowledgements, canAccept, changedEdits, findingKey, findingsAt, flattenPayload, hasBlocking, splitDocFindings, statusLabel, voucherHref } from './lib'
+import { QUEUE_STATUSES, acknowledgements, blockedFindings, canAccept, changedEdits, findingKey, findingsAt, flattenPayload, hasBlocking, historyLine, noteFieldRows, splitDocFindings, statusLabel, voucherHref } from './lib'
 
 /** The main Phase 7 screen: everything the system proposes waits here for a person. Accepting never approves or posts. */
 export default function ApprovalQueue() {
@@ -118,6 +118,13 @@ export default function ApprovalQueue() {
               </td>
             </tr>
           ))}
+          {list.loading && !list.data && (
+            <tr>
+              <td className={td} colSpan={12}>
+                Loading the queue...
+              </td>
+            </tr>
+          )}
           {list.data && rows.length === 0 && (
             <tr>
               <td className={td} colSpan={12}>
@@ -135,7 +142,7 @@ export default function ApprovalQueue() {
 function Review({ clientId, id, onChanged, onClose }: { clientId: string; id: string; onChanged: () => void; onClose: () => void }) {
   const detail = useLoad(() => aiApi.getQueueItem(clientId, id), `ai-qitem:${clientId}:${id}`)
   const d = detail.data
-  if (!d) return <ErrorBox error={detail.error} />
+  if (!d) return detail.error ? <ErrorBox error={detail.error} /> : <div className="text-sm text-slate-500">Loading the item...</div>
   return <ReviewBody clientId={clientId} d={d} reload={() => { detail.reload(); onChanged() }} onClose={onClose} />
 }
 
@@ -150,8 +157,8 @@ function ReviewBody({ clientId, d, reload, onClose }: { clientId: string; d: Que
   const [error, setError] = useState<ApiFailure | null>(null)
   const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
-  const rows = flattenPayload(d.current)
   const findings = live ?? d.findings
+  const rows = [...flattenPayload(d.current), ...noteFieldRows(d.current, d.kind, findings)]
   const finished = d.status === 'accepted' || d.status === 'rejected'
   const draft = d.draft_voucher
   const split = splitDocFindings(findings)
@@ -185,7 +192,7 @@ function ReviewBody({ clientId, d, reload, onClose }: { clientId: string; d: Que
     else n.add(k)
     setAcked(n)
   }
-  const okToAccept = canAccept(findings, acked, d.status) && Object.keys(changedEdits(rows, edits)).length === 0
+  const okToAccept = canAccept(findings, acked, d.status) && changedEdits(rows, edits).length === 0
   return (
     <div className="grid grid-cols-2 gap-3">
       <div className="space-y-1">
@@ -212,7 +219,7 @@ function ReviewBody({ clientId, d, reload, onClose }: { clientId: string; d: Que
           </button>
         </div>
         <ErrorBox error={error} />
-        {error?.code === 'queue_blocked' && <DocFindings findings={((error.details as { findings?: DocFinding[] } | null)?.findings) ?? []} />}
+        {error?.code === 'queue_blocked' && <DocFindings findings={blockedFindings(error.details)} />}
         {notice && <Notice>{notice}</Notice>}
         <div className="rounded border border-slate-300 bg-white">
           <div className="border-b border-slate-200 bg-slate-50 px-2 py-1 font-semibold">Fields (every field can be edited; the server re-checks on leaving a field)</div>
@@ -339,7 +346,7 @@ function ReviewBody({ clientId, d, reload, onClose }: { clientId: string; d: Que
             <summary className="cursor-pointer">History ({d.history.length})</summary>
             <ul className="list-disc pl-5 text-xs">
               {d.history.map((h, i) => (
-                <li key={i}>{[h.created_at, h.actor, h.action].filter(Boolean).map(String).join(' ')}</li>
+                <li key={i}>{historyLine(h)}</li>
               ))}
             </ul>
           </details>

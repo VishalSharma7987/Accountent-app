@@ -71,12 +71,12 @@ def groups_tree(conn: Connection, client_id: object) -> list[dict]:
     require_client(conn, client_id)
     rows = conn.execute(
         text(
-            "SELECT g.code, g.name, g.nature, g.report, g.is_system, p.code FROM account_groups g "
+            "SELECT g.code, g.name, g.nature, g.report, g.is_system, p.code, g.id FROM account_groups g "
             "LEFT JOIN account_groups p ON p.id = g.parent_id WHERE g.client_id IS NULL OR g.client_id = :c"
         ),
         {"c": client_id},
     )
-    nodes = {r[0]: {"code": r[0], "name": r[1], "nature": r[2], "report": r[3], "is_system": r[4], "children": []}
+    nodes = {r[0]: {"id": r[6], "code": r[0], "name": r[1], "nature": r[2], "report": r[3], "is_system": r[4], "children": []}
              for r in rows}
     parents = {r_code: None for r_code in nodes}
     for code, parent_code in conn.execute(

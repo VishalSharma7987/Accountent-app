@@ -70,6 +70,7 @@ export default function Narration() {
       </div>
       <ErrorBox error={error ?? ledgers.error ?? statements.error ?? lines.error} />
       {notice && <Notice>{notice}</Notice>}
+      {lines.loading && <div className="text-sm text-slate-500">Loading the statement lines...</div>}
       <table className="w-full border-collapse bg-white">
         <thead>
           <tr>
@@ -102,7 +103,7 @@ export default function Narration() {
                           <div className="text-xs text-slate-600">{s.suggestion.reason}</div>
                         </>
                       ) : (
-                        <div className="text-slate-600">{STATUS_TEXT[s.status]}</div>
+                        <div className="text-slate-600">{s.message ?? STATUS_TEXT[s.status]}</div>
                       )}
                       {s.ambiguous.length > 0 && <div className="text-xs text-slate-600">Earlier: {s.ambiguous.map((a) => `${a.ledger_name} (${a.count})`).join(', ')}</div>}
                     </div>
@@ -131,6 +132,20 @@ export default function Narration() {
               </tr>
             )
           })}
+          {lines.data?.length === 0 && (
+            <tr>
+              <td className={td} colSpan={6}>
+                This statement has no lines.
+              </td>
+            </tr>
+          )}
+          {!statementId && (
+            <tr>
+              <td className={td} colSpan={6}>
+                Choose a bank ledger and an imported statement to see its lines.
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
       <ErrorBox error={rules.error} />
@@ -156,6 +171,13 @@ export default function Narration() {
               </td>
             </tr>
           ))}
+          {rules.data?.length === 0 && (
+            <tr>
+              <td className={td} colSpan={5}>
+                No rules learned yet. A rule is learned when you accept a suggestion or book a bank line.
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </Page>

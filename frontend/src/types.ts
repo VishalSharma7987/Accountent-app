@@ -71,6 +71,7 @@ export interface CreatedClient {
 }
 
 export interface GroupNode {
+  id: string
   code: string
   name: string
   nature: string

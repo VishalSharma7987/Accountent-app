@@ -83,6 +83,7 @@ class ClientDetail(ClientOut):
 
 
 class GroupNode(BaseModel):
+    id: uuid.UUID  # the group picker of the Tally master decisions sends this as target_group_id
     code: str
     name: str
     nature: str

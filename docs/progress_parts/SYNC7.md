@@ -1,0 +1,5 @@
+- Step: SYNC7, Phase 7 UI sync (api/ai.ts and ai/* screens vs the real routers and schemas).
+- Done: narration GET sends X-User; Tally imports list uses `id`; export list typed; queue history uses `at`; queue_blocked shows unacknowledged warnings; note_reason / original_invoice_date rows for credit/debit notes; Tally group picker (groups API exposes ids); loading/empty states; UNVERIFIED markers removed.
+- Tests: vitest 132 passed (lib.test.ts extended), `npm run build` ok, pytest tests/unit/test_groups_api_ids.py 1 passed, ruff clean. No DB tests run.
+- Commit: branch p7-sync (not merged).
+- Decisions added: docs/decisions_parts/SYNC7.md (3 rows).
