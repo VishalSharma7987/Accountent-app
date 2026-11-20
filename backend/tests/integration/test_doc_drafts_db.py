@@ -284,9 +284,13 @@ def test_D62_database_refuses_approve_and_post_until_the_queue_item_is_accepted(
     doc, ext = make_doc(svc_conn, w)
     out = build(svc_conn, w, doc, ext)
     vid = out.draft_voucher_id
-    # the real voucher service tries to approve: the DB trigger vouchers_ai_queue_guard refuses
-    with pytest.raises(DBAPIError) as e, svc_conn.begin_nested():
+    # the voucher service refuses first with a friendly message (package F hook, D-62) ...
+    with pytest.raises(ServiceError) as hook:
         vouchers.approve(svc_conn, vid, actor="approver")
+    assert hook.value.code == "queue_not_accepted"
+    # ... and the DB trigger vouchers_ai_queue_guard remains the backstop for a caller that bypasses the service
+    with pytest.raises(DBAPIError) as e, svc_conn.begin_nested():
+        svc_conn.execute(text("UPDATE vouchers SET status = 'approved', approved_by = 'x', approved_at = now() WHERE id = :v"), {"v": vid})
     assert "queue item has not been accepted" in str(e.value)
     assert count(svc_conn, "SELECT status FROM vouchers WHERE id = :v", v=vid) == "draft"
     # an item with a blocking count cannot be accepted by the database either
