@@ -18,12 +18,20 @@ from typing import Any
 
 from app.engine import msme as msme_engine
 from app.engine import tds_calc, tds_challan
-from app.engine.audit_types import ZERO, AuditParams, CheckResult, Finding, LimitRule, Severity, finding_key
+from app.engine.audit_types import (
+    ZERO,
+    AuditParams,
+    CheckResult,
+    Finding,
+    LimitRule,
+    Severity,
+    finding_key,
+)
 from app.engine.cash_rules import CashMovement, check_cash_never_negative
 from app.engine.gst_tieout import Cause
 from app.engine.inventory_types import InventoryPolicy, Movement, OpeningStock
 from app.engine.inventory_valuation import compute_valuation
-from app.engine.models import OpeningBalance, OpenBill
+from app.engine.models import OpenBill, OpeningBalance
 from app.engine.money import format_inr
 from app.engine.tds_types import DueDateRule, TdsLineIn
 
@@ -428,12 +436,25 @@ def check_negative_stock(facts: ComplianceFacts, params: AuditParams, rules: Seq
     return _result("A-17", facts, findings, population, None, [])
 
 
+def _for_registry(check):
+    """The registry (package A) passes its `AuditFacts`; this package's loader puts a `ComplianceFacts` in `facts.extra["compliance"]`.
+    A bare `ComplianceFacts` (the direct unit tests) is passed through unchanged."""
+
+    def run(facts, params, rules):
+        own = facts.extra["compliance"] if hasattr(facts, "extra") else facts
+        return check(own, params, rules)
+
+    run.__name__ = check.__name__
+    run.__doc__ = check.__doc__
+    return run
+
+
 CHECKS: dict = {
-    "A-07": check_msme,
-    "A-08": check_gst,
-    "A-09": check_tds_not_deducted,
-    "A-10": check_tds_short_deducted,
-    "A-11": check_tds_late_deposit,
-    "A-16": check_negative_cash,
-    "A-17": check_negative_stock,
+    "A-07": _for_registry(check_msme),
+    "A-08": _for_registry(check_gst),
+    "A-09": _for_registry(check_tds_not_deducted),
+    "A-10": _for_registry(check_tds_short_deducted),
+    "A-11": _for_registry(check_tds_late_deposit),
+    "A-16": _for_registry(check_negative_cash),
+    "A-17": _for_registry(check_negative_stock),
 }

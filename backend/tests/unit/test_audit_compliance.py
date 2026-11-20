@@ -18,7 +18,7 @@ from app.engine.inventory_types import (
     OpeningStock,
     ValuationMethod,
 )
-from app.engine.models import OpeningBalance, OpenBill
+from app.engine.models import OpenBill, OpeningBalance
 from app.engine.msme import MsmeRule, PartyFacts
 from app.engine.tds_calc import TdsContext
 from app.engine.tds_types import Deductee, DueDateRule, Nature, RateRule, SectionRef
@@ -40,7 +40,7 @@ def bill(ref, bill_date, outstanding, party="p1", name="Gupta Fabricators"):
     return OpenBill(party, name, ref, "bill", bill_date, None, D(outstanding), D(outstanding))
 
 
-def msme_facts(bills, parties=None, as_on=d(2026, 9, 1)):
+def msme_facts(bills, parties=None, as_on=date(2026, 9, 1)):
     parties = parties or {"p1": PartyFacts("p1", "micro", False, None, "manufacturing", d(2020, 1, 1))}
     return c.ComplianceFacts(msme=c.MsmeFacts(tuple(bills), parties, (MSME_RULE,), as_on))
 
@@ -76,15 +76,15 @@ def test_A07_not_loaded_gives_a_note_not_a_guess():
 
 
 def row(head, books, g1, g3, f1=None, f3=None):
-    dd = lambda a, b: None if a is None or b is None else a - b  # noqa: E731
+    dd = lambda a, b: None if a is None or b is None else a - b
     return {"head": head, "books_output": D(books), "gstr1_working": D(g1), "gstr3b_working": D(g3),
             "filed_gstr1": None if f1 is None else D(f1), "filed_gstr3b": None if f3 is None else D(f3),
             "d_books_gstr1": D(books) - D(g1), "d_gstr1_gstr3b": D(g1) - D(g3),
             "d_books_filed": dd(D(books), None if f1 is None else D(f1)), "d_filed_gstr1_gstr3b": None}
 
 
-ZERO_ITC = {"books_input": D("0"), "itc_register_eligible": D("0"), "gstr3b_4a": D("0"), "itc_register_pending": D("0"),
-            "d_register_gstr3b": D("0"), "d_books_register_pending": D("0")}
+ZERO_ITC = {"books_input": D(0), "itc_register_eligible": D(0), "gstr3b_4a": D(0), "itc_register_pending": D(0),
+            "d_register_gstr3b": D(0), "d_books_register_pending": D(0)}
 
 
 def test_A08_a_period_with_a_difference_becomes_one_finding_with_causes():
@@ -117,9 +117,9 @@ SECTION = SectionRef("contractor", "it_act_2025", "S-TEST", None, None, d(2026, 
 
 
 def rate_rule(**over):
-    base = dict(id="r1", nature_key="contractor", act="it_act_2025", deductee_group="any", rate=D("2"), no_pan_rate=D("20"),
-                single_payment_threshold=None, monthly_threshold=None, annual_threshold=None, threshold_mode="whole_amount",
-                effective_from=d(2026, 4, 1), effective_to=None, source_reference="test", verification_status="pending")
+    base = {"id": "r1", "nature_key": "contractor", "act": "it_act_2025", "deductee_group": "any", "rate": D(2), "no_pan_rate": D(20),
+                "single_payment_threshold": None, "monthly_threshold": None, "annual_threshold": None, "threshold_mode": "whole_amount",
+                "effective_from": d(2026, 4, 1), "effective_to": None, "source_reference": "test", "verification_status": "pending"}
     base.update(over)
     return RateRule(**base)
 
@@ -297,3 +297,10 @@ def test_the_package_C_engine_file_is_pure():
                                                                                            if isinstance(n, ast.Import) for a in n.names]
     forbidden = ("fastapi", "sqlalchemy", "app.db", "app.services", "app.api", "app.ai", "httpx", "openai")
     assert [m for m in modules if m.startswith(forbidden)] == []
+
+
+def test_the_registry_wrapper_reads_facts_extra_compliance():
+    from app.engine.audit_registry import AuditFacts
+
+    r = c.CHECKS["A-07"](AuditFacts({}, (), {"compliance": msme_facts([bill("INV-9", d(2026, 8, 1), "-120000.00")])}), PARAMS, [])
+    assert len(r.findings) == 1

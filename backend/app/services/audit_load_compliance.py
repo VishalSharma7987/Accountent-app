@@ -280,3 +280,13 @@ def _stock(conn: Connection, client_id: object, fy: Any, notes: list[str]) -> c.
     return c.StockFacts(InventoryPolicy(ValuationMethod(policy.valuation_method), NegativeStockMode(policy.negative_stock_mode)), tuple(opening),
                         tuple(movements), numbers, {i.item_id: i.name for i in inv_rep.stock_item_infos(conn, client_id)},
                         inv_rep.godown_names(conn, client_id), fy.start_date, fy.end_date)
+
+
+def load_extra(conn: Connection, client_id: object, fy_start: object, fy_end: object, params: AuditParams, facts: object) -> dict:
+    """The hook of the audit run (services/audit_runs.py): one `ComplianceFacts` for the seven checks, under the key `compliance`.
+    The hook does not say which checks were selected, so every part is loaded."""
+    row = conn.execute(text("SELECT id FROM financial_years WHERE client_id = :c AND start_date = :s AND end_date = :e"),
+                       {"c": client_id, "s": fy_start, "e": fy_end}).first()
+    if row is None:
+        raise ServiceError("no_period", "Financial year not found for this client.")
+    return {"compliance": load_compliance_facts(conn, client_id, row[0], params)}
