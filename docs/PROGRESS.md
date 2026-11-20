@@ -395,3 +395,73 @@ Tests: vitest 126 passed (ai/lib.test.ts adds 12); `npm run build` clean.
 Commit: see git log of p7-ui.
 Decisions added: docs/decisions_parts/UI7.md (7 rows); queue and narration endpoints unverified against package F.
 
+
+<!-- Phase 8 package status (folded from progress_parts) -->
+<!-- progress_parts/A8.md -->
+Step 8.1 package A (framework, runs, report). Branch p8-a.
+Done: engine/audit_registry.py, services/audit_runs.py, audit_load_common.py, audit_report.py, db/repositories_audit.py, api/audit_checks.py + schemas; errors.py one line; contract note.
+Tests: tests/unit/test_audit_registry.py (A00), tests/integration/test_audit_runs_db.py (API on the mini case).
+Commit: see branch p8-a.
+Decisions added: docs/decisions_parts/A8.md (9 rows).
+
+<!-- progress_parts/B8.md -->
+### Phase 8, package B (books checks) on branch `p8-b`
+- Step: 8.1 B. Done: `engine/audit_checks_books.py` (A-01..A-06, A-12, A-13, A-14, BooksFacts), `services/audit_load_books.py` (read-only loader), `services/audit_holidays.py`, `api/audit_holidays.py` + `schemas_audit_holidays.py` (GET / POST / DELETE holidays, audit-logged).
+- Tests: `tests/unit/test_audit_checks_books.py` (18, literal facts); `tests/integration/test_audit_books_db.py` (2, one locked run); `ruff check .` clean.
+- Commit: see `git log p8-b`. Decisions added: 12 rows in `docs/decisions_parts/B8.md`.
+- Depends on package A: its registry must call `load_books_facts` and `CHECKS[id](facts, params, rules)`; transport cash limit needs an `is_transporter` mark that does not exist in the schema.
+
+<!-- progress_parts/C8.md -->
+Step 8.1 package C: compliance checks A-07..A-11, A-16, A-17 (engine/audit_checks_compliance.py, services/audit_load_compliance.py incl. load_extra).
+Done: adapters over msme, gst tie-out service, tds_calc, tds_challan, cash_rules C-01, inventory S-01; registry wrapper (facts.extra["compliance"]).
+Tests: tests/unit/test_audit_compliance.py (20), tests/integration/test_audit_compliance_db.py (1, one locked run, passed); ruff clean.
+Commit: branch p8-c.
+Decisions: docs/decisions_parts/C8.md (4 rows).
+
+<!-- progress_parts/D8.md -->
+Phase 8 package D (analytical + related party), branch p8-d
+Done: engine/audit_checks_analytic.py (A-15, A-18, previous_period), services/audit_load_analytic.py, services/audit_related.py, api/audit_related.py + schemas_audit_related.py.
+Tests: tests/unit/test_audit_analytic.py (16 unit); tests/integration/test_audit_analytic_db.py (loaders, flag API, audit_log, books unchanged).
+Commit: see git log of p8-d.
+Decisions added: docs/decisions_parts/D8.md (6 rows).
+
+<!-- progress_parts/E8.md -->
+Phase 8 step 8.1 package E (audit working papers + sampling), branch p8-e.
+Done: engine/audit_sampling.py (SplitMix64, random / systematic / value), engine/audit_papers.py (W-02..W-05 checks, population), services/audit_papers.py, db/repositories_audit_papers.py, api/audit_papers.py, api/audit_sampling.py, api/schemas_audit_papers.py.
+Tests: tests/unit/test_audit_sampling.py (21), tests/unit/test_audit_papers_engine.py (16), tests/integration/test_audit_papers_db.py (4, one locked run).
+Commit: see git log on p8-e. Decisions added: docs/decisions_parts/E8.md (4 rows).
+Open: errors.py maps decision_reason_required / sample_invalid / unknown_check / no_period to 409 (contract says 422): main agent to add them to UNPROCESSABLE.
+
+<!-- progress_parts/F8.md -->
+Phase 8 package F (tax audit form data + AI summary), branch p8-f, 2026-11-20
+Done: engine/audit_form.py (form by FY end, derive 3CD clauses), services/audit_form.py (+xlsx), services/audit_summary.py, ai/prompts_audit.py, api/audit_tax.py, api/audit_summary.py, gateway purpose.
+Tests: unit tests/unit/test_audit_form_engine.py + test_audit_summary_text.py; integration tests/integration/test_audit_form_summary_db.py (fake LLM, raw-SQL runs/findings).
+Commit: see git log on p8-f. Depends on package A only through the audit_runs / audit_findings tables (raw SQL in tests), not on its code.
+Decisions: docs/decisions_parts/F8.md. Form 26 clauses not seeded (official form unreadable, HTTP 403): owner / CA to supply.
+
+<!-- progress_parts/G8.md -->
+Phase 8 package G (acceptance pack and runner), branch p8-g, 2026-11-20
+Done: docs/test-packs/phase8-audit-checks-2026-27/ (inputs, hand-typed expected_*.csv, WORKING.md, SIGNOFF.md, VERIFICATION_SHEET.xlsx), scripts/build_pack_p8_inputs.py, scripts/build_verification_sheet_p8.py, tests/acceptance/pack_loader_p8.py, pack_runner_p8.py, test_pack_runner_p8.py, test_pack_p8_selfcheck.py.
+Tests: selfcheck 17 passed (no DB, independent re-derivation of every expected figure); runner via scripts/dbrun.sh 12 passed + 1 strict xfail (form clause 21 rule status); ruff clean.
+Commit: see git log on p8-g. test_pack_runner.py only gets the phase8.yaml marker exclusion.
+Decisions: docs/decisions_parts/G8.md. Open: SIGNOFF Q1-Q21 and the missing Form 26 clause list.
+
+<!-- progress_parts/P8.md -->
+### Phase 8, step 8.0 (plan, schema, catalogue, stubs)
+- Step: 8.0 on branch `p8-plan`. Done: PHASE8_PLAN / API_CONTRACT / LEGAL_VALUES, migration 0019 (14 tables, guards, RLS, closed grants), seeds 0014 / 0015, `engine/audit_types.py`, `services/audit_hooks.py`, 3 stub check modules, 7 empty routers.
+- Tests: unit `tests/unit/test_audit_foundation.py`; integration `tests/integration/test_audit_schema.py` (one locked run, TEST schema only); results in the commit message / report.
+- Commit: see `git log p8-plan`. Decisions added: 12 rows in `docs/decisions_parts/P8.md`.
+- Pending legal values: 40A(3) successor section and limit, transport limit, s.186 text, Form 26 clauses (see PHASE8_LEGAL_VALUES.md).
+
+<!-- progress_parts/UI8.md -->
+Step: UI8 audit screens (frontend only, branch p8-ui).
+Done: api/audit.ts; audit/{Catalogue,Runs,RunReport,Papers,PaperDetail,Related,Holidays,TaxForm,AiSummary,common,lib}; Audit nav group; 8 routes.
+Tests: vitest 137 passed (5 new in audit/lib.test.ts); npm run build passes (tsc + vite).
+Commit: on p8-ui, not merged.
+Decisions added: 5 in docs/decisions_parts/UI8.md.
+
+<!-- progress_parts/glue8.md -->
+Step: Phase 8 glue. Done: population in run summary, papers use it, contract updated, end-to-end test.
+Tests: unit 1785 passed (before final test add); test_audit_end_to_end.py 1 passed (87s); ruff clean.
+Commit: p8-glue. Decisions: docs/decisions_parts/glue8.md.
+
