@@ -141,14 +141,10 @@ Checker = Callable[[Any, Any, Any, dict], Sequence[DocFinding]]
 
 
 def _default_checker(conn: Connection, client_id: Any, extraction_id: Any, payload: dict) -> Sequence[DocFinding]:
-    """Package D's engine checks of a stored extraction (D-04..D-19). Imported lazily so this package does not depend on it
-    being merged; the expected call is `services.extractions.check(conn, client_id, extraction_id, payload)` returning an object
-    with `.findings`."""
-    try:
-        from app.services import extractions
-    except ImportError:
-        raise ServiceError("checks_unavailable", "The extraction checks are not available in this build.") from None
-    return list(extractions.check(conn, client_id, extraction_id, payload).findings)
+    """Package D's engine checks of a stored extraction (D-04..D-19)."""
+    from app.services import extractions
+
+    return list(extractions.check_extraction(conn, client_id, extraction_id).findings)
 
 
 def build_for_document(conn: Connection, client_id: Any, document_id: Any, extraction_id: Any | None, *, actor: str,

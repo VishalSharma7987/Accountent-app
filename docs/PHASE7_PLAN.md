@@ -66,6 +66,8 @@ Every table: RLS enabled, no policies; function privileges revoked at the end (0
 | D-15 | Printed rate is not a rate of the rate table on that date (rate table gap is reported as pending, never filled in) |
 | D-16 | Line has no HSN / SAC, or an HSN not in the item master where the rate rule needs it: review |
 | D-17 | Printed line sum and printed lines count disagree with the lines extracted (a line was probably missed) |
+| D-18 | Bank statement: printed running balance (or closing balance) differs from opening balance + credits - debits |
+| D-19 | Bank statement: a row has both a debit and a credit amount, or neither |
 | D-20 | Supplier / buyer not mapped to a party ledger: review (never auto-created) |
 | D-21 | A line has no saved ledger mapping: review |
 | D-22 | Party GSTIN on the document differs from the GSTIN saved on the mapped party ledger: error |

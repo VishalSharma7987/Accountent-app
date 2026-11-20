@@ -47,7 +47,7 @@ def test_D52_the_audit_table_has_the_secret_tripwire_and_the_masking_evidence_ch
 
 def test_D_rule_catalogue_is_complete_unique_and_described_in_the_plan():
     assert all(re.fullmatch(r"D-\d{2}", rule_id) and text.strip() for rule_id, text in t.RULES.items())
-    assert len(t.RULES) == 50
+    assert len(t.RULES) == 52
     plan = PLAN.read_text(encoding="utf-8")
     missing = [r for r in t.RULES if r not in plan]
     assert missing == []

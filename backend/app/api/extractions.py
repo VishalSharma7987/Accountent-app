@@ -24,11 +24,9 @@ router = APIRouter(tags=["extraction"])
 
 def get_gateway():
     """The real gateway (package C). Resolved only for mode `llm`; tests replace this function."""
-    try:
-        from app.services import llm_gateway
-    except ImportError:
-        raise ServiceError("llm_unavailable", "The model gateway is not installed in this build.") from None
-    return llm_gateway.LlmGateway()
+    from app.services import llm_extraction_gateway
+
+    return llm_extraction_gateway.LlmGateway()
 
 
 def _version_out(r) -> dict:
