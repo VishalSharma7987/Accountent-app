@@ -114,7 +114,14 @@ def build_summary(outcomes: Sequence[CheckOutcome]) -> dict:
         if o.result is None:
             by_check[o.check_id] = {"findings": 0, "population": 0, "notes": [], "error": o.error}
             continue
-        by_check[o.check_id] = {"findings": len(o.result.findings), "population": len(o.result.population), "notes": list(o.result.notes)}
+        r = o.result
+        entry: dict = {"findings": len(r.findings), "population": len(r.population), "notes": list(r.notes),
+                       "population_ids": [str(i) for i in r.population]}
+        if r.population_amount is not None:
+            entry["population_amount"] = f"{r.population_amount:.2f}"
+        if r.population_amounts:
+            entry["population_amounts"] = {str(k): f"{v:.2f}" for k, v in r.population_amounts.items()}
+        by_check[o.check_id] = entry
         severity.update(f.severity.value for f in o.result.findings)
     return {"by_check": by_check, "by_severity": dict(severity)}
 

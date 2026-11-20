@@ -8,7 +8,7 @@ rows from the rule table `audit_rule_limits` and are picked by date (`pick_limit
 """
 
 import hashlib
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
@@ -222,3 +222,4 @@ class CheckResult:
     population: tuple[Any, ...] = field(default_factory=tuple)   # ids of the items the check examined (for the working paper)
     population_amount: Decimal | None = None
     notes: tuple[str, ...] = field(default_factory=tuple)        # e.g. "no cash limit row for 14-08-2026: check skipped (pending rule)"
+    population_amounts: Mapping[Any, Decimal] | None = None      # id -> amount, only where each examined item has one (value sampling)

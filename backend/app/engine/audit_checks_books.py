@@ -149,7 +149,7 @@ def check_a01(facts: BooksFacts, params: AuditParams, rules: Sequence[LimitRule]
             {"voucher_ids": [str(v.id) for v in vs], "party_ledger_id": str(party), "reference": norm,
              "amounts": [_s(v.total) for v in vs], "dates": [v.voucher_date.isoformat() for v in vs]},
             subject_id=vs[0].id, finding_date=vs[0].voucher_date, amount=vs[0].total))
-    return CheckResult("A-01", tuple(findings), tuple(v.id for v in _sorted(pool)), sum((v.total for v in pool), ZERO))
+    return CheckResult("A-01", tuple(findings), tuple(v.id for v in _sorted(pool)), sum((v.total for v in pool), ZERO), (), {v.id: v.total for v in pool})
 
 
 # ---- A-02 duplicate payments ------------------------------------------------------------------------------------------------------------
@@ -187,7 +187,7 @@ def check_a02(facts: BooksFacts, params: AuditParams, rules: Sequence[LimitRule]
                 {"voucher_ids": [str(v.id) for v in cluster], "party_ledger_id": str(party), "amount": _s(total),
                  "dates": [v.voucher_date.isoformat() for v in cluster], "window_days": str(params.duplicate_window_days)},
                 subject_id=first.id, finding_date=first.voucher_date, amount=total))
-    return CheckResult("A-02", tuple(findings), tuple(v.id for v in _sorted(pool)), sum((v.total for v in pool), ZERO), tuple(notes))
+    return CheckResult("A-02", tuple(findings), tuple(v.id for v in _sorted(pool)), sum((v.total for v in pool), ZERO), tuple(notes), {v.id: v.total for v in pool})
 
 
 # ---- A-03 missing supporting document ---------------------------------------------------------------------------------------------------
@@ -201,7 +201,7 @@ def check_a03(facts: BooksFacts, params: AuditParams, rules: Sequence[LimitRule]
                          f"supporting document linked",
                          {"voucher_ids": [str(v.id)], "voucher_type": v.voucher_type, "amount": _s(v.total), "date": v.voucher_date.isoformat()})
         for v in pool if v.id not in facts.document_voucher_ids]
-    return CheckResult("A-03", tuple(findings), tuple(v.id for v in pool), sum((v.total for v in pool), ZERO))
+    return CheckResult("A-03", tuple(findings), tuple(v.id for v in pool), sum((v.total for v in pool), ZERO), (), {v.id: v.total for v in pool})
 
 
 # ---- A-04 voucher number gaps -----------------------------------------------------------------------------------------------------------
@@ -318,7 +318,8 @@ def _cash_limit_check(check_id: str, facts: BooksFacts, params: AuditParams, rul
         days = sorted(skipped)
         shown = ", ".join(_d(x) for x in days[:LISTED_DATES]) + (f" and {len(days) - LISTED_DATES} more" if len(days) > LISTED_DATES else "")
         notes.append(f"limit not available for {len(days)} date(s) ({rule_key}): {shown}; check skipped for them")
-    return CheckResult(check_id, tuple(findings), tuple(v.id for v, _ in population), sum((a for _, a in population), ZERO), tuple(notes))
+    return CheckResult(check_id, tuple(findings), tuple(v.id for v, _ in population), sum((a for _, a in population), ZERO), tuple(notes),
+                       {v.id: a for v, a in population})
 
 
 def check_a05(facts: BooksFacts, params: AuditParams, rules: Sequence[LimitRule]) -> CheckResult:
@@ -342,7 +343,7 @@ def check_a12(facts: BooksFacts, params: AuditParams, rules: Sequence[LimitRule]
                          {"voucher_ids": [str(v.id)], "total": _s(v.total), "round_unit": _s(params.round_unit),
                           "minimum": _s(params.round_min_amount), "date": v.voucher_date.isoformat()})
         for v in pool if v.total >= params.round_min_amount and v.total > ZERO and v.total % params.round_unit == ZERO]
-    return CheckResult("A-12", tuple(findings), tuple(v.id for v in pool), sum((v.total for v in pool), ZERO))
+    return CheckResult("A-12", tuple(findings), tuple(v.id for v in pool), sum((v.total for v in pool), ZERO), (), {v.id: v.total for v in pool})
 
 
 # ---- A-13 Sundays and holidays ----------------------------------------------------------------------------------------------------------
@@ -362,7 +363,7 @@ def check_a13(facts: BooksFacts, params: AuditParams, rules: Sequence[LimitRule]
         if holiday:
             evidence["holiday_name"] = holiday
         findings.append(_voucher_finding("A-13", v, f"{_label(v.voucher_type)} {_ref(v)} is dated {_d(v.voucher_date)}, {what}", evidence))
-    return CheckResult("A-13", tuple(findings), tuple(v.id for v in pool), sum((v.total for v in pool), ZERO))
+    return CheckResult("A-13", tuple(findings), tuple(v.id for v in pool), sum((v.total for v in pool), ZERO), (), {v.id: v.total for v in pool})
 
 
 # ---- A-14 entries after the period was locked -------------------------------------------------------------------------------------------
@@ -400,7 +401,7 @@ def check_a14(facts: BooksFacts, params: AuditParams, rules: Sequence[LimitRule]
             findings.append(_voucher_finding(
                 "A-14", v, f"{_label(v.voucher_type)} {_ref(v)} dated {_d(v.voucher_date)} was " + "; ".join(reasons), evidence))
     notes = [f"{unplaced} voucher(s) fall in no period: lock and lateness not tested for them"] if unplaced else []
-    return CheckResult("A-14", tuple(findings), tuple(v.id for v in pool), sum((v.total for v in pool), ZERO), tuple(notes))
+    return CheckResult("A-14", tuple(findings), tuple(v.id for v in pool), sum((v.total for v in pool), ZERO), tuple(notes), {v.id: v.total for v in pool})
 
 
 def _for_registry(check):

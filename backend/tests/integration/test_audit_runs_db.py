@@ -81,7 +81,8 @@ def test_A00_a_run_stores_findings_with_evidence_and_leaves_the_books_untouched(
     run = r.json()
     assert run["status"] == "completed" and run["finding_count"] == 2
     by = run["summary"]["by_check"]
-    assert by["A-12"] == {"findings": 2, "population": 7, "notes": ["fake check"]}
+    assert {k: by["A-12"][k] for k in ("findings", "population", "notes")} == {"findings": 2, "population": 7, "notes": ["fake check"]}
+    assert len(by["A-12"]["population_ids"]) == 7
     assert by["A-13"]["error"] == "check A-13 failed: RuntimeError: bad data"
     assert by["A-01"]["error"] == "check A-01 is not available in this build"
     assert run["summary"]["by_severity"] == {"info": 2}

@@ -67,7 +67,7 @@ def check_sign_off(status: str, item_statuses: Sequence[str], conclusion: str | 
 
 @dataclass(frozen=True)
 class Population:
-    """What a sample is drawn from. `source` is 'run_population' (ids the run stored for the check) or 'findings' (the run stored only
+    """What a sample is drawn from. `source` is 'run' (ids the run stored for the check) or 'findings' (the run stored only
     a count, so the exceptions themselves are the population)."""
 
     ids: tuple[str, ...]
@@ -95,7 +95,7 @@ def resolve_population(summary_entry: Mapping[str, Any] | None, findings: Sequen
             total: Decimal | None = _q(entry["population_amount"])
         else:
             total = sum(amounts.values(), Decimal("0.00")) if amounts else None
-        return Population(pop_ids, len(pop_ids), population_digest(pop_ids), total, amounts, "run_population")
+        return Population(pop_ids, len(pop_ids), population_digest(pop_ids), total, amounts, "run")
     amounts = {str(i): _q(a) for i, a in findings if a is not None}
     pop_ids = tuple(sorted(str(i) for i, _ in findings))
     total = sum(amounts.values(), Decimal("0.00")) if amounts else None

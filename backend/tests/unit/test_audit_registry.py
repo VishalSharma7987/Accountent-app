@@ -100,7 +100,8 @@ def test_A00_summary_counts_findings_population_notes_and_errors():
 
     out = reg.execute(["A-12", "A-13", "A-15"], _facts(), _params(), (), checks={"A-12": good, "A-13": err, "A-15": review})
     s = reg.build_summary(out)
-    assert s["by_check"]["A-12"] == {"findings": 2, "population": 3, "notes": ["no limit row for 14-08-2026"]}
+    assert s["by_check"]["A-12"] == {"findings": 2, "population": 3, "notes": ["no limit row for 14-08-2026"],
+                                     "population_ids": ["v1", "v2", "v3"]}
     assert s["by_check"]["A-13"] == {"findings": 0, "population": 0, "notes": [], "error": "check A-13 failed: ValueError: x"}
     assert s["by_severity"] == {"info": 2, "review": 1}
     assert reg.finding_total(out) == 3
@@ -230,3 +231,16 @@ def test_A00_audit_services_never_write_to_a_books_table():
         src = f.read_text(encoding="utf-8")
         for table in READ_ONLY_TABLES:
             assert not re.search(rf"(INSERT\s+INTO|UPDATE|DELETE\s+FROM)\s+{table}\b", src, re.IGNORECASE), (f.name, table)
+
+
+def test_A00_summary_stores_population_ids_amounts_and_total():
+    from decimal import Decimal
+
+    def chk(facts, params, rules):
+        return t.CheckResult("A-12", population=("v1", "v2"), population_amount=Decimal("30000.00"),
+                             population_amounts={"v1": Decimal("10000.00"), "v2": Decimal("20000.00")})
+
+    s = reg.build_summary(reg.execute(["A-12"], _facts(), _params(), (), checks={"A-12": chk}))
+    assert s["by_check"]["A-12"]["population_ids"] == ["v1", "v2"]
+    assert s["by_check"]["A-12"]["population_amount"] == "30000.00"
+    assert s["by_check"]["A-12"]["population_amounts"] == {"v1": "10000.00", "v2": "20000.00"}

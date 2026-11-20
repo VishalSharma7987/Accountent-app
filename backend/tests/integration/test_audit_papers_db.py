@@ -138,10 +138,10 @@ def test_W02_samples_are_stored_with_seed_and_repeat_exactly(svc_conn):
     pid = out["id"]
     one = svc.sample(svc_conn, client_id, pid, "random", "reviewer", seed=0, size=3)
     assert one["ids"] == ["v02", "v06", "v10"]   # hand-derived in tests/unit/test_audit_sampling.py
-    assert one["params"] == {"size": 3, "population_source": "run_population"}
+    assert one["params"] == {"size": 3, "population_source": "run"}
     assert (one["population_count"], one["population_digest"]) == (10, DIGEST_V01_V10)
     stored = svc.get_paper(svc_conn, client_id, pid)
-    assert stored["sample"] == {"method": "random", "seed": 0, "params": {"size": 3, "population_source": "run_population"},
+    assert stored["sample"] == {"method": "random", "seed": 0, "params": {"size": 3, "population_source": "run"},
                                 "ids": ["v02", "v06", "v10"]}
     assert svc.sample(svc_conn, client_id, pid, "random", "reviewer", seed=0, size=3)["ids"] == ["v02", "v06", "v10"]
     assert svc.sample(svc_conn, client_id, pid, "systematic", "reviewer", seed=42, size=3, start=1)["ids"] == ["v02", "v05", "v08"]

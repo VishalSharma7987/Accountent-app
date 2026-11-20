@@ -1,0 +1,1 @@
+2026-11-20 | Phase 8 glue | Run summary stores population_ids / population_amount / population_amounts per check; working papers use them (population_source "run", else "findings") | Package E needs the examined population, not only the finding count; voucher-based checks supply per-id amounts, others omit them.

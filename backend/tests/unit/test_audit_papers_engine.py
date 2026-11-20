@@ -87,7 +87,7 @@ def test_W02_sample_allowed_only_while_not_signed_off():
 
 def test_W01_population_from_run_summary_ids():
     pop = resolve_population({"population": 3, "population_ids": ["b", "a", "c"], "population_amount": "1250.50"}, [])
-    assert pop.source == "run_population"
+    assert pop.source == "run"
     assert pop.count == 3
     assert pop.ids == ("a", "b", "c")
     assert pop.amount == Decimal("1250.50")
