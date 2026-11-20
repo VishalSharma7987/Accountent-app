@@ -29,7 +29,7 @@ from app.engine import doc_mask
 from app.services import queries
 from app.services.errors import ServiceError, require_actor
 
-PURPOSES = ("invoice_extraction", "narration_suggestion")
+PURPOSES = ("invoice_extraction", "narration_suggestion", "audit_summary")
 _KEY_TEXT = re.compile(r"sk-or-[A-Za-z0-9_\-]+")
 _FENCE = re.compile(r"^```(?:json|JSON)?[ \t]*\r?\n(.*)\r?\n```$", re.DOTALL)
 
