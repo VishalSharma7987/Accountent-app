@@ -1,0 +1,18 @@
+clause_no,field_key,value,origin
+21,cash_payment_exception_count,1,derived
+21,cash_payment_total_amount,12500.00,derived
+21,cash_payment_disallowable_amount,12500.00,derived
+21,legal_rule_status,pending,derived
+22,msme_interest_overdue_count,0,derived
+22,msme_interest_overdue_amount,0.00,derived
+23,related_party_count,0,derived
+23,related_party_amount,0.00,derived
+26,msme_unpaid_count,0,derived
+26,msme_unpaid_amount,0.00,derived
+27,gst_tieout_difference_count,0,derived
+27,gst_tieout_difference_amount,0.00,derived
+31,cash_receipts_count,0,derived
+31,cash_receipts_amount,0.00,derived
+34,tds_count,0,derived
+34,tds_amount,0.00,derived
+18,depreciation_note,Depreciation per the Phase 6 working: entered by hand,manual

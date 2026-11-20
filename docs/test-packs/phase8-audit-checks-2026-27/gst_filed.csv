@@ -1,0 +1,3 @@
+return_period,gstr1_taxable_value,gstr1_igst,gstr1_cgst,gstr1_sgst,gstr1_cess
+2026-09-01,0.00,0.00,0.00,0.00,0.00
+2026-10-01,50000.00,0.00,4500.00,4500.00,0.00

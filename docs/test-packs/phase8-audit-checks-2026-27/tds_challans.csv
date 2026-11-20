@@ -1,0 +1,4 @@
+challan,quarter,bsr_code,deposit_date,serial_no,tax_amount,item_voucher,allocated
+CH-1,1,0510308,2026-07-06,101,1432.00,V-13,400.00
+CH-1,1,0510308,2026-07-06,101,1432.00,V-14,1032.00
+CH-2,1,0510308,2026-07-20,102,1058.00,V-12,1058.00

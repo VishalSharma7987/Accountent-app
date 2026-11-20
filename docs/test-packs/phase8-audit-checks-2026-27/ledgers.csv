@@ -1,0 +1,24 @@
+name,group,gst_role
+HDFC Bank,bank_accounts,
+Petty Cash,cash_in_hand,
+Kumar Steel,sundry_creditors,
+Sharma Traders,sundry_creditors,
+Verma Cooling Solutions,sundry_creditors,
+Reliable Repairs,sundry_creditors,
+Gupta Enterprises,sundry_creditors,
+Patel Plastics,sundry_creditors,
+Raj Contractors,sundry_creditors,
+Mehta Builders,sundry_creditors,
+Dutta Associates,sundry_creditors,
+Bose Contractors,sundry_creditors,
+Desai Services,sundry_creditors,
+Singh Brothers,sundry_creditors,
+Mehta & Co,sundry_debtors,
+Gamma Retail,sundry_debtors,
+TDS Payable,duties_taxes,
+Output CGST,duties_taxes,output_cgst
+Output SGST,duties_taxes,output_sgst
+Output IGST,duties_taxes,output_igst
+Input CGST,duties_taxes,input_cgst
+Input SGST,duties_taxes,input_sgst
+Input IGST,duties_taxes,input_igst

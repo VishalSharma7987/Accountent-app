@@ -1,0 +1,21 @@
+step,action,arg,expect
+1,create_paper,A-12,status=open|exceptions=2
+2,sign_off,Concluded too early,code=paper_status_invalid
+3,review,,ok
+4,sign_off,Concluded with exceptions still open,code=open_exceptions
+5,decide,10000.00|cleared|Cash payment of exactly 10000.00 agreed to the bill and the cash book,ok
+6,decide,50000.00|confirmed|Round rent accrual: the rent agreement shows 50000.00 a month,ok
+7,note,Asked the proprietor for the signed rent agreement,ok
+8,sign_off,   ,code=invalid_conclusion
+9,sample,random|7|1,repeatable
+10,sign_off,Two round-amount entries examined: one cleared with the bill and one confirmed against the rent agreement,status=signed_off
+11,decide,10000.00|confirmed|Changed my mind,code=paper_signed_off
+12,note,A late note,code=paper_signed_off
+13,reopen,,code=paper_signed_off
+14,review,,code=paper_signed_off
+15,sign_off,Signed again,code=paper_signed_off
+16,sample,random|7|1,code=paper_signed_off
+17,sql_update_item,,rejected
+18,sql_update_paper,,rejected
+19,sql_insert_note,,rejected
+20,audit_log,sign_off,old=in_review|new=signed_off
