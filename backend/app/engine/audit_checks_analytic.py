@@ -159,4 +159,17 @@ def check_related_party(facts: AnalyticFacts, params: AuditParams, rules: Sequen
     return CheckResult("A-18", tuple(findings), tuple(population), pop_amount, tuple(notes))
 
 
-CHECKS: dict = {"A-15": check_unusual_movement, "A-18": check_related_party}
+def _for_registry(check):
+    """The registry (package A) passes its `AuditFacts`; this package's loader puts its own facts in `facts.extra["analytic"]`.
+    A bare `AnalyticFacts` (the direct unit tests) is passed through unchanged."""
+
+    def run(facts, params, rules):
+        own = facts.extra["analytic"] if hasattr(facts, "extra") else facts
+        return check(own, params, rules)
+
+    run.__name__ = check.__name__
+    run.__doc__ = check.__doc__
+    return run
+
+
+CHECKS: dict = {"A-15": _for_registry(check_unusual_movement), "A-18": _for_registry(check_related_party)}

@@ -82,3 +82,8 @@ def load_analytic_facts(conn: Connection, client_id: object, params: AuditParams
 
 
 __all__ = ["ZERO", "load_analytic_facts", "load_ledger_totals", "load_related_ledgers", "load_related_vouchers"]
+
+
+def load_extra(conn: Connection, client_id: object, fy_start: object, fy_end: object, params: AuditParams, facts: object) -> dict:
+    """The hook of the audit run (services/audit_runs.py): one `AnalyticFacts` for both checks, under the key `analytic`."""
+    return {"analytic": load_analytic_facts(conn, client_id, params)}
