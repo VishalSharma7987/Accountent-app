@@ -27,12 +27,14 @@ from app.engine.models import PeriodInfo, ValidationError, VoucherDraft, Voucher
 from app.engine.money import format_inr, parse_amount
 from app.engine.validation import validate_voucher
 from app.services import (
+    ai_hooks,
     audit,
     bills,
     cash_checks,
     final_hooks,
     gst_hooks,
     inventory_hooks,
+    queue_guard,
     tds_hooks,
 )
 from app.services.audit import AuditEntry
@@ -287,6 +289,7 @@ def delete_draft(conn: Connection, voucher_id: object, *, actor: str) -> None:
     record = _lock(conn, voucher_id)
     if record.status != "draft":
         raise ServiceError("not_draft", f"Only a draft voucher can be deleted; this voucher is {record.status}.")
+    queue_guard.guard_draft_delete(conn, record.client_id, record.id)  # Phase 7: a queued draft goes only with its item (D-63)
     conn.execute(text("DELETE FROM voucher_lines WHERE voucher_id = :id"), {"id": record.id})
     conn.execute(text("DELETE FROM vouchers WHERE id = :id"), {"id": record.id})
     _log(conn, record, actor, "delete", _snapshot(_draft_from(record)), None)
@@ -319,6 +322,7 @@ def approve(conn: Connection, voucher_id: object, *, actor: str) -> None:
     """draft -> approved, after checking every rule again (a period may have been locked since)."""
     actor = require_actor(actor)
     record = _lock(conn, voucher_id)
+    ai_hooks.guard_voucher_change(conn, record.client_id, record.id)  # Phase 7 (D-62): a queued draft is approved only after accept
     if record.status != "draft":
         raise ServiceError("not_draft", f"Only a draft voucher can be approved (this one is {record.status}).")
     _revalidate(conn, record)
@@ -386,6 +390,7 @@ def post(conn: Connection, voucher_id: object, *, actor: str) -> str:
     the next gapless number '<TYPE>/<YYYY-YY>/<NNNN>' and returns it."""
     actor = require_actor(actor)
     record = _lock(conn, voucher_id)
+    ai_hooks.guard_voucher_change(conn, record.client_id, record.id)  # Phase 7 (D-62): a queued voucher is posted only after accept
     if record.status != "approved":
         raise ServiceError("not_approved", f"Only an approved voucher can be posted (this one is {record.status}).")
     bills.lock_parties(conn, record.client_id, record.lines)
