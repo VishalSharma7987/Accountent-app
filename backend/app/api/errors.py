@@ -26,7 +26,7 @@ def status_for(code: str) -> int:
         return 404
     if code == "invalid_actor":
         return 400
-    if code == "database_unavailable":
+    if code in ("database_unavailable", "store_unavailable"):
         return 503
     if code.startswith("invalid_") or code in UNPROCESSABLE:
         return 422
