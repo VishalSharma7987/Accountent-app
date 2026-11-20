@@ -1,0 +1,1 @@
+"""Sampling helpers (package E): random, systematic and value-based, deterministic for a given seed (own SplitMix64 generator, not the random module, so results do not change between Python versions). Pure Python. Interface in docs/PHASE8_PLAN.md section Sampling."""

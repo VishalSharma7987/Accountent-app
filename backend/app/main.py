@@ -8,6 +8,13 @@ from app.api import (
     ai_settings,
     approval_queue,
     audit,
+    audit_checks,
+    audit_holidays,
+    audit_papers,
+    audit_related,
+    audit_sampling,
+    audit_summary,
+    audit_tax,
     bank,
     bills,
     cashbook,
@@ -94,6 +101,13 @@ ROUTERS = [
     doc_mappings.router,
     approval_queue.router,
     narration.router,
+    audit_checks.router,
+    audit_holidays.router,
+    audit_related.router,
+    audit_papers.router,
+    audit_sampling.router,
+    audit_tax.router,
+    audit_summary.router,
 ]
 for _router in ROUTERS:
     app.include_router(_router)
