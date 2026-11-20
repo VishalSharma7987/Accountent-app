@@ -140,6 +140,19 @@ export const NAV_GROUPS: NavGroup[] = [
       { to: '/ai/settings', label: 'AI settings' },
     ],
   },
+  {
+    id: 'audit',
+    label: 'Audit',
+    icon: 'U',
+    items: [
+      { to: '/audit/checks', label: 'Checks and rule limits' },
+      { to: '/audit/runs', label: 'Run audit and reports' },
+      { to: '/audit/papers', label: 'Working papers' },
+      { to: '/audit/related', label: 'Related parties' },
+      { to: '/audit/holidays', label: 'Holidays' },
+      { to: '/audit/tax-form', label: 'Tax audit form' },
+    ],
+  },
 ]
 
 function matches(item: NavItem, path: string): boolean {

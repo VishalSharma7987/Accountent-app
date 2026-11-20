@@ -58,6 +58,14 @@ import AiNarration from './ai/Narration'
 import AiSettings from './ai/AiSettings'
 import AiTallyExport from './ai/TallyExport'
 import AiTallyImport from './ai/TallyImport'
+import AuditCatalogue from './audit/Catalogue'
+import AuditHolidays from './audit/Holidays'
+import AuditPaperDetail from './audit/PaperDetail'
+import AuditPapers from './audit/Papers'
+import AuditRelated from './audit/Related'
+import AuditRunReport from './audit/RunReport'
+import AuditRuns from './audit/Runs'
+import AuditTaxForm from './audit/TaxForm'
 
 function Shell() {
   const { clients, clientId, setClientId, latestYear } = useClient()
@@ -180,6 +188,14 @@ function Shell() {
           <Route path="/ai/tally-import" element={<AiTallyImport />} />
           <Route path="/ai/tally-export" element={<AiTallyExport />} />
           <Route path="/ai/settings" element={<AiSettings />} />
+          <Route path="/audit/checks" element={<AuditCatalogue />} />
+          <Route path="/audit/runs" element={<AuditRuns />} />
+          <Route path="/audit/runs/:id" element={<AuditRunReport />} />
+          <Route path="/audit/papers" element={<AuditPapers />} />
+          <Route path="/audit/papers/:id" element={<AuditPaperDetail />} />
+          <Route path="/audit/related" element={<AuditRelated />} />
+          <Route path="/audit/holidays" element={<AuditHolidays />} />
+          <Route path="/audit/tax-form" element={<AuditTaxForm />} />
         </Routes>
         </main>
       </div>
