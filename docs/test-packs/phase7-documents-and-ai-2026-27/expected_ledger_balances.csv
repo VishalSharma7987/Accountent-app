@@ -1,0 +1,20 @@
+client,ledger,debit,credit
+A,Purchases,80950.00,0.00
+A,Repairs & Maintenance,4000.00,0.00
+A,Input CGST,6038.75,0.00
+A,Input SGST,6038.75,0.00
+A,Input IGST,1800.00,0.00
+A,Sales Returns,5000.00,0.00
+A,Output CGST,125.00,0.00
+A,Output SGST,125.00,0.00
+A,Rent Paid,3000.00,0.00
+A,Shree Traders,0.00,46627.50
+A,Kumar Electricals,0.00,11800.00
+A,Verma Cooling Solutions,0.00,35400.00
+A,Gamma Retail,0.00,5250.00
+A,Tally New Vendor,0.00,5000.00
+A,HDFC Bank,0.00,3000.00
+A,TOTAL,107077.50,107077.50
+B,Cash,2000.00,0.00
+B,Gamma Retail,0.00,2000.00
+B,TOTAL,2000.00,2000.00

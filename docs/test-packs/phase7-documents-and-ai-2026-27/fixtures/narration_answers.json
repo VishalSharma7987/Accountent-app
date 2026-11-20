@@ -1,0 +1,40 @@
+[
+ {
+  "step": 1,
+  "line_no": 1,
+  "model": {
+   "pick": "Tea Expense",
+   "confidence": 0.8
+  }
+ },
+ {
+  "step": 2,
+  "line_no": 2,
+  "model": null
+ },
+ {
+  "step": 3,
+  "line_no": 3,
+  "model": null
+ },
+ {
+  "step": 4,
+  "line_no": 4,
+  "model": {
+   "raw": "{\"choice\": \"L999\", \"confidence\": 0.9}"
+  }
+ },
+ {
+  "step": 5,
+  "line_no": 5,
+  "model": {
+   "pick": "Staff Welfare",
+   "confidence": 0.8
+  }
+ },
+ {
+  "step": 6,
+  "line_no": 6,
+  "model": null
+ }
+]

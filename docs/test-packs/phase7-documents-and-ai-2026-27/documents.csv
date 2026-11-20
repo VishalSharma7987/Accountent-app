@@ -1,0 +1,14 @@
+doc_id,file,doc_type,arrives,what_it_tests
+P7-01,invoices/P7-01.txt,purchase_invoice,first,first model answer has a key the schema does not allow (invalid); second answer is correct
+P7-02,invoices/P7-02.txt,purchase_invoice,first,correct inter-state invoice; PAN / Aadhaar / bank account number in the text must be masked
+P7-03,invoices/P7-03.txt,purchase_invoice,first,50 paise rounding differences and a low confidence field are warnings; an instruction hidden in the text is only data
+P7-04,invoices/P7-04.txt,purchase_invoice,first,wrong tax amount read from the paper
+P7-05,invoices/P7-05.txt,purchase_invoice,first,wrong rate read (12 for 5) plus an HSN the rate table does not have (pending)
+P7-06,invoices/P7-06.txt,purchase_invoice,first,supplier charged IGST on an intra-state sale (tax type wrong for place of supply)
+P7-07,invoices/P7-07.txt,purchase_invoice,first,a line of the invoice was missed by the reader
+P7-08,invoices/P7-08.txt,purchase_invoice,first,GSTIN with a wrong check character (OCR misread)
+P7-09,invoices/P7-09.txt,purchase_invoice,first,no invoice number and a date before the first financial year
+P7-11,invoices/P7-11.txt,purchase_invoice,first,supplier not mapped (review) and grand total misread
+P7-12,invoices/P7-12.txt,credit_note,first,credit note without a reason and without the original invoice date
+P7-B1,bank/P7-B1.txt,bank_statement,first,bank statement text with one running balance misread
+P7-10,invoices/P7-10.txt,purchase_invoice,last,the same bill as P7-01 scanned again after P7-01 was posted (duplicate)

@@ -1,0 +1,17 @@
+TAX INVOICE
+Shree Traders
+12 Market Road, Pune, Maharashtra
+GSTIN: 27CCCPM4321E1ZZ
+Invoice No: (not printed)        Date: 15-03-2026
+Bill to: Pack Traders, 5 Station Road, Pune
+Buyer GSTIN: 27AAAPL1234C1ZE
+Place of supply: 27-Maharashtra
+
+Sl  Description          HSN     Qty   Unit  Rate       Disc    Taxable      GST%  CGST       SGST
+1   Sugar M-30           1701    1     KGS   1,000.00   0.00    1,000.00     5     25.00      25.00
+
+Total taxable value: 1,000.00
+CGST: 25.00
+SGST: 25.00
+Round off: 0.00
+Grand total: 1,050.00

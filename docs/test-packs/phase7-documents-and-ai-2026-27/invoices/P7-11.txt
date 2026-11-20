@@ -1,0 +1,17 @@
+TAX INVOICE
+Verma Cooling Solutions
+7 Ring Road, Nashik, Maharashtra
+GSTIN: 27BBBPV9012G1ZK
+Invoice No: VC/26/55        Date: 02-07-2026
+Bill to: Pack Traders, 5 Station Road, Pune
+Buyer GSTIN: 27AAAPL1234C1ZE
+Place of supply: 27-Maharashtra
+
+Sl  Description          HSN     Qty   Unit  Rate       Disc    Taxable      GST%  CGST       SGST
+1   Split AC 1.5 ton      8415    1     NOS   30,000.00  0.00    30,000.00    18    2,700.00   2,700.00
+
+Total taxable value: 30,000.00
+CGST: 2,700.00
+SGST: 2,700.00
+Round off: 0.00
+Grand total: 35,400.00
